@@ -249,6 +249,15 @@ fun MyComponent(
 4. 기타 라이브러리
 5. 프로젝트 내부 (`com.scrap2025.*`)
 
+## 빌드
+
+빌드 명령어:
+```bash
+./gradlew assembleDebug --no-daemon
+```
+
+BUILD SUCCESSFUL이면 성공, BUILD FAILED면 오류 확인.
+
 ## 코드 생성 체크리스트
 
 모든 코드 생성 작업 시 다음을 반드시 따릅니다:
