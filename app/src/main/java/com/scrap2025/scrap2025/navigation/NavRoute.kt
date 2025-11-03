@@ -7,8 +7,8 @@ object NavRoute {
     // Auth routes
     const val LOGIN = "login_route"
 
-    // Home routes
-    const val HOME = "home_route"
+    // Main routes
+    const val MAIN = "main_route"
 
     // Tab routes
     const val CATEGORY = "category_route"
