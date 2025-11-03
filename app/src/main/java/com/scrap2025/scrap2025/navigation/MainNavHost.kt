@@ -24,7 +24,7 @@ fun MainNavHost(
         startDestination = NavRoute.CATEGORY,
         modifier = modifier.fillMaxSize()
     ) {
-        categoryNavGraph()
+        categoryNavGraph(navController = tabNavController)
         scrapNavGraph()
         favoriteNavGraph()
         searchNavGraph()
