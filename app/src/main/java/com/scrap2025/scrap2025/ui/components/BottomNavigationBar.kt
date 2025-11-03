@@ -1,12 +1,12 @@
 package com.scrap2025.scrap2025.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.outlined.ManageSearch
+import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -32,11 +32,11 @@ fun BottomNavigationBar(
     modifier: Modifier = Modifier
 ) {
     val items = listOf(
-        BottomNavItem("카테고리", Icons.Default.Home),
-        BottomNavItem("스크랩", Icons.Default.FavoriteBorder),
-        BottomNavItem("즐겨찾기", Icons.Default.FavoriteBorder),
-        BottomNavItem("검색", Icons.Default.Search),
-        BottomNavItem("마이페이지", Icons.Default.Person)
+        BottomNavItem("카테고리", Icons.Outlined.Home),
+        BottomNavItem("스크랩", Icons.Outlined.AttachFile),
+        BottomNavItem("즐겨찾기", Icons.Outlined.Star),
+        BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch),
+        BottomNavItem("마이페이지", Icons.Outlined.Person)
     )
 
     NavigationBar(
