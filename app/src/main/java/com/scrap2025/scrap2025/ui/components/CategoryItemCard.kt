@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
+import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 @Composable
@@ -57,7 +58,7 @@ fun CategoryItemCard(
         Box(
             modifier = Modifier
                 .background(
-                    color = Color(0xFFF5F9F3),
+                    color = MainColorLight,
                     shape = RoundedCornerShape(15.dp)
                 )
                 .padding(horizontal = 10.dp, vertical = 5.dp),
