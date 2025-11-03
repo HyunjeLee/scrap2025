@@ -38,7 +38,7 @@ fun BottomNavigationBar(
         BottomNavItem("스크랩", Icons.Outlined.Add, NavRoute.SCRAP),
         BottomNavItem("즐겨찾기", Icons.Outlined.Star, NavRoute.FAVORITE),
         BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch, NavRoute.SEARCH),
-        BottomNavItem("마이페이지", Icons.Outlined.Person, NavRoute.MY_PAGE)
+        BottomNavItem("마이페이지", Icons.Outlined.Person, NavRoute.MYPAGE)
     )
 
     NavigationBar(

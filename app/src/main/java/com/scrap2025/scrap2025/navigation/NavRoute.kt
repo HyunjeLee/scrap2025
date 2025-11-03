@@ -15,5 +15,5 @@ object NavRoute {
     const val SCRAP = "scrap_route"
     const val FAVORITE = "favorite_route"
     const val SEARCH = "search_route"
-    const val MY_PAGE = "mypage_route"
+    const val MYPAGE = "mypage_route"
 }

@@ -6,7 +6,7 @@ import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.screens.MyPageScreen
 
 fun NavGraphBuilder.myPageNavGraph() {
-    composable(NavRoute.MY_PAGE) {
+    composable(NavRoute.MYPAGE) {
         MyPageScreen()
     }
 }
