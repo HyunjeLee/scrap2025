@@ -285,6 +285,7 @@ BUILD SUCCESSFUL이면 성공, BUILD FAILED면 오류 확인.
 - **상태 관리**: `StateFlow` 또는 `LiveData` 일관성 유지
 - **실제 동작**: 모킹 없이 실제 동작하는 코드만 작성
 - **Recomposition 고려**: 상태 범위 최소화, 람다 안정화, LazyList 사용
+- **색상 관리**: 하드코딩된 색상값(Color(0xFF...)) 사용 금지, `Color.kt`에 정의된 색상 상수 사용 필수
 
 ## 향후 개선 계획
 
