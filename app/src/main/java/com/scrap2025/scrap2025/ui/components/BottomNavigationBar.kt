@@ -3,7 +3,7 @@ package com.scrap2025.scrap2025.ui.components
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ManageSearch
-import androidx.compose.material.icons.outlined.AttachFile
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Star
@@ -18,25 +18,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 data class BottomNavItem(
     val label: String,
-    val icon: ImageVector?
+    val icon: ImageVector?,
+    val route: String
 )
 
 @Composable
 fun BottomNavigationBar(
-    selectedIndex: Int = 0,
-    onItemClick: (Int) -> Unit = {},
+    selectedRoute: String = NavRoute.CATEGORY,
+    onItemClick: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val items = listOf(
-        BottomNavItem("카테고리", Icons.Outlined.Home),
-        BottomNavItem("스크랩", Icons.Outlined.AttachFile),
-        BottomNavItem("즐겨찾기", Icons.Outlined.Star),
-        BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch),
-        BottomNavItem("마이페이지", Icons.Outlined.Person)
+        BottomNavItem("카테고리", Icons.Outlined.Home, NavRoute.CATEGORY),
+        BottomNavItem("스크랩", Icons.Outlined.Add, NavRoute.SCRAP),
+        BottomNavItem("즐겨찾기", Icons.Outlined.Star, NavRoute.FAVORITE),
+        BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch, NavRoute.SEARCH),
+        BottomNavItem("마이페이지", Icons.Outlined.Person, NavRoute.MY_PAGE)
     )
 
     NavigationBar(
@@ -46,10 +48,10 @@ fun BottomNavigationBar(
         containerColor = Color.White,
         tonalElevation = 0.dp
     ) {
-        items.forEachIndexed { index, item ->
+        items.forEach { item ->
             NavigationBarItem(
-                selected = index == selectedIndex,
-                onClick = { onItemClick(index) },
+                selected = item.route == selectedRoute,
+                onClick = { onItemClick(item.route) },
                 icon = {
                     item.icon?.let {
                         Icon(
@@ -69,7 +71,7 @@ fun BottomNavigationBar(
 @Composable
 fun BottomNavigationBarPreview() {
     Scrap2025Theme {
-        BottomNavigationBar(selectedIndex = 0)
+        BottomNavigationBar(selectedRoute = NavRoute.CATEGORY)
     }
 }
 
@@ -77,6 +79,6 @@ fun BottomNavigationBarPreview() {
 @Composable
 fun BottomNavigationBarPreviewSelected() {
     Scrap2025Theme {
-        BottomNavigationBar(selectedIndex = 2)
+        BottomNavigationBar(selectedRoute = NavRoute.FAVORITE)
     }
 }
