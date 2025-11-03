@@ -12,6 +12,7 @@ object NavRoute {
 
     // Tab routes
     const val CATEGORY = "category_route"
+    const val ADD_CATEGORY = "add_category_route"
     const val SCRAP = "scrap_route"
     const val FAVORITE = "favorite_route"
     const val SEARCH = "search_route"
