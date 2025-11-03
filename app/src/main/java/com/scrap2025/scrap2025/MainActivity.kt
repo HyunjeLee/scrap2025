@@ -10,12 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.scrap2025.scrap2025.ui.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.screens.CategoryScreen
 import com.scrap2025.scrap2025.ui.screens.FavoriteScreen
+import com.scrap2025.scrap2025.ui.screens.LoginScreen
 import com.scrap2025.scrap2025.ui.screens.MyPageScreen
 import com.scrap2025.scrap2025.ui.screens.ScrapScreen
 import com.scrap2025.scrap2025.ui.screens.SearchScreen
@@ -32,31 +34,37 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
+    val isLoggedIn = remember { mutableStateOf(false) }
     val selectedIndex = remember { mutableIntStateOf(0) }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        bottomBar = {
-            BottomNavigationBar(
-                selectedIndex = selectedIndex.intValue,
-                onItemClick = { selectedIndex.intValue = it }
-            )
-        }
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            when (selectedIndex.intValue) {
-                0 -> CategoryScreen()
-                1 -> ScrapScreen()
-                2 -> FavoriteScreen()
-                3 -> SearchScreen()
-                4 -> MyPageScreen()
+    if (!isLoggedIn.value) {
+        LoginScreen(
+            onLoginClick = { isLoggedIn.value = true }
+        )
+    } else {
+        Scaffold(
+            modifier = modifier.fillMaxSize(),
+            bottomBar = {
+                BottomNavigationBar(
+                    selectedIndex = selectedIndex.intValue,
+                    onItemClick = { selectedIndex.intValue = it }
+                )
+            }
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                when (selectedIndex.intValue) {
+                    0 -> CategoryScreen()
+                    1 -> ScrapScreen()
+                    2 -> FavoriteScreen()
+                    3 -> SearchScreen()
+                    4 -> MyPageScreen()
+                }
             }
         }
     }
