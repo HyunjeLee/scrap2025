@@ -3,7 +3,7 @@ package com.scrap2025.scrap2025.ui.components
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ManageSearch
-import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Star
@@ -35,7 +35,7 @@ fun BottomNavigationBar(
 ) {
     val items = listOf(
         BottomNavItem("카테고리", Icons.Outlined.Folder, NavRoute.CATEGORY),
-        BottomNavItem("스크랩", Icons.Outlined.Add, NavRoute.SCRAP),
+        BottomNavItem("스크랩", Icons.Outlined.AttachFile, NavRoute.SCRAP),
         BottomNavItem("즐겨찾기", Icons.Outlined.Star, NavRoute.FAVORITE),
         BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch, NavRoute.SEARCH),
         BottomNavItem("마이페이지", Icons.Outlined.Person, NavRoute.MYPAGE)
