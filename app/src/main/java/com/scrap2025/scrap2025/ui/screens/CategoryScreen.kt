@@ -17,6 +17,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,17 +27,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.CategoryDummyData
+import com.scrap2025.scrap2025.model.CategoryItem
+import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+val _categories = MutableStateFlow<List<CategoryItem>>(CategoryDummyData.dummyCategories)
+val categoriesStateFlow: StateFlow<List<CategoryItem>> = _categories
 
 @Composable
-fun CategoryScreen(modifier: Modifier = Modifier) {
-    val categoryList = CategoryDummyData.dummyCategories
+fun CategoryScreen(
+    navController: NavHostController? = null,
+    modifier: Modifier = Modifier
+) {
+    val categories by categoriesStateFlow.collectAsState()
+    val categoryList = categories
 
     Box(
         modifier = modifier
@@ -87,7 +101,9 @@ fun CategoryScreen(modifier: Modifier = Modifier) {
 
         // FAB 버튼 - 오른쪽 하단에 고정 (Scaffold의 bottomBar 위에 배치)
         FloatingActionButton(
-            onClick = { },
+            onClick = {
+                navController?.navigate(NavRoute.ADD_CATEGORY)
+            },
             shape = CircleShape,
             containerColor = MainColor,
             contentColor = MainColorDeep,
