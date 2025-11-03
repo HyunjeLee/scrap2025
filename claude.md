@@ -7,6 +7,7 @@
 **중요**: 이 프로젝트는 **AI를 주도적으로 활용하는 바이브 코딩(Vibe Coding) 프로젝트**입니다.
 - 개발자의 개입은 최소화하고, AI의 자율적 판단과 창의성을 우선시합니다
 - Claude Code가 직접 작업을 계획하고 실행하며 의사결정을 담당합니다
+- 피그마 MCP 서버를 활용해 UI를 구현합니다
 - 개발자는 큰 방향성만 제시하고, 세부 구현은 AI에게 위임합니다
 - 이를 감안하여 작업 진행 시 더 주도적이고 독립적으로 진행해주세요
 
@@ -262,6 +263,7 @@ fun MyComponent(
 ```bash
 ./gradlew assembleDebug --no-daemon
 ```
+빌드 전에는 clean
 
 BUILD SUCCESSFUL이면 성공, BUILD FAILED면 오류 확인.
 
@@ -289,7 +291,7 @@ BUILD SUCCESSFUL이면 성공, BUILD FAILED면 오류 확인.
 - [ ] 데이터 계층 구현 (Repository, DataSource)
 - [ ] 네트워킹 라이브러리 통합 (Retrofit, OkHttp)
 - [ ] 로컬 데이터베이스 (Room)
-- [ ] 의존성 주입 (Hilt)ㅎ
+- [ ] 의존성 주입 (Hilt)
 - [ ] 이미지 로딩 라이브러리 (Coil)
 - [ ] 로깅 및 분석
 - [ ] 유닛 테스트 및 UI 테스트 확대
