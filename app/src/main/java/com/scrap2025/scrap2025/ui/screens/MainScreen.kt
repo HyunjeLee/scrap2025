@@ -11,8 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.scrap2025.scrap2025.navigation.MainNavHost
+import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
@@ -25,20 +27,24 @@ fun MainScreen(
 ) {
     val selectedTabRoute by mainViewModel.selectedTabRoute.collectAsState()
     val tabNavController = rememberNavController()
+    val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
-            BottomNavigationBar(
-                selectedRoute = selectedTabRoute,
-                onItemClick = { route ->
-                    mainViewModel.selectTab(route)
-                    tabNavController.navigate(route) {
-                        launchSingleTop = true
-                        restoreState = true
+            if (currentRoute != NavRoute.ADD_CATEGORY) {
+                BottomNavigationBar(
+                    selectedRoute = selectedTabRoute,
+                    onItemClick = { route ->
+                        mainViewModel.selectTab(route)
+                        tabNavController.navigate(route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     ) { innerPadding ->
         Box(
