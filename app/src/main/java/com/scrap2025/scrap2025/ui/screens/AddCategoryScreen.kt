@@ -38,6 +38,7 @@ import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.viewmodel.AddCategoryViewModel
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
+import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
@@ -115,34 +116,48 @@ fun AddCategoryScreen(
             }
 
             // 입력 필드
-            TextField(
-                value = categoryName,
-                onValueChange = { viewModel.updateCategoryName(it) },
-                placeholder = {
-                    Text(
-                        text = "카테고리명을 입력하세요",
-                        color = DarkGrayColor,
-                        style = TextStyle(fontSize = 15.sp)
-                    )
-                },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 21.dp, vertical = 20.dp),
-                textStyle = TextStyle(
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MainColorLight,
-                    unfocusedContainerColor = MainColorLight,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black
-                ),
-                shape = RoundedCornerShape(8.dp),
-                singleLine = true
-            )
+                    .padding(horizontal = 21.dp, vertical = 20.dp)
+                    .background(MainColorLight, shape = RoundedCornerShape(8.dp))
+                    .padding(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .background(MainColor, shape = RoundedCornerShape(10.dp))
+                ) {
+                    TextField(
+                        value = categoryName,
+                        onValueChange = { viewModel.updateCategoryName(it) },
+                        placeholder = {
+                            Text(
+                                text = "카테고리명을 입력하세요",
+                                color = GrayColor,
+                                style = TextStyle(fontSize = 15.sp)
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        textStyle = TextStyle(
+                            fontSize = 15.sp,
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = Color.Black
+                        ),
+                        singleLine = true
+                    )
+                }
+            }
         }
 
         // 하단 버튼
