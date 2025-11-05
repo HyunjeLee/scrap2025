@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.CategoryDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
@@ -89,7 +90,16 @@ fun CategoryScreen(
             ) {
                 items(count = categoryList.size) { index ->
                     val category = categoryList[index]
-                    CategoryItemCard(categoryItem = category)
+                    CategoryItemCard(
+                        categoryItem = category,
+                        onClick = {
+                            navController?.navigate(
+                                "${NavRoute.SCRAP}?categoryId=${category.id}&categoryName=${category.name}"
+                            ) {
+                                popUpTo(0)
+                            }
+                        }
+                    )
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth(),
                         color = GrayColor,
