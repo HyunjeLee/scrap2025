@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.screens
+package com.scrap2025.scrap2025.ui.category.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background

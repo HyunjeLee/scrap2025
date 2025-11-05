@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.screens
+package com.scrap2025.scrap2025.ui.scrap.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.data.local.ScrapDummyData
 import com.scrap2025.scrap2025.model.ScrapItem
-import com.scrap2025.scrap2025.ui.components.ScrapItemCard
+import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCard
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor

@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.screens
+package com.scrap2025.scrap2025.ui.search.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,19 +10,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 @Composable
-fun FavoriteScreen(modifier: Modifier = Modifier) {
+fun SearchScreen(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text("즐겨찾기 화면")
+        Text("검색 화면")
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun FavoriteScreenPreview() {
+fun SearchScreenPreview() {
     Scrap2025Theme {
-        FavoriteScreen()
+        SearchScreen()
     }
 }

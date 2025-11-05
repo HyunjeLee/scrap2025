@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.screens
+package com.scrap2025.scrap2025.ui.login.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border

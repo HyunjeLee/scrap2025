@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.components
+package com.scrap2025.scrap2025.ui.category.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

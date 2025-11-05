@@ -6,9 +6,9 @@ import androidx.navigation.compose.composable
 import com.scrap2025.scrap2025.data.local.CategoryDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.navigation.NavRoute
-import com.scrap2025.scrap2025.ui.screens.AddCategoryScreen
-import com.scrap2025.scrap2025.ui.screens.CategoryScreen
-import com.scrap2025.scrap2025.ui.screens._categories
+import com.scrap2025.scrap2025.ui.category.screens.AddCategoryScreen
+import com.scrap2025.scrap2025.ui.category.screens.CategoryScreen
+import com.scrap2025.scrap2025.ui.category.screens._categories
 import java.util.UUID
 
 fun NavGraphBuilder.categoryNavGraph(navController: NavHostController) {

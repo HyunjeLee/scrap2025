@@ -27,7 +27,7 @@
 - **빌드 시스템**: Gradle (Kotlin DSL)
 - **라이프사이클 관리**: Android Jetpack Lifecycle
 
-## 프로젝트 구조 (Layer-based Clean Architecture)
+## 프로젝트 구조 (Feature-based Clean Architecture)
 
 ```
 scrap2025/
@@ -36,29 +36,58 @@ scrap2025/
 │   │   ├── main/
 │   │   │   ├── java/com/scrap2025/scrap2025/
 │   │   │   │   ├── MainActivity.kt                    # 메인 액티비티
-│   │   │   │   ├── ui/                               # UI 계층
-│   │   │   │   │   ├── screens/                      # 화면 컴포저블들 (LoginScreen.kt, etc)
-│   │   │   │   │   ├── components/                   # 재사용 가능한 UI 컴포넌트
-│   │   │   │   │   │   ├── buttons/                  # 버튼 컴포넌트
-│   │   │   │   │   │   └── cards/                    # 카드 컴포넌트
-│   │   │   │   │   └── theme/
+│   │   │   │   ├── ui/                               # UI 계층 (Feature-based)
+│   │   │   │   │   ├── scrap/                        # 스크랩 기능
+│   │   │   │   │   │   ├── screens/                  # ScrapScreen.kt
+│   │   │   │   │   │   └── components/               # ScrapItemCard.kt
+│   │   │   │   │   ├── category/                     # 카테고리 기능
+│   │   │   │   │   │   ├── screens/                  # CategoryScreen.kt, AddCategoryScreen.kt
+│   │   │   │   │   │   └── components/               # CategoryItemCard.kt
+│   │   │   │   │   ├── favorite/                     # 즐겨찾기 기능
+│   │   │   │   │   │   ├── screens/                  # FavoriteScreen.kt
+│   │   │   │   │   │   └── components/
+│   │   │   │   │   ├── search/                       # 검색 기능
+│   │   │   │   │   │   ├── screens/                  # SearchScreen.kt
+│   │   │   │   │   │   └── components/
+│   │   │   │   │   ├── mypage/                       # 마이페이지 기능
+│   │   │   │   │   │   ├── screens/                  # MyPageScreen.kt
+│   │   │   │   │   │   └── components/
+│   │   │   │   │   ├── login/                        # 로그인 기능
+│   │   │   │   │   │   ├── screens/                  # LoginScreen.kt
+│   │   │   │   │   │   └── components/
+│   │   │   │   │   ├── main/                         # 메인 쉘
+│   │   │   │   │   │   ├── screens/                  # MainScreen.kt
+│   │   │   │   │   │   └── components/               # BottomNavigationBar.kt
+│   │   │   │   │   ├── common/                       # 공통 컴포넌트
+│   │   │   │   │   │   ├── buttons/
+│   │   │   │   │   │   └── cards/
+│   │   │   │   │   └── theme/                        # 디자인 시스템
 │   │   │   │   │       ├── Color.kt                  # 색상 정의
 │   │   │   │   │       ├── Theme.kt                  # 테마 정의
 │   │   │   │   │       └── Type.kt                   # 타이포그래피 정의
 │   │   │   │   ├── viewmodel/                        # ViewModel 클래스들
-│   │   │   │   │   ├── LoginViewModel.kt
-│   │   │   │   │   ├── ScrapViewModel.kt
+│   │   │   │   │   ├── MainViewModel.kt
+│   │   │   │   │   ├── AddCategoryViewModel.kt
 │   │   │   │   │   └── ...
 │   │   │   │   ├── model/                            # Data 모델
-│   │   │   │   │   ├── dto/                          # Data Transfer Objects
-│   │   │   │   │   └── entity/                       # Entity 클래스
+│   │   │   │   │   ├── CategoryItem.kt
+│   │   │   │   │   ├── ScrapItem.kt
+│   │   │   │   │   └── ...
 │   │   │   │   ├── repository/                       # 데이터 접근 계층 (추상화)
-│   │   │   │   │   ├── LoginRepository.kt
-│   │   │   │   │   └── ScrapRepository.kt
 │   │   │   │   ├── data/                             # 데이터 소스 (구현)
 │   │   │   │   │   ├── local/                        # 로컬 데이터 (Room DB, SharedPref)
 │   │   │   │   │   └── remote/                       # 원격 데이터 (API, Retrofit)
-│   │   │   │   └── navigation/                       # Navigation 설정 (NavGraph.kt)
+│   │   │   │   └── navigation/                       # Navigation 설정
+│   │   │   │       ├── AppNavHost.kt
+│   │   │   │       ├── TabNavHost.kt
+│   │   │   │       ├── NavRoute.kt
+│   │   │   │       ├── MainNavGraph.kt
+│   │   │   │       └── graphs/                       # Feature별 NavGraph
+│   │   │   │           ├── CategoryNavGraph.kt
+│   │   │   │           ├── ScrapNavGraph.kt
+│   │   │   │           ├── FavoriteNavGraph.kt
+│   │   │   │           ├── SearchNavGraph.kt
+│   │   │   │           └── MyPageNavGraph.kt
 │   │   │   ├── res/                                  # 리소스 파일
 │   │   │   └── AndroidManifest.xml
 │   │   ├── test/                                     # 단위 테스트
@@ -70,22 +99,37 @@ scrap2025/
 └── claude.md                                         # 이 파일
 ```
 
-## MVVM 아키텍처 + Layer-based 구조
+## MVVM 아키텍처 + Feature-based 구조
 
 ### 계층 설명
 
-#### 1. UI 계층 (`ui/`)
+#### 1. UI 계층 (`ui/`) - Feature-based 구조
 **책임**: 사용자 인터페이스 표시
 
-- **`screens/`**: 전체 화면을 구성하는 Composable 함수
-  - 예: `LoginScreen.kt`, `ScrapScreen.kt`
-  - ViewModel과 상호작용
-  - 여러 컴포넌트를 조합하여 전체 화면 구성
+이 프로젝트는 **기능 기반(Feature-based)** 구조를 채택하여, 관련 화면과 컴포넌트를 기능별로 그룹화합니다.
 
-- **`components/`**: 재사용 가능한 UI 컴포넌트
-  - `buttons/`: 버튼 컴포넌트들
-  - `cards/`: 카드 컴포넌트들
-  - 다른 화면에서도 사용 가능
+**Feature 폴더 구조:**
+- **`{feature}/screens/`**: 해당 기능의 모든 화면
+  - 예: `category/screens/CategoryScreen.kt`, `category/screens/AddCategoryScreen.kt`
+  - 관련된 모든 화면이 한 곳에 모여 있어 유지보수 용이
+
+- **`{feature}/components/`**: 해당 기능 전용 컴포넌트
+  - 예: `scrap/components/ScrapItemCard.kt`
+  - Feature-specific 컴포넌트만 포함
+
+**주요 Feature 목록:**
+- `scrap/`: 스크랩 관련 화면 및 컴포넌트
+- `category/`: 카테고리 관련 화면 및 컴포넌트
+- `favorite/`: 즐겨찾기 관련 화면 및 컴포넌트
+- `search/`: 검색 관련 화면 및 컴포넌트
+- `mypage/`: 마이페이지 관련 화면 및 컴포넌트
+- `login/`: 로그인 관련 화면 및 컴포넌트
+- `main/`: 메인 쉘 (MainScreen, BottomNavigationBar)
+
+**공통 요소:**
+- **`common/`**: 여러 기능에서 공유되는 컴포넌트
+  - `buttons/`: 공통 버튼 컴포넌트들
+  - `cards/`: 공통 카드 컴포넌트들
 
 - **`theme/`**: 디자인 시스템
   - `Color.kt`: 앱 전체 색상 팔레트

@@ -5,7 +5,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.scrap2025.scrap2025.navigation.NavRoute
-import com.scrap2025.scrap2025.ui.screens.ScrapScreen
+import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreen
 
 fun NavGraphBuilder.scrapNavGraph() {
     composable(

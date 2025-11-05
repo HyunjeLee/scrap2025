@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.components
+package com.scrap2025.scrap2025.ui.main.components
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons

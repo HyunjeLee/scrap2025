@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.screens
+package com.scrap2025.scrap2025.ui.favorite.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,19 +10,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 @Composable
-fun MyPageScreen(modifier: Modifier = Modifier) {
+fun FavoriteScreen(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text("마이페이지 화면")
+        Text("즐겨찾기 화면")
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun MyPageScreenPreview() {
+fun FavoriteScreenPreview() {
     Scrap2025Theme {
-        MyPageScreen()
+        FavoriteScreen()
     }
 }
