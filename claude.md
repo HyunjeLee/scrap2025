@@ -69,14 +69,21 @@ scrap2025/
 │   │   │   │   │   ├── MainViewModel.kt
 │   │   │   │   │   ├── AddCategoryViewModel.kt
 │   │   │   │   │   └── ...
-│   │   │   │   ├── model/                            # Data 모델
-│   │   │   │   │   ├── CategoryItem.kt
-│   │   │   │   │   ├── ScrapItem.kt
-│   │   │   │   │   └── ...
+│   │   │   │   ├── model/                            # 도메인 모델
+│   │   │   │   │   ├── CategoryItem.kt               # 카테고리 모델
+│   │   │   │   │   └── ScrapItem.kt                  # 스크랩 모델
 │   │   │   │   ├── repository/                       # 데이터 접근 계층 (추상화)
 │   │   │   │   ├── data/                             # 데이터 소스 (구현)
-│   │   │   │   │   ├── local/                        # 로컬 데이터 (Room DB, SharedPref)
-│   │   │   │   │   └── remote/                       # 원격 데이터 (API, Retrofit)
+│   │   │   │   │   ├── local/                        # 로컬 데이터
+│   │   │   │   │   │   ├── entity/                   # Room DB 엔티티
+│   │   │   │   │   │   ├── dao/                      # Room DAO
+│   │   │   │   │   │   ├── datasource/               # LocalDataSource 구현
+│   │   │   │   │   │   ├── ScrapDummyData.kt         # 스크랩 더미 데이터
+│   │   │   │   │   │   └── CategoryDummyData.kt      # 카테고리 더미 데이터
+│   │   │   │   │   └── remote/                       # 원격 데이터
+│   │   │   │   │       ├── dto/                      # API 응답 DTO
+│   │   │   │   │       ├── api/                      # Retrofit 인터페이스
+│   │   │   │   │       └── datasource/               # RemoteDataSource 구현
 │   │   │   │   └── navigation/                       # Navigation 설정
 │   │   │   │       ├── AppNavHost.kt
 │   │   │   │       ├── TabNavHost.kt
@@ -146,15 +153,14 @@ scrap2025/
 - 예: `LoginViewModel.kt`, `ScrapViewModel.kt`
 
 #### 3. Model 계층 (`model/`)
-**책임**: 데이터 구조 정의
+**책임**: 도메인 모델 정의
 
-- **`dto/`** (Data Transfer Object)
-  - API 응답 데이터 구조
-  - 네트워크 통신용 모델
+비즈니스 로직에 사용되는 핵심 데이터 모델을 정의합니다.
 
-- **`entity/`**
-  - 로컬 DB 엔티티
-  - 비즈니스 로직에 사용되는 데이터 모델
+- **`CategoryItem.kt`**: 카테고리 도메인 모델
+- **`ScrapItem.kt`**: 스크랩 도메인 모델
+
+이 모델들은 UI, Repository, Data 계층에서 공통으로 사용됩니다.
 
 #### 4. Repository 계층 (`repository/`)
 **책임**: 데이터 접근의 추상화
@@ -182,13 +188,15 @@ class LoginRepositoryImpl(
 **책임**: 실제 데이터 접근 구현
 
 - **`local/`**: 로컬 데이터 소스
-  - Room Database
-  - SharedPreferences
-  - 로컬 캐싱
+  - `entity/`: Room Database 엔티티 정의
+  - `dao/`: Room DAO (Data Access Object) 인터페이스
+  - `datasource/`: LocalDataSource 구현체
+  - 현재: 더미 데이터 (`ScrapDummyData.kt`, `CategoryDummyData.kt`)
 
 - **`remote/`**: 원격 데이터 소스
-  - Retrofit API 호출
-  - HTTP 통신
+  - `dto/`: API 응답/요청 DTO (Data Transfer Object)
+  - `api/`: Retrofit API 인터페이스 정의
+  - `datasource/`: RemoteDataSource 구현체
 
 #### 6. Navigation 계층 (`navigation/`)
 **책임**: 화면 간 네비게이션 관리
