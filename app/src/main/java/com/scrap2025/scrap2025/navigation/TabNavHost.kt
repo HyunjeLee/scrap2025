@@ -15,7 +15,7 @@ import com.scrap2025.scrap2025.navigation.graphs.searchNavGraph
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 @Composable
-fun MainNavHost(
+fun TabNavHost(
     tabNavController: NavHostController,
     modifier: Modifier = Modifier
 ) {
@@ -34,8 +34,8 @@ fun MainNavHost(
 
 @Preview(showBackground = true)
 @Composable
-fun MainNavHostPreview() {
+fun TabNavHostPreview() {
     Scrap2025Theme {
-        MainNavHost(tabNavController = rememberNavController())
+        TabNavHost(tabNavController = rememberNavController())
     }
 }
