@@ -1,5 +1,10 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,14 +22,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowCircleUp
+import androidx.compose.material.icons.outlined.ArrowDropUp
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GridView
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.rounded.Add
@@ -33,8 +42,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,6 +67,7 @@ import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ScrapScreen(
@@ -65,6 +77,39 @@ fun ScrapScreen(
 ) {
     val scrapItems by viewModel.scrapItems.collectAsState()
     val viewMode by viewModel.viewMode.collectAsState()
+    val showScrollToTop by viewModel.showScrollToTop.collectAsState()
+
+    // Compose UI 상태 (View에서 관리)
+    val listState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
+    val coroutineScope = rememberCoroutineScope()
+
+    // 스크롤 위치 변경 감지 → ViewModel에 알림
+    LaunchedEffect(
+        listState.firstVisibleItemIndex,
+        listState.firstVisibleItemScrollOffset,
+        gridState.firstVisibleItemIndex,
+        gridState.firstVisibleItemScrollOffset,
+        viewMode
+    ) {
+        val (index, offset) = when (viewMode) {
+            ViewMode.LIST -> listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
+            ViewMode.GRID -> gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
+        }
+        viewModel.updateScrollPosition(index, offset)
+    }
+
+    // 맨 위로가기 이벤트 수신 → 애니메이션 스크롤
+    LaunchedEffect(Unit) {
+        viewModel.scrollToTopEvent.collect {
+            coroutineScope.launch {
+                when (viewMode) {
+                    ViewMode.LIST -> listState.animateScrollToItem(0)
+                    ViewMode.GRID -> gridState.animateScrollToItem(0)
+                }
+            }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -90,6 +135,7 @@ fun ScrapScreen(
             when (viewMode) {
                 ViewMode.LIST -> {
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f)
@@ -104,6 +150,7 @@ fun ScrapScreen(
                 ViewMode.GRID -> {
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
+                        state = gridState,
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f),
@@ -138,6 +185,31 @@ fun ScrapScreen(
                 contentDescription = "스크랩 추가",
                 modifier = Modifier.size(50.dp)
             )
+        }
+
+        // 맨 위로가기 버튼
+        AnimatedVisibility(
+            visible = showScrollToTop,
+            enter = fadeIn() + scaleIn(),
+            exit = fadeOut() + scaleOut(),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 26.dp, bottom = 92.dp)
+        ) {
+            FloatingActionButton(
+                onClick = { viewModel.scrollToTop() },
+                shape = CircleShape,
+                containerColor = Color.White,
+                contentColor = MainColorDeep,
+                modifier = Modifier.size(50.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.KeyboardArrowUp,
+                    contentDescription = "맨 위로가기",
+                    tint = MainColorDeep,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
         }
     }
 }
