@@ -48,6 +48,51 @@ object ScrapDummyData {
             createdDate = "2024.02.12",
             isFavorite = false,
             categoryId = "3"
+        ),
+        ScrapItem(
+            id = "6",
+            title = "제목제목제목제목",
+            url = "주소주소주소주소",
+            imageUrl = null,
+            createdDate = "2024.02.15",
+            isFavorite = true,
+            categoryId = "1"
+        ),
+        ScrapItem(
+            id = "7",
+            title = "제목제목제목제목제목제목제목",
+            url = "주소주소주소주소",
+            imageUrl = "https://images.unsplash.com/photo-1518791841217-8f162f1e1131",
+            createdDate = "2024.02.18",
+            isFavorite = false,
+            categoryId = "2"
+        ),
+        ScrapItem(
+            id = "8",
+            title = "제목",
+            url = "주소주소주소주소",
+            imageUrl = null,
+            createdDate = "2024.02.25",
+            isFavorite = true,
+            categoryId = "3"
+        ),
+        ScrapItem(
+            id = "9",
+            title = "제목제목제목제목제목제목제목제목제목제목",
+            url = "주소주소주소주소",
+            imageUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+            createdDate = "2024.02.28",
+            isFavorite = false,
+            categoryId = "1"
+        ),
+        ScrapItem(
+            id = "10",
+            title = "제목제목제목제목제목",
+            url = "주소주소주소주소",
+            imageUrl = "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+            createdDate = "2024.03.01",
+            isFavorite = true,
+            categoryId = "2"
         )
     )
 }
