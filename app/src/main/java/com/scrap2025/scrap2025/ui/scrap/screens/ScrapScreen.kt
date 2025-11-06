@@ -42,9 +42,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,35 +78,23 @@ fun ScrapScreen(
 ) {
     val scrapItems by viewModel.scrapItems.collectAsState()
     val viewMode by viewModel.viewMode.collectAsState()
-    val showScrollToTop by viewModel.showScrollToTop.collectAsState()
 
     // Compose UI 상태 (View에서 관리)
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
 
-    // 스크롤 위치 변경 감지 → ViewModel에 알림
-    LaunchedEffect(
-        listState.firstVisibleItemIndex,
-        listState.firstVisibleItemScrollOffset,
-        gridState.firstVisibleItemIndex,
-        gridState.firstVisibleItemScrollOffset,
-        viewMode
-    ) {
-        val (index, offset) = when (viewMode) {
-            ViewMode.LIST -> listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset
-            ViewMode.GRID -> gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
-        }
-        viewModel.updateScrollPosition(index, offset)
-    }
-
-    // 맨 위로가기 이벤트 수신 → 애니메이션 스크롤
-    LaunchedEffect(Unit) {
-        viewModel.scrollToTopEvent.collect {
-            coroutineScope.launch {
-                when (viewMode) {
-                    ViewMode.LIST -> listState.animateScrollToItem(0)
-                    ViewMode.GRID -> gridState.animateScrollToItem(0)
+    // 파생 상태: 스크롤 위치에서 버튼 표시 여부 계산
+    val showScrollToTop by remember {
+        derivedStateOf {
+            when (viewMode) {
+                ViewMode.LIST -> {
+                    listState.firstVisibleItemIndex > 0 ||
+                    listState.firstVisibleItemScrollOffset > 0
+                }
+                ViewMode.GRID -> {
+                    gridState.firstVisibleItemIndex > 0 ||
+                    gridState.firstVisibleItemScrollOffset > 0
                 }
             }
         }
@@ -197,7 +186,14 @@ fun ScrapScreen(
                 .padding(end = 26.dp, bottom = 92.dp)
         ) {
             FloatingActionButton(
-                onClick = { viewModel.scrollToTop() },
+                onClick = {
+                    coroutineScope.launch {
+                        when (viewMode) {
+                            ViewMode.LIST -> listState.animateScrollToItem(0)
+                            ViewMode.GRID -> gridState.animateScrollToItem(0)
+                        }
+                    }
+                },
                 shape = CircleShape,
                 containerColor = Color.White,
                 contentColor = MainColorDeep,
