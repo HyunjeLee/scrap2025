@@ -1,12 +1,12 @@
 package com.scrap2025.scrap2025.ui.scrap.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -23,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -40,38 +38,32 @@ import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 @Composable
-fun ScrapItemCard(
+fun ScrapItemCardGrid(
     scrapItem: ScrapItem,
     modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 6.5.dp),
-        shape = RoundedCornerShape(8.dp),
+            .size(width = 164.dp, height = 190.dp),
+        shape = RoundedCornerShape(15.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
+            defaultElevation = 4.dp
         )
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
             // 이미지 영역
             Box(
                 modifier = Modifier
-                    .size(width = 100.dp, height = 75.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(LightGrayColor)
-                    .border(
-                        width = 1.dp,
+                    .fillMaxWidth()
+                    .height(97.dp)
+                    .background(
                         color = LightGrayColor,
-                        shape = RoundedCornerShape(4.dp)
+                        shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -79,42 +71,37 @@ fun ScrapItemCard(
                     AsyncImage(
                         model = scrapItem.imageUrl,
                         contentDescription = scrapItem.title,
-                        modifier = Modifier.size(width = 100.dp, height = 75.dp),
+                        modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
             // 텍스트 영역
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .height(75.dp),
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // 제목과 즐겨찾기
+                // 즐겨찾기 + 제목
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.Start,
                 ) {
-                    // 즐겨찾기 아이콘
                     if (scrapItem.isFavorite) {
                         Icon(
                             imageVector = Icons.Filled.Star,
-                            contentDescription ="즐겨찾기",
+                            contentDescription = "즐겨찾기",
                             tint = FavoriteColor,
                             modifier = Modifier
                                 .padding(top = 4.dp)
                                 .size(15.dp)
                         )
-
                         Spacer(modifier = Modifier.width(4.dp))
                     }
 
-                    // 제목
                     Text(
                         text = scrapItem.title,
                         style = TextStyle(
@@ -128,7 +115,7 @@ fun ScrapItemCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier.weight(1f))
 
                 // URL
                 Text(
@@ -158,38 +145,31 @@ fun ScrapItemCard(
 
 @Preview(showBackground = true)
 @Composable
-fun ScrapItemCardPreview() {
+fun ScrapItemCardGridPreview() {
     Scrap2025Theme {
-        Column(
-            modifier = Modifier.background(Color(0xFFFCFCFC))
+        Row(
+            modifier = Modifier
+                .background(Color(0xFFFCFCFC))
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            ScrapItemCard(
+            ScrapItemCardGrid(
                 scrapItem = ScrapItem(
                     id = "1",
                     title = "제목제목",
                     url = "주소주소주소주소",
                     imageUrl = null,
-                    createdDate = "2024.02.22",
+                    createdDate = "2024.02.26",
                     isFavorite = true
                 )
             )
-            ScrapItemCard(
+            ScrapItemCardGrid(
                 scrapItem = ScrapItem(
                     id = "2",
-                    title = "제목제목제목제목제목제목제목제목제목제목제목제끝",
+                    title = "제목제목제목제목제목제목제목제목제...",
                     url = "주소주소주소주소",
                     imageUrl = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-                    createdDate = "2024.02.22",
-                    isFavorite = true
-                )
-            )
-            ScrapItemCard(
-                scrapItem = ScrapItem(
-                    id = "3",
-                    title = "제목제목",
-                    url = "주소주소주소주소",
-                    imageUrl = null,
-                    createdDate = "2024.02.22",
+                    createdDate = "2024.02.26",
                     isFavorite = false
                 )
             )
