@@ -192,6 +192,8 @@ fun ScrapScreen(
                             ViewMode.LIST -> listState.animateScrollToItem(0)
                             ViewMode.GRID -> gridState.animateScrollToItem(0)
                         }
+                        listState.scrollToItem(0)
+                        gridState.scrollToItem(0)
                     }
                 },
                 shape = CircleShape,
