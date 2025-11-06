@@ -30,80 +30,24 @@
 ## 프로젝트 구조 (Feature-based Clean Architecture)
 
 ```
-scrap2025/
-├── app/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/scrap2025/scrap2025/
-│   │   │   │   ├── MainActivity.kt                    # 메인 액티비티
-│   │   │   │   ├── ui/                               # UI 계층 (Feature-based)
-│   │   │   │   │   ├── scrap/                        # 스크랩 기능
-│   │   │   │   │   │   ├── screens/                  # ScrapScreen.kt
-│   │   │   │   │   │   └── components/               # ScrapItemCard.kt
-│   │   │   │   │   ├── category/                     # 카테고리 기능
-│   │   │   │   │   │   ├── screens/                  # CategoryScreen.kt, AddCategoryScreen.kt
-│   │   │   │   │   │   └── components/               # CategoryItemCard.kt
-│   │   │   │   │   ├── favorite/                     # 즐겨찾기 기능
-│   │   │   │   │   │   ├── screens/                  # FavoriteScreen.kt
-│   │   │   │   │   │   └── components/
-│   │   │   │   │   ├── search/                       # 검색 기능
-│   │   │   │   │   │   ├── screens/                  # SearchScreen.kt
-│   │   │   │   │   │   └── components/
-│   │   │   │   │   ├── mypage/                       # 마이페이지 기능
-│   │   │   │   │   │   ├── screens/                  # MyPageScreen.kt
-│   │   │   │   │   │   └── components/
-│   │   │   │   │   ├── login/                        # 로그인 기능
-│   │   │   │   │   │   ├── screens/                  # LoginScreen.kt
-│   │   │   │   │   │   └── components/
-│   │   │   │   │   ├── main/                         # 메인 쉘
-│   │   │   │   │   │   ├── screens/                  # MainScreen.kt
-│   │   │   │   │   │   └── components/               # BottomNavigationBar.kt
-│   │   │   │   │   ├── common/                       # 공통 컴포넌트
-│   │   │   │   │   │   ├── buttons/
-│   │   │   │   │   │   └── cards/
-│   │   │   │   │   └── theme/                        # 디자인 시스템
-│   │   │   │   │       ├── Color.kt                  # 색상 정의
-│   │   │   │   │       ├── Theme.kt                  # 테마 정의
-│   │   │   │   │       └── Type.kt                   # 타이포그래피 정의
-│   │   │   │   ├── viewmodel/                        # ViewModel 클래스들
-│   │   │   │   │   ├── MainViewModel.kt
-│   │   │   │   │   ├── AddCategoryViewModel.kt
-│   │   │   │   │   └── ...
-│   │   │   │   ├── model/                            # 도메인 모델
-│   │   │   │   │   ├── CategoryItem.kt               # 카테고리 모델
-│   │   │   │   │   └── ScrapItem.kt                  # 스크랩 모델
-│   │   │   │   ├── repository/                       # 데이터 접근 계층 (추상화)
-│   │   │   │   ├── data/                             # 데이터 소스 (구현)
-│   │   │   │   │   ├── local/                        # 로컬 데이터
-│   │   │   │   │   │   ├── entity/                   # Room DB 엔티티
-│   │   │   │   │   │   ├── dao/                      # Room DAO
-│   │   │   │   │   │   ├── datasource/               # LocalDataSource 구현
-│   │   │   │   │   │   ├── ScrapDummyData.kt         # 스크랩 더미 데이터
-│   │   │   │   │   │   └── CategoryDummyData.kt      # 카테고리 더미 데이터
-│   │   │   │   │   └── remote/                       # 원격 데이터
-│   │   │   │   │       ├── dto/                      # API 응답 DTO
-│   │   │   │   │       ├── api/                      # Retrofit 인터페이스
-│   │   │   │   │       └── datasource/               # RemoteDataSource 구현
-│   │   │   │   └── navigation/                       # Navigation 설정
-│   │   │   │       ├── AppNavHost.kt
-│   │   │   │       ├── TabNavHost.kt
-│   │   │   │       ├── NavRoute.kt
-│   │   │   │       ├── MainNavGraph.kt
-│   │   │   │       └── graphs/                       # Feature별 NavGraph
-│   │   │   │           ├── CategoryNavGraph.kt
-│   │   │   │           ├── ScrapNavGraph.kt
-│   │   │   │           ├── FavoriteNavGraph.kt
-│   │   │   │           ├── SearchNavGraph.kt
-│   │   │   │           └── MyPageNavGraph.kt
-│   │   │   ├── res/                                  # 리소스 파일
-│   │   │   └── AndroidManifest.xml
-│   │   ├── test/                                     # 단위 테스트
-│   │   └── androidTest/                              # UI 테스트
-│   └── build.gradle.kts
-├── build.gradle.kts                                  # 프로젝트 레벨 빌드 파일
-├── settings.gradle.kts                               # 프로젝트 설정
-├── gradle/                                           # Gradle 버전 카탈로그
-└── claude.md                                         # 이 파일
+app/src/main/java/com/scrap2025/scrap2025/
+├── ui/                          # UI 계층
+│   ├── scrap/                   # 각 feature별 screens/, components/
+│   ├── category/
+│   ├── favorite/
+│   ├── search/
+│   ├── mypage/
+│   ├── login/
+│   ├── main/
+│   ├── common/                  # 공통 컴포넌트
+│   └── theme/                   # Color.kt, Theme.kt, Type.kt
+├── viewmodel/                   # ViewModel 클래스들
+├── model/                       # 도메인 모델 (enum 포함)
+├── repository/                  # 데이터 접근 추상화
+├── data/                        # 데이터 소스 구현
+│   ├── local/                   # Room, 더미 데이터
+│   └── remote/                  # API, DTO
+└── navigation/                  # Navigation 설정
 ```
 
 ## MVVM 아키텍처 + Feature-based 구조
@@ -153,57 +97,14 @@ scrap2025/
 - 예: `LoginViewModel.kt`, `ScrapViewModel.kt`
 
 #### 3. Model 계층 (`model/`)
-**책임**: 도메인 모델 정의
+**책임**: 도메인 모델 및 UI 상태 모델 정의
+- 도메인 모델: `CategoryItem.kt`, `ScrapItem.kt`
+- UI 상태 enum: `ViewMode.kt` 등
 
-비즈니스 로직에 사용되는 핵심 데이터 모델을 정의합니다.
-
-- **`CategoryItem.kt`**: 카테고리 도메인 모델
-- **`ScrapItem.kt`**: 스크랩 도메인 모델
-
-이 모델들은 UI, Repository, Data 계층에서 공통으로 사용됩니다.
-
-#### 4. Repository 계층 (`repository/`)
-**책임**: 데이터 접근의 추상화
-
-- 여러 데이터 소스(로컬, 원격)를 통합
-- ViewModel에 단일 인터페이스 제공
-- 예: `LoginRepository.kt`, `ScrapRepository.kt`
-
-```kotlin
-interface LoginRepository {
-    suspend fun login(email: String, password: String): Result<User>
-    suspend fun logout(): Result<Unit>
-}
-
-class LoginRepositoryImpl(
-    private val remoteDataSource: LoginRemoteDataSource,
-    private val localDataSource: LoginLocalDataSource
-) : LoginRepository {
-    override suspend fun login(email: String, password: String) =
-        remoteDataSource.login(email, password)
-}
-```
-
-#### 5. Data 계층 (`data/`)
-**책임**: 실제 데이터 접근 구현
-
-- **`local/`**: 로컬 데이터 소스
-  - `entity/`: Room Database 엔티티 정의
-  - `dao/`: Room DAO (Data Access Object) 인터페이스
-  - `datasource/`: LocalDataSource 구현체
-  - 현재: 더미 데이터 (`ScrapDummyData.kt`, `CategoryDummyData.kt`)
-
-- **`remote/`**: 원격 데이터 소스
-  - `dto/`: API 응답/요청 DTO (Data Transfer Object)
-  - `api/`: Retrofit API 인터페이스 정의
-  - `datasource/`: RemoteDataSource 구현체
-
-#### 6. Navigation 계층 (`navigation/`)
-**책임**: 화면 간 네비게이션 관리
-
-- `NavGraph.kt`: Compose Navigation 정의
-- 라우팅 경로 설정
-- Deep Link 처리
+#### 4. Repository/Data/Navigation 계층
+- **Repository**: 데이터 접근 추상화 (인터페이스)
+- **Data**: 실제 구현 (local/remote)
+- **Navigation**: 화면 간 네비게이션
 
 ### 계층 간 데이터 흐름
 
@@ -221,57 +122,177 @@ ViewModel (상태 업데이트)
 UI (리컴포지션)
 ```
 
-### MVVM 패턴 구현 예시
+### 아키텍처 원칙 및 Best Practices
 
-**ViewModel**
+#### 타입 및 Enum 배치 원칙
+
+**Enum 위치 결정 기준:**
+
+| 타입 | 위치 | 예시 |
+|------|------|------|
+| **UI 상태 모델** | `model/` | `ViewMode.kt` (LIST, GRID) |
+| **도메인 모델** | `model/` | `ScrapItem.kt`, `CategoryItem.kt` |
+| **여러 feature 공유 enum** | `model/` | `SortOrder.kt`, `FilterType.kt` |
+| **공통 UI enum** | `ui/common/` | 필요 시 (현재 미사용) |
+| **Feature 전용 enum** | 해당 feature 내부 | 특수한 경우만 |
+
+**원칙:**
+- ✅ **재사용 가능성 우선**: 여러 feature에서 사용 가능하면 `model/`
+- ✅ **일관성 유지**: 기존 도메인 모델과 같은 위치
+- ❌ **화면 파일에 enum 정의 금지**: 재사용 불가, 아키텍처 위반
+
+**예시:**
 ```kotlin
-class MyViewModel(private val repository: MyRepository) : ViewModel() {
-    private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
-    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+// ✅ 올바른 위치: model/ViewMode.kt
+package com.scrap2025.scrap2025.model
 
-    fun loadData() {
-        viewModelScope.launch {
-            _uiState.value = try {
-                UiState.Success(repository.getData())
-            } catch (e: Exception) {
-                UiState.Error(e.message ?: "Unknown error")
-            }
+enum class ViewMode {
+    LIST,
+    GRID
+}
+
+// ❌ 잘못된 위치: ui/scrap/screens/ScrapScreen.kt 내부
+enum class ViewMode { ... }  // 재사용 불가!
+```
+
+#### 상태 관리 원칙
+
+**핵심 규칙: 모든 비즈니스 상태는 ViewModel에서 관리**
+
+| 구분 | ViewModel에서 관리 ✅ | View에서 관리 ⚠️ |
+|------|----------------------|-----------------|
+| **비즈니스 상태** | ViewMode, 데이터 목록, 필터 | 절대 금지 |
+| **UI 임시 상태** | - | 다이얼로그 표시, 애니메이션 |
+| **도구** | StateFlow, LiveData | remember { mutableStateOf() } |
+
+**ViewModel에서 관리해야 하는 것:**
+- ✅ UI 상태 (viewMode, selectedTab, sortOrder 등)
+- ✅ 비즈니스 데이터 (스크랩 목록, 카테고리 등)
+- ✅ 비즈니스 로직 결과 (검색 결과, 필터링 등)
+- ✅ 화면 회전 시 유지되어야 할 상태
+
+**View에서만 관리 가능한 것:**
+- ⚠️ 순수 UI 임시 상태 (다이얼로그 열림/닫힘, 애니메이션 진행)
+- ⚠️ Focus 상태, Scroll 상태 등 Composition 수명주기와 밀접
+
+**잘못된 예시 vs 올바른 예시:**
+
+```kotlin
+// ❌ 잘못된 예시: View에서 비즈니스 상태 관리
+@Composable
+fun ScrapScreen() {
+    // 문제: viewMode는 비즈니스 상태인데 View에서 관리
+    var viewMode by remember { mutableStateOf(ViewMode.LIST) }
+
+    SortBar(
+        viewMode = viewMode,
+        onViewModeToggle = {
+            viewMode = if (viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST
+        }
+    )
+    // 문제: 화면 회전 시 상태 손실, 테스트 어려움
+}
+
+// ✅ 올바른 예시: ViewModel에서 상태 관리
+class ScrapViewModel : ViewModel() {
+    private val _viewMode = MutableStateFlow(ViewMode.LIST)
+    val viewMode: StateFlow<ViewMode> = _viewMode.asStateFlow()
+
+    fun toggleViewMode() {
+        _viewMode.value = if (_viewMode.value == ViewMode.LIST) {
+            ViewMode.GRID
+        } else {
+            ViewMode.LIST
         }
     }
 }
 
-sealed class UiState {
-    object Loading : UiState()
-    data class Success(val data: Data) : UiState()
-    data class Error(val message: String) : UiState()
+@Composable
+fun ScrapScreen(viewModel: ScrapViewModel = viewModel()) {
+    // View는 상태를 구독만 함
+    val viewMode by viewModel.viewMode.collectAsState()
+
+    SortBar(
+        viewMode = viewMode,
+        onViewModeToggle = { viewModel.toggleViewMode() }  // 이벤트만 전달
+    )
+    // 장점: 화면 회전 시 상태 유지, 테스트 용이, 아키텍처 준수
 }
 ```
 
-**View (Composable)**
+#### 구현 전 체크리스트
+
+**코드 작성 전 필수 확인사항:**
+
+```
+[ ] 1. 어느 계층에 속하는가?
+    - Model: 도메인 모델, enum, 상수
+    - ViewModel: 상태 관리, 비즈니스 로직
+    - View: UI 표현, 상태 구독, 이벤트 전달
+
+[ ] 2. 상태 관리가 필요한가?
+    - YES → ViewModel에서 StateFlow 사용
+    - NO → 단순 파라미터 전달
+
+[ ] 3. 재사용 가능한 타입인가?
+    - YES → model/ 패키지에 별도 파일
+    - NO → 사용처 근처 정의 (최소화)
+
+[ ] 4. MVVM 원칙을 위배하지 않는가?
+    - View가 비즈니스 상태 관리? → ❌
+    - ViewModel이 View 참조? → ❌
+    - 상태가 화면 회전 시 손실? → ❌
+
+[ ] 5. "작동"보다 "올바른 아키텍처" 우선
+    - 빠른 구현 < 유지보수 가능한 구조
+    - 임시방편 < 확장 가능한 설계
+```
+
+**구현 순서:**
+1. 타입/Enum 필요 → `model/` 패키지에 생성
+2. 상태 관리 필요 → `ViewModel` 생성 및 StateFlow 정의
+3. UI 구현 → `Screen` Composable에서 상태 구독
+4. 이벤트 처리 → ViewModel 함수 호출로 처리
+
+#### 일반적인 안티패턴 및 해결책
+
+**안티패턴 1: View에서 상태 관리**
 ```kotlin
+// ❌ 안티패턴
 @Composable
-fun MyScreen(viewModel: MyViewModel = viewModel()) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.loadData()
-    }
-
-    when (uiState) {
-        is UiState.Loading -> LoadingIndicator()
-        is UiState.Success -> Content(data = (uiState as UiState.Success).data)
-        is UiState.Error -> ErrorMessage(message = (uiState as UiState.Error).message)
-    }
+fun MyScreen() {
+    var state by remember { mutableStateOf(초기값) }
+    // ...
 }
 
-@Preview(showBackground = true)
-@Composable
-fun MyScreenPreview() {
-    Scrap2025Theme {
-        MyScreen()
-    }
+// ✅ 해결책
+class MyViewModel : ViewModel() {
+    private val _state = MutableStateFlow(초기값)
+    val state = _state.asStateFlow()
 }
 ```
+
+**안티패턴 2: 화면 파일에 enum 정의**
+```kotlin
+// ❌ 안티패턴: ui/screens/MyScreen.kt
+enum class ViewMode { ... }
+@Composable fun MyScreen() { ... }
+
+// ✅ 해결책: model/ViewMode.kt
+enum class ViewMode { LIST, GRID }
+```
+
+**안티패턴 3: 계층 간 의존성 역전**
+```kotlin
+// ❌ 안티패턴: ViewModel이 UI 참조
+class MyViewModel(private val screen: MyScreen) { ... }
+
+// ✅ 해결책: 콜백 또는 이벤트 사용
+class MyViewModel {
+    fun onEvent(event: UiEvent) { ... }
+}
+```
+
 
 ## 코딩 컨벤션
 
@@ -319,17 +340,6 @@ fun MyComponent(
 
 BUILD SUCCESSFUL이면 성공, BUILD FAILED면 오류 확인.
 
-## 코드 생성 체크리스트
-
-모든 코드 생성 작업 시 다음을 반드시 따릅니다:
-
-1. **Context7 라이브러리 검증** - 사용할 API의 최신 버전 확인
-2. **Import 정리** - Unused import 제거, 정렬 순서 준수
-3. **Preview 함수** - 모든 Composable에 @Preview 작성
-4. **빌드 검증** - `./gradlew assembleDebug`로 컴파일 확인
-5. **디자인 정확성** - Figma 스펙과 정확히 일치
-6. **실제 동작** - 모킹 없이 실제 동작하는 코드만 작성
-7. **수정 파일 목록 제공** - 작업 완료 후 수정된 파일 목록을 명확히 제시
 
 ## 주의사항
 
