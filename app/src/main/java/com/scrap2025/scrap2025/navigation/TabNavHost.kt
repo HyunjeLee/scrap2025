@@ -25,7 +25,7 @@ fun TabNavHost(
         modifier = modifier.fillMaxSize()
     ) {
         categoryNavGraph(navController = tabNavController)
-        scrapNavGraph()
+        scrapNavGraph(navController = tabNavController)
         favoriteNavGraph()
         searchNavGraph()
         myPageNavGraph()

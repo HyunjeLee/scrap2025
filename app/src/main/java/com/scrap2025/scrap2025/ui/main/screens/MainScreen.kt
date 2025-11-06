@@ -54,7 +54,7 @@ fun MainScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
-            if (currentRoute != NavRoute.ADD_CATEGORY) {
+            if (currentRoute != NavRoute.ADD_CATEGORY && currentRoute != NavRoute.ADD_SCRAP) {
                 BottomNavigationBar(
                     selectedRoute = selectedTabRoute,
                     onItemClick = { route ->

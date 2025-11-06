@@ -57,7 +57,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardGrid
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
@@ -73,6 +76,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ScrapScreen(
     categoryName: String = "분류되지 않음",
+    navController: NavHostController,
     viewModel: ScrapViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
@@ -160,6 +164,7 @@ fun ScrapScreen(
         // 스크랩 추가 버튼
         FloatingActionButton(
             onClick = {
+                navController.navigate(NavRoute.ADD_SCRAP)
             },
             shape = CircleShape,
             containerColor = MainColor,
@@ -395,7 +400,7 @@ fun SortBar(
 @Composable
 fun ScrapScreenPreview() {
     Scrap2025Theme {
-        ScrapScreen()
+        ScrapScreen(navController = rememberNavController())
     }
 }
 
