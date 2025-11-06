@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowCircleUp
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.rounded.Add
@@ -39,9 +44,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.scrap2025.scrap2025.data.local.ScrapDummyData
-import com.scrap2025.scrap2025.model.ScrapItem
-import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCard
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardGrid
+import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
@@ -49,18 +55,16 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-
-val _scrapItems = MutableStateFlow<List<ScrapItem>>(ScrapDummyData.dummyScrapItems)
-val scrapItemsStateFlow: StateFlow<List<ScrapItem>> = _scrapItems
+import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 
 @Composable
 fun ScrapScreen(
     categoryName: String = "분류되지 않음",
+    viewModel: ScrapViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val scrapItems by scrapItemsStateFlow.collectAsState()
+    val scrapItems by viewModel.scrapItems.collectAsState()
+    val viewMode by viewModel.viewMode.collectAsState()
 
     Box(
         modifier = modifier
@@ -77,18 +81,42 @@ fun ScrapScreen(
             SearchBar()
 
             // 정렬 바
-            SortBar()
+            SortBar(
+                viewMode = viewMode,
+                onViewModeToggle = { viewModel.toggleViewMode() }
+            )
 
-            // 스크랩 리스트
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-            ) {
-                items(scrapItems) { scrapItem ->
-                    ScrapItemCard(
-                        scrapItem = scrapItem,
-                    )
+            // 스크랩 리스트/그리드
+            when (viewMode) {
+                ViewMode.LIST -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                    ) {
+                        items(scrapItems) { scrapItem ->
+                            ScrapItemCardList(
+                                scrapItem = scrapItem,
+                            )
+                        }
+                    }
+                }
+                ViewMode.GRID -> {
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                        contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(scrapItems) { scrapItem ->
+                            ScrapItemCardGrid(
+                                scrapItem = scrapItem
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -221,7 +249,11 @@ fun SearchBar(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun SortBar(modifier: Modifier = Modifier) {
+fun SortBar(
+    viewMode: ViewMode = ViewMode.LIST,
+    onViewModeToggle: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -270,13 +302,21 @@ fun SortBar(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // 메뉴 아이콘
-            Icon(
-                imageVector = Icons.Outlined.ViewAgenda,
-                contentDescription = "뷰모드 전환",
-                tint = Color.Black,
+            // 뷰모드 전환
+            IconButton(
+                onClick = onViewModeToggle,
                 modifier = Modifier.size(20.dp)
-            )
+            ) {
+                Icon(
+                    imageVector = when (viewMode) {
+                        ViewMode.LIST -> Icons.Outlined.ViewAgenda
+                        ViewMode.GRID -> Icons.Outlined.GridView
+                    },
+                    contentDescription = "뷰모드 전환",
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }
