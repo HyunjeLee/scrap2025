@@ -60,6 +60,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.material3.CircularProgressIndicator
+import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
@@ -83,7 +85,7 @@ fun ScrapScreen(
     viewModel: ScrapViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val scrapItems by viewModel.sortedScrapItems.collectAsState()
+    val scrapItemsResult by viewModel.sortedScrapItems.collectAsState()
     val viewMode by viewModel.viewMode.collectAsState()
     val sortType by viewModel.sortType.collectAsState()
     val sortDirection by viewModel.sortDirection.collectAsState()
@@ -134,36 +136,73 @@ fun ScrapScreen(
             )
 
             // 스크랩 리스트/그리드
-            when (viewMode) {
-                ViewMode.LIST -> {
-                    LazyColumn(
-                        state = listState,
+            when (val result = scrapItemsResult) {
+                is Result.Loading -> {
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .weight(1f)
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
                     ) {
-                        items(scrapItems) { scrapItem ->
-                            ScrapItemCardList(
-                                scrapItem = scrapItem,
+                        CircularProgressIndicator(color = MainColorDeep)
+                    }
+                }
+                is Result.Error -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "스크랩을 불러올 수 없습니다",
+                                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                                color = GrayColor
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = result.message ?: "알 수 없는 오류",
+                                style = TextStyle(fontSize = 14.sp),
+                                color = GrayColor
                             )
                         }
                     }
                 }
-                ViewMode.GRID -> {
-                    LazyVerticalGrid(
-                        columns = GridCells.Fixed(2),
-                        state = gridState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .weight(1f),
-                        contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(scrapItems) { scrapItem ->
-                            ScrapItemCardGrid(
-                                scrapItem = scrapItem
-                            )
+                is Result.Success -> {
+                    val scrapItems = result.data
+                    when (viewMode) {
+                        ViewMode.LIST -> {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .weight(1f)
+                            ) {
+                                items(scrapItems) { scrapItem ->
+                                    ScrapItemCardList(
+                                        scrapItem = scrapItem,
+                                    )
+                                }
+                            }
+                        }
+                        ViewMode.GRID -> {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                state = gridState,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .weight(1f),
+                                contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(scrapItems) { scrapItem ->
+                                    ScrapItemCardGrid(
+                                        scrapItem = scrapItem
+                                    )
+                                }
+                            }
                         }
                     }
                 }

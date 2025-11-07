@@ -1,32 +1,27 @@
 package com.scrap2025.scrap2025.viewmodel
 
-import android.app.Application
-import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
-import com.scrap2025.scrap2025.data.local.ScrapDummyData
+import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.scrap2025.scrap2025.repository.ScrapRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.UUID
+import javax.inject.Inject
 
-class ScrapViewModel(application: Application) : AndroidViewModel(application) {
-    private val preferencesManager = PreferencesManager(application)
-
-    // 원본 스크랩 아이템 목록
-    private val _scrapItems = MutableStateFlow<List<ScrapItem>>(ScrapDummyData.dummyScrapItems.toList())
+@HiltViewModel
+class ScrapViewModel @Inject constructor(
+    private val scrapRepository: ScrapRepository,
+    private val preferencesManager: PreferencesManager
+) : ViewModel() {
 
     // 정렬 타입 (DataStore에서 로드)
     val sortType: StateFlow<SortType> = preferencesManager.sortType.stateIn(
@@ -49,17 +44,24 @@ class ScrapViewModel(application: Application) : AndroidViewModel(application) {
         initialValue = ViewMode.LIST
     )
 
-    // 정렬된 스크랩 아이템 목록 (sortType, sortDirection, 원본 데이터를 조합)
-    val sortedScrapItems: StateFlow<List<ScrapItem>> = combine(
-        _scrapItems,
+    // 정렬된 스크랩 아이템 목록 (Repository, sortType, sortDirection 조합)
+    val sortedScrapItems: StateFlow<Result<List<ScrapItem>>> = combine(
+        scrapRepository.getScrapItems(),
         sortType,
         sortDirection
-    ) { items, type, direction ->
-        sortScrapItems(items, type, direction)
+    ) { result, type, direction ->
+        when (result) {
+            is Result.Success -> {
+                val sortedItems = sortScrapItems(result.data, type, direction)
+                Result.Success(sortedItems)
+            }
+            is Result.Error -> result
+            is Result.Loading -> result
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ScrapDummyData.dummyScrapItems.toList()
+        initialValue = Result.Loading
     )
 
     // 스크랩 아이템 정렬 로직
@@ -68,13 +70,10 @@ class ScrapViewModel(application: Application) : AndroidViewModel(application) {
         sortType: SortType,
         sortDirection: SortDirection
     ): List<ScrapItem> {
-        Log.d("add-scrap", "sortScrapItems 진입")
-
         val sorted = when (sortType) {
             SortType.DATE -> {
-                items.sortedBy { parseDate(it.createdDate) }
+                items.sortedBy { it.createdDate }
             }
-
             SortType.TITLE -> {
                 items.sortedBy { it.title.lowercase() }
             }
@@ -84,16 +83,6 @@ class ScrapViewModel(application: Application) : AndroidViewModel(application) {
             sorted
         } else {
             sorted.reversed()
-        }
-    }
-
-    // 날짜 문자열을 Date 객체로 파싱 (yyyy.MM.dd 형식)
-    private fun parseDate(dateString: String): Date {
-        return try {
-            val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
-            dateFormat.parse(dateString) ?: Date(0)
-        } catch (e: Exception) {
-            Date(0)
         }
     }
 
@@ -132,28 +121,5 @@ class ScrapViewModel(application: Application) : AndroidViewModel(application) {
             }
             preferencesManager.setViewMode(newViewMode)
         }
-    }
-
-    // 스크랩 아이템 추가
-    fun addScrapItem(url: String, memo: String?) {
-        val newItem = ScrapItem(
-            id = UUID.randomUUID().toString(),
-            title = url, // 추후 웹 스크래핑으로 실제 제목 추출 가능
-            url = url,
-            imageUrl = null, // 추후 웹 스크래핑으로 썸네일 추출 가능
-            createdDate = getCurrentDate(),
-            isFavorite = false,
-            categoryId = null, // 분류되지 않음
-            memo = memo
-        )
-
-        // 새로운 리스트 참조를 생성하여 StateFlow가 변경을 감지하도록 함
-        _scrapItems.value = _scrapItems.value + newItem
-    }
-
-    // 현재 날짜 반환 (yyyy.MM.dd 형식)
-    private fun getCurrentDate(): String {
-        val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.getDefault())
-        return dateFormat.format(Date())
     }
 }
