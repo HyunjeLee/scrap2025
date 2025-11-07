@@ -84,6 +84,7 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
+import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 import kotlinx.coroutines.launch
 
@@ -93,30 +94,36 @@ import kotlinx.coroutines.launch
  */
 @Composable
 fun ScrapScreen(
-    categoryName: String = "분류되지 않음",
+    categoryId: String = "1",
+    initialCategoryName: String = "분류되지 않음",
     navController: NavHostController,
-    viewModel: ScrapViewModel,
+    scrapViewModel: ScrapViewModel,
+    categoryViewModel: CategoryViewModel,
     modifier: Modifier = Modifier
 ) {
-    val scrapItemsResult by viewModel.sortedScrapItems.collectAsState()
-    val viewMode by viewModel.viewMode.collectAsState()
-    val sortType by viewModel.sortType.collectAsState()
-    val sortDirection by viewModel.sortDirection.collectAsState()
+    var categoryTitle by remember { mutableStateOf(initialCategoryName) }
+
+    val scrapItemsResult by scrapViewModel.sortedScrapItems.collectAsState()
+    val viewMode by scrapViewModel.viewMode.collectAsState()
+    val sortType by scrapViewModel.sortType.collectAsState()
+    val sortDirection by scrapViewModel.sortDirection.collectAsState()
 
     ScrapScreenContent(
-        categoryName = categoryName,
+        categoryId = categoryId,
+        categoryTitle = categoryTitle,
         scrapItemsResult = scrapItemsResult,
         viewMode = viewMode,
         sortType = sortType,
         sortDirection = sortDirection,
-        onSortTypeToggle = { viewModel.toggleSortType() },
-        onSortDirectionToggle = { viewModel.toggleSortDirection() },
-        onViewModeToggle = { viewModel.toggleViewMode() },
+        onSortTypeToggle = { scrapViewModel.toggleSortType() },
+        onSortDirectionToggle = { scrapViewModel.toggleSortDirection() },
+        onViewModeToggle = { scrapViewModel.toggleViewMode() },
         onAddScrap = {
             navController.navigate(NavRoute.ADD_SCRAP)
         },
-        onUpdateCategoryTitle = { newTitle ->
-            viewModel.updateCategoryTitle(newTitle)
+        onUpdateCategoryTitle = { categoryId, newTitle ->
+            categoryViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
+            categoryTitle = newTitle
         },
         modifier = modifier
     )
@@ -128,7 +135,8 @@ fun ScrapScreen(
  */
 @Composable
 fun ScrapScreenContent(
-    categoryName: String,
+    categoryId: String,
+    categoryTitle: String,
     scrapItemsResult: Result<List<ScrapItem>>,
     viewMode: ViewMode,
     sortType: SortType,
@@ -137,7 +145,7 @@ fun ScrapScreenContent(
     onSortDirectionToggle: () -> Unit,
     onViewModeToggle: () -> Unit,
     onAddScrap: () -> Unit,
-    onUpdateCategoryTitle: (String) -> Unit,
+    onUpdateCategoryTitle: (String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Compose UI 상태 (View에서 관리)
@@ -171,8 +179,14 @@ fun ScrapScreenContent(
         ) {
             // 톱바 - 제목
             TopBarWithTitle(
-                categoryTitle = categoryName,
-                onUpdateCategory = onUpdateCategoryTitle,
+                categoryId = categoryId,
+                categoryTitle = categoryTitle,
+                onUpdateCategory = { categoryId, categoryName ->
+                    onUpdateCategoryTitle(
+                        categoryId,
+                        categoryName
+                    )
+                },
                 onDeleteCategory = { /* TODO: 카테고리 삭제 기능 구현 */ }
             )
 
@@ -325,23 +339,21 @@ fun ScrapScreenContent(
  */
 @Composable
 fun TopBarWithTitle(
+    categoryId: String,
     categoryTitle: String,
-    onUpdateCategory: (String) -> Unit,
+    onUpdateCategory: (String, String) -> Unit,
     onDeleteCategory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // === 내부 상태: 편집 모드 관리 ===
     var isEditMode by remember { mutableStateOf(false) }
 
-    var categoryTitleLocal by remember { mutableStateOf(categoryTitle) }
-
     if (isEditMode) {
         TopBarEditMode(
-            initialCategoryTitle = categoryTitleLocal,
+            categoryTitle = categoryTitle,
             onSave = { newTitle ->
-                onUpdateCategory(newTitle)
+                onUpdateCategory(categoryId, newTitle)
                 isEditMode = false
-                categoryTitleLocal = newTitle  // todo: db 연결 시 수정할 것
             },
             onCancel = {
                 isEditMode = false
@@ -350,7 +362,7 @@ fun TopBarWithTitle(
         )
     } else {
         TopBarDefault(
-            categoryTitle = categoryTitleLocal,
+            categoryTitle = categoryTitle,
             onEditClick = { isEditMode = true },
             onDeleteClick = onDeleteCategory,
             modifier = modifier
@@ -433,17 +445,17 @@ private fun TopBarDefault(
  */
 @Composable
 private fun TopBarEditMode(
-    initialCategoryTitle: String,
+    categoryTitle: String,
     onSave: (String) -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // === 내부 상태: 편집 중인 텍스트와 커서 위치를 포함한 TextFieldValue ===
-    var textFieldState by remember(initialCategoryTitle) {
+    var textFieldState by remember(categoryTitle) {
         mutableStateOf(
             TextFieldValue(
-                text = initialCategoryTitle,
-                selection = TextRange(initialCategoryTitle.length) // 1. 초기 커서 위치: 맨 끝
+                text = categoryTitle,
+                selection = TextRange(categoryTitle.length) // 1. 초기 커서 위치: 맨 끝
             )
         )
     }
@@ -649,7 +661,8 @@ fun SortBar(
 fun ScrapScreenContentPreview() {
     Scrap2025Theme {
         ScrapScreenContent(
-            categoryName = "분류되지 않음",
+            categoryId = "1",
+            categoryTitle = "분류되지 않음",
             scrapItemsResult = Result.Success(
                 ScrapDummyData.dummyScrapItems
             ),
@@ -660,7 +673,7 @@ fun ScrapScreenContentPreview() {
             onSortDirectionToggle = {},
             onViewModeToggle = {},
             onAddScrap = {},
-            onUpdateCategoryTitle = {}
+            onUpdateCategoryTitle = { dummy1, dummy2 -> }
         )
     }
 }
@@ -670,8 +683,9 @@ fun ScrapScreenContentPreview() {
 fun TopBarWithTitlePreview() {
     Scrap2025Theme {
         TopBarWithTitle(
+            categoryId = "1",
             categoryTitle = "분류되지 않음",
-            onUpdateCategory = {},
+            onUpdateCategory = { dummy1, dummy2 -> },
             onDeleteCategory = {}
         )
     }
@@ -694,7 +708,7 @@ fun TopBarDefaultPreview() {
 fun TopBarEditModePreview() {
     Scrap2025Theme {
         TopBarEditMode(
-            initialCategoryTitle = "분류되지 않음",
+            categoryTitle = "분류되지 않음",
             onSave = {},
             onCancel = {}
         )

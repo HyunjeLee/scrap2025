@@ -11,6 +11,7 @@ import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.scrap.screens.AddScrapScreen
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreen
 import com.scrap2025.scrap2025.viewmodel.AddScrapViewModel
+import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 
 fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
@@ -32,16 +33,19 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
                 }
             )
         ) { backStackEntry ->
-            val categoryId = backStackEntry.arguments?.getString("categoryId")
+            val categoryId = backStackEntry.arguments?.getString("categoryId") ?: "1"
             val categoryName = backStackEntry.arguments?.getString("categoryName") ?: "분류되지 않음"
 
             // Hilt를 통한 ViewModel 주입
-            val viewModel: ScrapViewModel = hiltViewModel()
+            val scrapViewModel: ScrapViewModel = hiltViewModel()
+            val categoryViewModel: CategoryViewModel = hiltViewModel()
 
             ScrapScreen(
-                categoryName = categoryName,
+                categoryId = categoryId,
+                initialCategoryName = categoryName,
                 navController = navController,
-                viewModel = viewModel
+                scrapViewModel = scrapViewModel,
+                categoryViewModel = categoryViewModel
             )
         }
 

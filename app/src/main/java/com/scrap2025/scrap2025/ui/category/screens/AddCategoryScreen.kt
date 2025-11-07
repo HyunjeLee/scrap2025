@@ -24,6 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,9 +36,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.scrap2025.scrap2025.viewmodel.AddCategoryViewModel
+import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
@@ -44,26 +46,65 @@ import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.AddCategoryViewModel
 
+/**
+ * AddCategoryScreen - 카테고리 추가 화면
+ * ViewModel을 통해 카테고리를 추가하고, Result 상태를 처리
+ */
 @Composable
 fun AddCategoryScreen(
-    navController: NavHostController,
-    onAddCategory: (String) -> Unit,
-    viewModel: AddCategoryViewModel = viewModel(),
+    navController: NavHostController, viewModel: AddCategoryViewModel,
     modifier: Modifier = Modifier
 ) {
-    val categoryName by viewModel.categoryName.collectAsState()
-    val toastMessage by viewModel.toastMessage.collectAsState()
+    val addCategoryState by viewModel.addCategoryState.collectAsState()
     val context = LocalContext.current
 
-    // Toast 메시지 표시
-    LaunchedEffect(toastMessage) {
-        toastMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            viewModel.clearToastMessage()
+    var categoryTitleInput by remember { mutableStateOf("") }
+
+    // Result 상태 처리
+    LaunchedEffect(addCategoryState) {
+        when (val state = addCategoryState) {
+            is Result.Success -> {
+                Toast.makeText(context, "카테고리가 추가되었습니다", Toast.LENGTH_SHORT).show()
+                navController.popBackStack()
+                viewModel.resetState()
+            }
+
+            is Result.Error -> {
+                Toast.makeText(context, state.message ?: "카테고리 추가 실패", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+            }
+
+            is Result.Loading -> {
+                // Loading 상태는 버튼 비활성화로 처리
+            }
+
+            null -> {
+                // 초기 상태
+            }
         }
     }
 
+    AddCategoryScreenContent(
+        modifier = modifier,
+        onBack = { navController.popBackStack() },
+        categoryTitleInput = categoryTitleInput,
+        onValueChange = { newName -> categoryTitleInput = newName },
+        addCategoryState = addCategoryState,
+        onAddCategory = { categoryTitle -> viewModel.addCategory(categoryTitle) })
+
+}
+
+@Composable
+fun AddCategoryScreenContent(
+    modifier: Modifier,
+    onBack: () -> Unit,
+    categoryTitleInput: String,
+    onValueChange: (String) -> Unit,
+    addCategoryState: Result<Unit>?,
+    onAddCategory: (String) -> Unit,
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -88,7 +129,7 @@ fun AddCategoryScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     IconButton(
-                        onClick = { navController.popBackStack() },
+                        onClick = { onBack() },
                         modifier = Modifier.padding(0.dp)
                     ) {
                         Icon(
@@ -130,8 +171,8 @@ fun AddCategoryScreen(
                         .background(MainColor, shape = RoundedCornerShape(10.dp))
                 ) {
                     TextField(
-                        value = categoryName,
-                        onValueChange = { viewModel.updateCategoryName(it) },
+                        value = categoryTitleInput,
+                        onValueChange = { newName -> onValueChange(newName) },
                         placeholder = {
                             Text(
                                 text = "카테고리명을 입력하세요",
@@ -170,7 +211,7 @@ fun AddCategoryScreen(
         ) {
             // 취소 버튼
             Button(
-                onClick = { navController.popBackStack() },
+                onClick = { onBack() },
                 modifier = Modifier
                     .weight(1f)
                     .height(50.dp),
@@ -189,14 +230,8 @@ fun AddCategoryScreen(
 
             // 추가하기 버튼
             Button(
-                onClick = {
-                    if (viewModel.validateAndAddCategory({ name ->
-                        onAddCategory(name)
-                        navController.popBackStack()
-                    })) {
-                        // 성공
-                    }
-                },
+                onClick = { onAddCategory(categoryTitleInput) },
+                enabled = addCategoryState !is Result.Loading,
                 modifier = Modifier
                     .weight(1f)
                     .height(50.dp),
@@ -204,7 +239,7 @@ fun AddCategoryScreen(
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
-                    text = "추가하기",
+                    text = if (addCategoryState is Result.Loading) "추가 중..." else "추가하기",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
@@ -216,13 +251,18 @@ fun AddCategoryScreen(
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
-fun AddCategoryScreenPreview() {
+fun AddCategoryScreenContentPreview() {
     Scrap2025Theme {
-        AddCategoryScreen(
-            navController = NavHostController(context = LocalContext.current),
-            onAddCategory = {},
+        AddCategoryScreenContent(
+            modifier = Modifier,
+            onBack = {},
+            categoryTitleInput = "",
+            onValueChange = {},
+            addCategoryState = null,
+            onAddCategory = {}
         )
     }
 }
