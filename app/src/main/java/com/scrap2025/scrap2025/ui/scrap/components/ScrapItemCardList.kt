@@ -37,6 +37,8 @@ import com.scrap2025.scrap2025.ui.theme.FavoriteColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ScrapItemCardList(
@@ -143,7 +145,7 @@ fun ScrapItemCardList(
 
                 // 날짜
                 Text(
-                    text = scrapItem.createdDate,
+                    text = scrapItem.createdDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
                     style = TextStyle(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal
@@ -168,7 +170,7 @@ fun ScrapItemCardListPreview() {
                     title = "제목제목",
                     url = "주소주소주소주소",
                     imageUrl = null,
-                    createdDate = "2024.02.22",
+                    createdDate = LocalDateTime.of(2024, 2, 22, 10, 0),
                     isFavorite = true
                 )
             )
@@ -178,7 +180,7 @@ fun ScrapItemCardListPreview() {
                     title = "제목제목제목제목제목제목제목제목제목제목제목제끝",
                     url = "주소주소주소주소",
                     imageUrl = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-                    createdDate = "2024.02.22",
+                    createdDate = LocalDateTime.of(2024, 2, 22, 14, 30),
                     isFavorite = true
                 )
             )
@@ -188,7 +190,7 @@ fun ScrapItemCardListPreview() {
                     title = "제목제목",
                     url = "주소주소주소주소",
                     imageUrl = null,
-                    createdDate = "2024.02.22",
+                    createdDate = LocalDateTime.of(2024, 2, 22, 16, 45),
                     isFavorite = false
                 )
             )
