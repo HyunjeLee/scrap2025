@@ -77,6 +77,7 @@ import com.scrap2025.scrap2025.model.ViewMode
 import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardGrid
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
+import com.scrap2025.scrap2025.ui.common.dialogs.DeleteCategoryDialog
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
@@ -125,6 +126,10 @@ fun ScrapScreen(
             categoryViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
             categoryTitle = newTitle
         },
+        onDeleteCategory = {
+            categoryViewModel.deleteCategory(categoryId)
+            navController.navigate(NavRoute.CATEGORY)
+        },
         modifier = modifier
     )
 }
@@ -146,12 +151,16 @@ fun ScrapScreenContent(
     onViewModeToggle: () -> Unit,
     onAddScrap: () -> Unit,
     onUpdateCategoryTitle: (String, String) -> Unit,
+    onDeleteCategory: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Compose UI 상태 (View에서 관리)
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
+
+    // 삭제 확인 모달 표시 상태
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     // 파생 상태: 스크롤 위치에서 버튼 표시 여부 계산
     val showScrollToTop by remember {
@@ -187,7 +196,7 @@ fun ScrapScreenContent(
                         categoryName
                     )
                 },
-                onDeleteCategory = { /* TODO: 카테고리 삭제 기능 구현 */ }
+                onDeleteCategory = { showDeleteDialog = true }
             )
 
             // 톱바 - 검색
@@ -328,6 +337,17 @@ fun ScrapScreenContent(
                 )
             }
         }
+
+        // 삭제 확인 모달
+        if (showDeleteDialog) {
+            DeleteCategoryDialog(
+                onDismiss = { showDeleteDialog = false },
+                onConfirm = {
+                    showDeleteDialog = false
+                    onDeleteCategory()
+                }
+            )
+        }
     }
 }
 
@@ -364,7 +384,7 @@ fun TopBarWithTitle(
         TopBarDefault(
             categoryTitle = categoryTitle,
             onEditClick = { isEditMode = true },
-            onDeleteClick = onDeleteCategory,
+            onDeleteClick = { onDeleteCategory() },
             modifier = modifier
         )
     }
@@ -424,7 +444,7 @@ private fun TopBarDefault(
 
                 // 삭제 버튼
                 IconButton(
-                    onClick = onDeleteClick,
+                    onClick = { onDeleteClick() },
                     modifier = Modifier.size(28.dp)
                 ) {
                     Icon(
@@ -673,7 +693,8 @@ fun ScrapScreenContentPreview() {
             onSortDirectionToggle = {},
             onViewModeToggle = {},
             onAddScrap = {},
-            onUpdateCategoryTitle = { dummy1, dummy2 -> }
+            onUpdateCategoryTitle = { dummy1, dummy2 -> },
+            onDeleteCategory = {}
         )
     }
 }
