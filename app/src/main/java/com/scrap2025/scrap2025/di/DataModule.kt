@@ -1,7 +1,9 @@
-    package com.scrap2025.scrap2025.di
+package com.scrap2025.scrap2025.di
 
 import android.content.Context
 import com.scrap2025.scrap2025.data.local.PreferencesManager
+import com.scrap2025.scrap2025.repository.CategoryRepository
+import com.scrap2025.scrap2025.repository.CategoryRepositoryImpl
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import com.scrap2025.scrap2025.repository.ScrapRepositoryImpl
 import dagger.Binds
@@ -21,6 +23,12 @@ abstract class DataModule {
     abstract fun bindScrapRepository(
         scrapRepositoryImpl: ScrapRepositoryImpl
     ): ScrapRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCategoryRepository(
+        categoryRepositoryImpl: CategoryRepositoryImpl
+    ): CategoryRepository
 
     companion object {
         @Provides
