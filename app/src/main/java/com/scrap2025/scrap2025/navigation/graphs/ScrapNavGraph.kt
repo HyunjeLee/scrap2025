@@ -1,7 +1,6 @@
 package com.scrap2025.scrap2025.navigation.graphs
 
-import androidx.compose.runtime.remember
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -11,6 +10,7 @@ import androidx.navigation.navigation
 import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.scrap.screens.AddScrapScreen
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreen
+import com.scrap2025.scrap2025.viewmodel.AddScrapViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 
 fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
@@ -35,11 +35,8 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
             val categoryId = backStackEntry.arguments?.getString("categoryId")
             val categoryName = backStackEntry.arguments?.getString("categoryName") ?: "분류되지 않음"
 
-            // Navigation Graph 수준에서 ViewModel 공유
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("scrap_graph")
-            }
-            val viewModel: ScrapViewModel = viewModel(viewModelStoreOwner = parentEntry)
+            // Hilt를 통한 ViewModel 주입
+            val viewModel: ScrapViewModel = hiltViewModel()
 
             ScrapScreen(
                 categoryName = categoryName,
@@ -48,16 +45,12 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
             )
         }
 
-        composable(route = NavRoute.ADD_SCRAP) { backStackEntry ->
-            // 동일한 Navigation Graph의 ViewModel 공유
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("scrap_graph")
-            }
-            val viewModel: ScrapViewModel = viewModel(viewModelStoreOwner = parentEntry)
+        composable(route = NavRoute.ADD_SCRAP) {
+            val addScrapViewModel: AddScrapViewModel = hiltViewModel()
 
             AddScrapScreen(
                 navController = navController,
-                viewModel = viewModel
+                viewModel = addScrapViewModel
             )
         }
     }
