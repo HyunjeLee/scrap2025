@@ -38,6 +38,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,10 +58,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.material3.CircularProgressIndicator
+import com.scrap2025.scrap2025.data.local.ScrapDummyData
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
@@ -78,11 +77,15 @@ import com.scrap2025.scrap2025.ui.theme.WarningColor
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 import kotlinx.coroutines.launch
 
+/**
+ * ScrapScreen - Container Composable
+ * ViewModel에서 상태를 추출하여 ScrapScreenContent에 전달
+ */
 @Composable
 fun ScrapScreen(
     categoryName: String = "분류되지 않음",
     navController: NavHostController,
-    viewModel: ScrapViewModel = viewModel(),
+    viewModel: ScrapViewModel,
     modifier: Modifier = Modifier
 ) {
     val scrapItemsResult by viewModel.sortedScrapItems.collectAsState()
@@ -90,6 +93,39 @@ fun ScrapScreen(
     val sortType by viewModel.sortType.collectAsState()
     val sortDirection by viewModel.sortDirection.collectAsState()
 
+    ScrapScreenContent(
+        categoryName = categoryName,
+        scrapItemsResult = scrapItemsResult,
+        viewMode = viewMode,
+        sortType = sortType,
+        sortDirection = sortDirection,
+        onSortTypeToggle = { viewModel.toggleSortType() },
+        onSortDirectionToggle = { viewModel.toggleSortDirection() },
+        onViewModeToggle = { viewModel.toggleViewMode() },
+        onAddScrap = {
+            navController.navigate(NavRoute.ADD_SCRAP)
+        },
+        modifier = modifier
+    )
+}
+
+/**
+ * ScrapScreenContent - Presentational Composable
+ * ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링
+ */
+@Composable
+fun ScrapScreenContent(
+    categoryName: String,
+    scrapItemsResult: Result<List<com.scrap2025.scrap2025.model.ScrapItem>>,
+    viewMode: ViewMode,
+    sortType: SortType,
+    sortDirection: SortDirection,
+    onSortTypeToggle: () -> Unit,
+    onSortDirectionToggle: () -> Unit,
+    onViewModeToggle: () -> Unit,
+    onAddScrap: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     // Compose UI 상태 (View에서 관리)
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
@@ -120,7 +156,9 @@ fun ScrapScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             // 톱바 - 제목
-            TopBarWithTitle(categoryName = categoryName)
+            TopBarWithTitle(
+                categoryName = categoryName,
+            )
 
             // 톱바 - 검색
             SearchBar()
@@ -130,9 +168,9 @@ fun ScrapScreen(
                 sortType = sortType,
                 sortDirection = sortDirection,
                 viewMode = viewMode,
-                onSortTypeToggle = { viewModel.toggleSortType() },
-                onSortDirectionToggle = { viewModel.toggleSortDirection() },
-                onViewModeToggle = { viewModel.toggleViewMode() }
+                onSortTypeToggle = onSortTypeToggle,
+                onSortDirectionToggle = onSortDirectionToggle,
+                onViewModeToggle = onViewModeToggle
             )
 
             // 스크랩 리스트/그리드
@@ -211,9 +249,7 @@ fun ScrapScreen(
 
         // 스크랩 추가 버튼
         FloatingActionButton(
-            onClick = {
-                navController.navigate(NavRoute.ADD_SCRAP)
-            },
+            onClick = onAddScrap,
             shape = CircleShape,
             containerColor = MainColor,
             contentColor = MainColorDeep,
@@ -466,9 +502,21 @@ fun SortBar(
 
 @Preview(showBackground = true)
 @Composable
-fun ScrapScreenPreview() {
+fun ScrapScreenContentPreview() {
     Scrap2025Theme {
-        ScrapScreen(navController = rememberNavController())
+        ScrapScreenContent(
+            categoryName = "분류되지 않음",
+            scrapItemsResult = Result.Success(
+                ScrapDummyData.dummyScrapItems
+            ),
+            viewMode = ViewMode.LIST,
+            sortType = SortType.DATE,
+            sortDirection = SortDirection.ASCENDING,
+            onSortTypeToggle = {},
+            onSortDirectionToggle = {},
+            onViewModeToggle = {},
+            onAddScrap = {}
+        )
     }
 }
 

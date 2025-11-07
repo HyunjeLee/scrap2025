@@ -40,9 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
@@ -54,16 +52,17 @@ import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.AddScrapViewModel
 
+/**
+ * AddScrapScreen - Container Composable
+ * ViewModel에서 상태를 추출하여 AddScrapScreenContent에 전달
+ */
 @Composable
 fun AddScrapScreen(
     navController: NavHostController,
-    viewModel: AddScrapViewModel = viewModel(),
+    viewModel: AddScrapViewModel,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var url by remember { mutableStateOf("") }
-    var memo by remember { mutableStateOf("") }
-
     val addScrapState by viewModel.addScrapState.collectAsState()
     val isLoading = addScrapState is Result.Loading
 
@@ -87,6 +86,31 @@ fun AddScrapScreen(
         }
     }
 
+    AddScrapScreenContent(
+        isLoading = isLoading,
+        onAddScrap = { url, memo ->
+            viewModel.addScrapItem(url = url, memo = memo)
+        },
+        onBack = { navController.popBackStack() },
+        modifier = modifier
+    )
+}
+
+/**
+ * AddScrapScreenContent - Presentational Composable
+ * ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링
+ */
+@Composable
+fun AddScrapScreenContent(
+    isLoading: Boolean,
+    onAddScrap: (url: String, memo: String?) -> Unit,
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    var url by remember { mutableStateOf("") }
+    var memo by remember { mutableStateOf("") }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = modifier
@@ -95,7 +119,7 @@ fun AddScrapScreen(
         ) {
             // 톱바
             TopBar(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = onBack
             )
 
             Column(
@@ -216,7 +240,7 @@ fun AddScrapScreen(
             ) {
                 // 취소 버튼
                 Button(
-                    onClick = { navController.popBackStack() },
+                    onClick = onBack,
                     modifier = Modifier
                         .weight(1f)
                         .height(61.dp),
@@ -248,10 +272,9 @@ fun AddScrapScreen(
                                 Toast.LENGTH_SHORT
                             ).show()
                         } else {
-                            viewModel.addScrapItem(
-                                url = url.trim(),
-                                memo = memo.trim().ifBlank { null }
-                            )
+                            onAddScrap(
+                                url.trim(),
+                                memo.trim().ifBlank { null })
                         }
                     },
                     modifier = Modifier
@@ -326,10 +349,12 @@ fun TopBar(
 
 @Preview(showBackground = true)
 @Composable
-fun AddScrapScreenPreview() {
+fun AddScrapScreenContentPreview() {
     Scrap2025Theme {
-        AddScrapScreen(
-            navController = rememberNavController()
+        AddScrapScreenContent(
+            isLoading = false,
+            onAddScrap = { _, _ -> },
+            onBack = {}
         )
     }
 }
