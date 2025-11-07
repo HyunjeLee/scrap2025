@@ -28,7 +28,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.ArrowCircleDown
 import androidx.compose.material.icons.outlined.ArrowCircleUp
 import androidx.compose.material.icons.outlined.Delete
@@ -44,16 +46,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -61,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.ScrapDummyData
 import com.scrap2025.scrap2025.model.Result
+import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
@@ -105,6 +115,9 @@ fun ScrapScreen(
         onAddScrap = {
             navController.navigate(NavRoute.ADD_SCRAP)
         },
+        onUpdateCategoryTitle = { newTitle ->
+            viewModel.updateCategoryTitle(newTitle)
+        },
         modifier = modifier
     )
 }
@@ -116,7 +129,7 @@ fun ScrapScreen(
 @Composable
 fun ScrapScreenContent(
     categoryName: String,
-    scrapItemsResult: Result<List<com.scrap2025.scrap2025.model.ScrapItem>>,
+    scrapItemsResult: Result<List<ScrapItem>>,
     viewMode: ViewMode,
     sortType: SortType,
     sortDirection: SortDirection,
@@ -124,6 +137,7 @@ fun ScrapScreenContent(
     onSortDirectionToggle: () -> Unit,
     onViewModeToggle: () -> Unit,
     onAddScrap: () -> Unit,
+    onUpdateCategoryTitle: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     // Compose UI 상태 (View에서 관리)
@@ -157,7 +171,9 @@ fun ScrapScreenContent(
         ) {
             // 톱바 - 제목
             TopBarWithTitle(
-                categoryName = categoryName,
+                categoryTitle = categoryName,
+                onUpdateCategory = onUpdateCategoryTitle,
+                onDeleteCategory = { /* TODO: 카테고리 삭제 기능 구현 */ }
             )
 
             // 톱바 - 검색
@@ -301,9 +317,55 @@ fun ScrapScreenContent(
     }
 }
 
+/**
+ * TopBarWithTitle - 카테고리 제목 표시 및 편집 기능 '
+ *
+ *
+ * 내부적으로 편집 모드 상태를 관리하며, 모드에 따라 TopBarDefault/TopBarEditMode를 전환
+ */
 @Composable
 fun TopBarWithTitle(
-    categoryName: String,
+    categoryTitle: String,
+    onUpdateCategory: (String) -> Unit,
+    onDeleteCategory: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // === 내부 상태: 편집 모드 관리 ===
+    var isEditMode by remember { mutableStateOf(false) }
+
+    var categoryTitleLocal by remember { mutableStateOf(categoryTitle) }
+
+    if (isEditMode) {
+        TopBarEditMode(
+            initialCategoryTitle = categoryTitleLocal,
+            onSave = { newTitle ->
+                onUpdateCategory(newTitle)
+                isEditMode = false
+                categoryTitleLocal = newTitle  // todo: db 연결 시 수정할 것
+            },
+            onCancel = {
+                isEditMode = false
+            },
+            modifier = modifier
+        )
+    } else {
+        TopBarDefault(
+            categoryTitle = categoryTitleLocal,
+            onEditClick = { isEditMode = true },
+            onDeleteClick = onDeleteCategory,
+            modifier = modifier
+        )
+    }
+}
+
+/**
+ * TopBarDefault - 일반 모드 (카테고리명 표시 + 편집/삭제 버튼)
+ */
+@Composable
+private fun TopBarDefault(
+    categoryTitle: String,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -313,9 +375,9 @@ fun TopBarWithTitle(
             .background(MainColor),
         contentAlignment = Alignment.CenterStart
     ) {
-        // 카테고리명
+        // 카테고리 제목
         Text(
-            text = categoryName,
+            text = categoryTitle,
             style = TextStyle(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold
@@ -324,42 +386,124 @@ fun TopBarWithTitle(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
-                .padding(start = 21.dp)
-                .padding(end = 85.dp)
+                .padding(start = 21.dp, end = 85.dp)
         )
 
-        // 오른쪽 아이콘들
-        Row(
+        if (categoryTitle != "분류되지 않음") {
+            // 편집/삭제 버튼
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 22.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // 편집 버튼
+                IconButton(
+                    onClick = onEditClick,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "편집",
+                        tint = Color.Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                // 삭제 버튼
+                IconButton(
+                    onClick = onDeleteClick,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "삭제",
+                        tint = WarningColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * TopBarEditMode - 편집 모드 (TextField + 저장 버튼)
+ * 커서를 텍스트 끝으로 자동 이동하며, 유효성 검사를 수행
+ */
+@Composable
+private fun TopBarEditMode(
+    initialCategoryTitle: String,
+    onSave: (String) -> Unit,
+    onCancel: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // === 내부 상태: 편집 중인 텍스트와 커서 위치를 포함한 TextFieldValue ===
+    var textFieldState by remember(initialCategoryTitle) {
+        mutableStateOf(
+            TextFieldValue(
+                text = initialCategoryTitle,
+                selection = TextRange(initialCategoryTitle.length) // 1. 초기 커서 위치: 맨 끝
+            )
+        )
+    }
+
+    // === 유효성 검사: 1자 이상 21자 이하 ===
+    val isCategoryTitleValid = textFieldState.text.length in 1..21
+    val saveButtonColor = if (isCategoryTitleValid) MainColorDeep else WarningColor
+
+    // === 포커스 관리 ===
+    val focusRequester = remember { FocusRequester() }
+
+    // 편집 모드 진입 시 자동 포커스
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(53.dp)
+            .background(MainColor),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        // 편집용 TextField
+        BasicTextField(
+            value = textFieldState,
+            onValueChange = { newValue ->
+                textFieldState = newValue
+            },
+            modifier = Modifier
+                .padding(start = 21.dp, end = 60.dp)
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
+            textStyle = TextStyle(
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black
+            ),
+            singleLine = true
+        )
+
+        // 저장 버튼
+        IconButton(
+            onClick = {
+                if (isCategoryTitleValid) {
+                    onSave(textFieldState.text)
+                }
+            },
+            enabled = isCategoryTitleValid,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .padding(end = 22.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(end = 22.dp)
+                .size(28.dp)
         ) {
-            // 수정 아이콘
-            IconButton(
-                onClick = { /* TODO: 편집 모드 */ },
-                modifier = Modifier.size(28.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = "편집",
-                    tint = Color.Black,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-
-            // 삭제 아이콘
-            IconButton(
-                onClick = { /* TODO: 삭제 */ },
-                modifier = Modifier.size(28.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Delete,
-                    contentDescription = "삭제",
-                    tint = WarningColor,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = "저장",
+                tint = saveButtonColor,
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }
@@ -515,7 +659,8 @@ fun ScrapScreenContentPreview() {
             onSortTypeToggle = {},
             onSortDirectionToggle = {},
             onViewModeToggle = {},
-            onAddScrap = {}
+            onAddScrap = {},
+            onUpdateCategoryTitle = {}
         )
     }
 }
@@ -525,7 +670,33 @@ fun ScrapScreenContentPreview() {
 fun TopBarWithTitlePreview() {
     Scrap2025Theme {
         TopBarWithTitle(
-            categoryName = "분류되지 않음",
+            categoryTitle = "분류되지 않음",
+            onUpdateCategory = {},
+            onDeleteCategory = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TopBarDefaultPreview() {
+    Scrap2025Theme {
+        TopBarDefault(
+            categoryTitle = "분류되지 않음",
+            onEditClick = {},
+            onDeleteClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TopBarEditModePreview() {
+    Scrap2025Theme {
+        TopBarEditMode(
+            initialCategoryTitle = "분류되지 않음",
+            onSave = {},
+            onCancel = {}
         )
     }
 }
