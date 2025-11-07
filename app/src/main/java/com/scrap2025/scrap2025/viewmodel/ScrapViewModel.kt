@@ -123,12 +123,4 @@ class ScrapViewModel @Inject constructor(
         }
     }
 
-    // 카테고리 이름 업데이트
-    fun updateCategoryTitle(newTitle: String) {
-        // TODO: Repository를 통해 카테고리 이름 업데이트
-        // 현재 categoryId를 받지 않으므로, 실제 구현 시 categoryId도 함께 전달 필요
-        viewModelScope.launch {
-            // code
-        }
-    }
 }
