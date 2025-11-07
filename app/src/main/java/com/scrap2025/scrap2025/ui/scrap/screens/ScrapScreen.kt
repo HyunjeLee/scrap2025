@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,8 +29,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowCircleDown
 import androidx.compose.material.icons.outlined.ArrowCircleUp
-import androidx.compose.material.icons.outlined.ArrowDropUp
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GridView
@@ -59,6 +60,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.scrap2025.scrap2025.model.SortDirection
+import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
 import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardGrid
@@ -80,8 +83,10 @@ fun ScrapScreen(
     viewModel: ScrapViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val scrapItems by viewModel.scrapItems.collectAsState()
+    val scrapItems by viewModel.sortedScrapItems.collectAsState()
     val viewMode by viewModel.viewMode.collectAsState()
+    val sortType by viewModel.sortType.collectAsState()
+    val sortDirection by viewModel.sortDirection.collectAsState()
 
     // Compose UI 상태 (View에서 관리)
     val listState = rememberLazyListState()
@@ -120,7 +125,11 @@ fun ScrapScreen(
 
             // 정렬 바
             SortBar(
+                sortType = sortType,
+                sortDirection = sortDirection,
                 viewMode = viewMode,
+                onSortTypeToggle = { viewModel.toggleSortType() },
+                onSortDirectionToggle = { viewModel.toggleSortDirection() },
                 onViewModeToggle = { viewModel.toggleViewMode() }
             )
 
@@ -325,10 +334,19 @@ fun SearchBar(modifier: Modifier = Modifier) {
 
 @Composable
 fun SortBar(
+    sortType: SortType = SortType.DATE,
+    sortDirection: SortDirection = SortDirection.ASCENDING,
     viewMode: ViewMode = ViewMode.LIST,
+    onSortTypeToggle: () -> Unit = {},
+    onSortDirectionToggle: () -> Unit = {},
     onViewModeToggle: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val sortTypeText = when (sortType) {
+        SortType.DATE -> "스크랩한 날짜 순"
+        SortType.TITLE -> "제목 순"
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -343,24 +361,35 @@ fun SortBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Spacer(modifier = Modifier.weight(1f))
-            // 정렬 아이콘
-            Icon(
-                imageVector = Icons.Outlined.ArrowCircleUp,
-                contentDescription = "정렬",
-                tint = Color.Black,
+
+            // 정렬 아이콘 (클릭 시 오름차순/내림차순 토글)
+            IconButton(
+                onClick = onSortDirectionToggle,
                 modifier = Modifier.size(20.dp)
-            )
+            ) {
+                Icon(
+                    imageVector = when (sortDirection) {
+                        SortDirection.ASCENDING -> Icons.Outlined.ArrowCircleUp
+                        SortDirection.DESCENDING -> Icons.Outlined.ArrowCircleDown
+                    },
+                    contentDescription = "정렬 방향",
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // 정렬 텍스트
+            // 정렬 텍스트 (클릭 시 정렬 기준 토글)
+
             Text(
-                text = "스크랩한 날짜 순",
+                text = sortTypeText,
                 style = TextStyle(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal
                 ),
                 color = GrayColor,
+                modifier = Modifier.clickable(enabled = true, onClick = onSortTypeToggle)
             )
 
             Spacer(modifier = Modifier.width(8.dp))

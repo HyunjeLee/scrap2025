@@ -3,7 +3,7 @@ package com.scrap2025.scrap2025.data.local
 import com.scrap2025.scrap2025.model.ScrapItem
 
 object ScrapDummyData {
-    val dummyScrapItems = mutableListOf(
+    val dummyScrapItems = listOf(
         ScrapItem(
             id = "1",
             title = "제목제목",
