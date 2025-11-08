@@ -29,4 +29,14 @@ interface ScrapRepository {
      * 스크랩 아이템 업데이트
      */
     suspend fun updateScrapItem(id: String, memo: String?): Result<Unit>
+
+    /**
+     * 스크랩 아이템을 다른 카테고리로 이동
+     */
+    suspend fun moveScrapItem(scrapId: String, categoryId: String): Result<Unit>
+
+    /**
+     * 스크랩 아이템의 즐겨찾기 상태 토글
+     */
+    suspend fun toggleFavorite(scrapId: String): Result<Unit>
 }

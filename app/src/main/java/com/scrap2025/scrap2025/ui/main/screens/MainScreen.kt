@@ -14,6 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.navigation.TabNavHost
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
@@ -30,6 +31,8 @@ fun MainScreen(
     val tabNavController = rememberNavController()
     val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
+
+    val customBottomBar by GlobalUiState.customBottomBar.collectAsState()
 
     // 현재 라우트에 따라 자동으로 바텀바 선택 상태 동기화
     LaunchedEffect(currentRoute) {
@@ -54,19 +57,27 @@ fun MainScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
-            if (currentRoute != NavRoute.ADD_CATEGORY && currentRoute != NavRoute.ADD_SCRAP) {
-                BottomNavigationBar(
-                    selectedRoute = selectedTabRoute,
-                    onItemClick = { route ->
-                        if (selectedTabRoute != route) {  //memo: 현재 탭과 이동하려는 탭이 같은 탭이라면 이동하지 않도록 구현
-                            tabNavController.navigate(route) {
-                                popUpTo(0)
-                            }
+            when (customBottomBar) {
+                null -> {  // 기본 바텀 바
+                    if (currentRoute != NavRoute.ADD_CATEGORY && currentRoute != NavRoute.ADD_SCRAP) {
+                        BottomNavigationBar(
+                            selectedRoute = selectedTabRoute,
+                            onItemClick = { route ->
+                                if (selectedTabRoute != route) {  //memo: 현재 탭과 이동하려는 탭이 같은 탭이라면 이동하지 않도록 구현
+                                    tabNavController.navigate(route) {
+                                        popUpTo(0)
+                                    }
 
-                            mainViewModel.selectTab(route)
-                        }
+                                    mainViewModel.selectTab(route)
+                                }
+                            }
+                        )
                     }
-                )
+                }
+
+                else -> {
+                    customBottomBar!!.invoke()
+                }
             }
         }
     ) { innerPadding ->

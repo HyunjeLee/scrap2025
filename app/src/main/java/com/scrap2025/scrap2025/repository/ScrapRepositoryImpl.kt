@@ -90,4 +90,44 @@ class ScrapRepositoryImpl @Inject constructor() : ScrapRepository {
             Result.Error(e, "스크랩 업데이트 실패")
         }
     }
+
+    override suspend fun moveScrapItem(scrapId: String, categoryId: String): Result<Unit> {
+        return try {
+            val currentItems = _scrapItems.value.toMutableList()
+            val index = currentItems.indexOfFirst { it.id == scrapId }
+            if (index != -1) {
+                currentItems[index] = currentItems[index].copy(categoryId = categoryId)
+                _scrapItems.value = currentItems
+                Result.Success(Unit)
+            } else {
+                Result.Error(
+                    NoSuchElementException("ID가 $scrapId 인 스크랩을 찾을 수 없습니다."),
+                    "스크랩을 찾을 수 없습니다"
+                )
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "스크랩 이동 실패")
+        }
+    }
+
+    override suspend fun toggleFavorite(scrapId: String): Result<Unit> {
+        return try {
+            val currentItems = _scrapItems.value.toMutableList()
+            val index = currentItems.indexOfFirst { it.id == scrapId }
+            if (index != -1) {
+                currentItems[index] = currentItems[index].copy(
+                    isFavorite = !currentItems[index].isFavorite
+                )
+                _scrapItems.value = currentItems
+                Result.Success(Unit)
+            } else {
+                Result.Error(
+                    NoSuchElementException("ID가 $scrapId 인 스크랩을 찾을 수 없습니다."),
+                    "스크랩을 찾을 수 없습니다"
+                )
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "즐겨찾기 토글 실패")
+        }
+    }
 }

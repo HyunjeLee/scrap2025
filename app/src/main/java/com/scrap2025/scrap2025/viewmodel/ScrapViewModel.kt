@@ -10,8 +10,10 @@ import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -19,9 +21,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ScrapViewModel @Inject constructor(
-    scrapRepository: ScrapRepository,
+    private val scrapRepository: ScrapRepository,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
+
+    // 선택 모드 상태
+    private val _isSelectionMode = MutableStateFlow(false)
+    val isSelectionMode: StateFlow<Boolean> = _isSelectionMode.asStateFlow()
+
+    // 선택된 스크랩 아이템 ID 목록
+    private val _selectedScrapIds = MutableStateFlow<Set<String>>(emptySet())
+    val selectedScrapIds: StateFlow<Set<String>> = _selectedScrapIds.asStateFlow()
 
     // 정렬 타입 (DataStore에서 로드)
     val sortType: StateFlow<SortType> = preferencesManager.sortType.stateIn(
@@ -120,6 +130,77 @@ class ScrapViewModel @Inject constructor(
                 ViewMode.LIST
             }
             preferencesManager.setViewMode(newViewMode)
+        }
+    }
+
+    // 선택 모드 진입 (롱클릭 시)
+    fun enterSelectionMode(itemId: String) {
+        _isSelectionMode.value = true
+        _selectedScrapIds.value = setOf(itemId)
+    }
+
+    // 선택 모드 종료
+    fun exitSelectionMode() {
+        _isSelectionMode.value = false
+        _selectedScrapIds.value = emptySet()
+    }
+
+    // 개별 아이템 선택 토글
+    fun toggleScrapItemSelection(id: String) {
+        val currentSelection = _selectedScrapIds.value
+        _selectedScrapIds.value = if (currentSelection.contains(id)) {
+            currentSelection - id
+        } else {
+            currentSelection + id
+        }
+    }
+
+    // 전체 선택
+    fun selectAllScrapItems() {
+        val items = (sortedScrapItems.value as? Result.Success)?.data ?: return
+        _selectedScrapIds.value = items.map { it.id }.toSet()
+    }
+
+    // 전체 선택 해제
+    fun deselectAllScrapItems() {
+        _selectedScrapIds.value = emptySet()
+    }
+
+    // 선택된 아이템 삭제
+    fun deleteSelectedItems() {
+        viewModelScope.launch {
+            _selectedScrapIds.value.forEach { id ->
+                scrapRepository.deleteScrapItem(id)
+            }
+            exitSelectionMode()
+        }
+    }
+
+    // 선택된 아이템 이동
+    fun moveSelectedItems(categoryId: String) {
+        viewModelScope.launch {
+            _selectedScrapIds.value.forEach { id ->
+                scrapRepository.moveScrapItem(id, categoryId)
+            }
+            // Todo: 구현 예정
+            exitSelectionMode()
+        }
+    }
+
+    // 선택된 아이템 공유
+    fun shareSelectedItems(): List<ScrapItem> {
+        val items = (sortedScrapItems.value as? Result.Success)?.data ?: return emptyList()
+        return items.filter { it.id in _selectedScrapIds.value }
+        // todo: 구현 예정
+    }
+
+    // 선택된 아이템 즐겨찾기 토글
+    fun toggleFavoriteSelectedItems() {
+        viewModelScope.launch {
+            _selectedScrapIds.value.forEach { id ->
+                scrapRepository.toggleFavorite(id)
+            }
+            exitSelectionMode()
         }
     }
 
