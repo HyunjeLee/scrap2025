@@ -1,9 +1,12 @@
 # Scrap2025
+> AI 기반 바이브 코딩으로 개발된 Android 애플리케이션
+<br>
+<br>
 
 <img width="1033" height="960" alt="figma to android" src="https://github.com/user-attachments/assets/d83e56f9-64e4-4cf2-8efa-e8e82c6e8b97" />
 
-> AI 기반 바이브 코딩으로 개발된 Android 애플리케이션
-
+<br>
+<br>
 
 ## 프로젝트 소개
 
@@ -16,6 +19,7 @@
 Claude Code가 주도적으로 아키텍처 설계와 구현을 담당하며, 개발자는 방향성 제시와 검토 역할을 수행합니다.
 Claude Code와 함께 MCP(Model Context Protocol) 서버를 활용하여 개발됩니다.
 
+<br>
 
 ## 활성 MCP 서버 + 플러그인
 
@@ -48,6 +52,7 @@ Android Studio/IntelliJ IDEA와의 통합을 제공합니다.
 - 코드 품질 개선 제안
 - **GUI 기반 코드/파일 선택**
 
+<br>
 
 ## 기술 스택
 
@@ -60,6 +65,7 @@ Android Studio/IntelliJ IDEA와의 통합을 제공합니다.
 | 상태 관리 | StateFlow, ViewModel |
 | 빌드 시스템 | Gradle (Kotlin DSL) |
 
+<br>
 
 ## 시스템 요구사항
 
@@ -69,6 +75,7 @@ Android Studio/IntelliJ IDEA와의 통합을 제공합니다.
 - **Kotlin**: 1.9+
 - **Gradle**: 8.x
 
+<br>
 
 ## 프로젝트 구조
 
@@ -93,6 +100,7 @@ app/src/main/java/com/scrap2025/scrap2025/
 └── navigation/             # 네비게이션 설정
 ```
 
+<br>
 
 ## 주요 기능
 
@@ -107,6 +115,7 @@ app/src/main/java/com/scrap2025/scrap2025/
 - [ ] 이미지 OCR 텍스트 추출
 - [ ] 태그 기반 분류
 
+<br>
 
 ## 아키텍처
 
@@ -132,6 +141,7 @@ app/src/main/java/com/scrap2025/scrap2025/
 └─────────────┘
 ```
 
+<br>
 
 ## 코딩 규칙
 
