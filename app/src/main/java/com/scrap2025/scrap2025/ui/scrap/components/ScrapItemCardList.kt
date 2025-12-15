@@ -56,6 +56,7 @@ fun ScrapItemCardList(
     isSelected: Boolean = false,
     onLongClick: () -> Unit = {},
     onSelectionToggle: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
     Card(
         modifier = modifier
@@ -65,6 +66,8 @@ fun ScrapItemCardList(
                 onClick = {
                     if (isSelectionMode) {
                         onSelectionToggle()
+                    } else {
+                        onClick()
                     }
                 },
                 onLongClick = {

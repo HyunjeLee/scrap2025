@@ -53,6 +53,7 @@ fun ScrapItemCardGrid(
     isSelected: Boolean = false,
     onLongClick: () -> Unit = {},
     onSelectionToggle: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
     Card(
         modifier = modifier
@@ -61,6 +62,8 @@ fun ScrapItemCardGrid(
                 onClick = {
                     if (isSelectionMode) {  // 선택 모드인 경우
                         onSelectionToggle()
+                    } else {
+                        onClick()
                     }
                 },
                 onLongClick = {
