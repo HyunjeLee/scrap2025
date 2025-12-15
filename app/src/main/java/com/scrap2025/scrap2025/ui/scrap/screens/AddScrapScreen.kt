@@ -41,7 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.scrap2025.scrap2025.model.GlobalUiState
+import com.scrap2025.scrap2025.model.LinkPreview
 import com.scrap2025.scrap2025.model.Result
+import com.scrap2025.scrap2025.model.toScrapItem
+import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
@@ -64,7 +68,19 @@ fun AddScrapScreen(
 ) {
     val context = LocalContext.current
     val addScrapState by viewModel.addScrapState.collectAsState()
+    val linkPreviewState by viewModel.linkPreviewState.collectAsState()
+    val sharedUrl by GlobalUiState.sharedUrl.collectAsState()
+
     val isLoading = addScrapState is Result.Loading
+
+    // 공유된 URL이 있으면 자동으로 링크 미리보기 가져오기
+    LaunchedEffect(sharedUrl) {
+        sharedUrl?.let { url ->
+            viewModel.fetchLinkPreview(url)
+            // 처리 후 초기화
+            GlobalUiState.setSharedUrl(null)
+        }
+    }
 
     // 스크랩 추가 상태 관찰
     LaunchedEffect(addScrapState) {
@@ -88,8 +104,13 @@ fun AddScrapScreen(
 
     AddScrapScreenContent(
         isLoading = isLoading,
-        onAddScrap = { url, memo ->
-            viewModel.addScrapItem(url = url, memo = memo)
+        linkPreviewState = linkPreviewState,
+        initialUrl = sharedUrl,
+        onAddScrap = { url, memo, linkPreview ->
+            viewModel.addScrapItem(url = url, memo = memo, linkPreview = linkPreview)
+        },
+        onFetchPreview = { url ->
+            viewModel.fetchLinkPreview(url)
         },
         onBack = { navController.popBackStack() },
         modifier = modifier
@@ -103,13 +124,30 @@ fun AddScrapScreen(
 @Composable
 fun AddScrapScreenContent(
     isLoading: Boolean,
-    onAddScrap: (url: String, memo: String?) -> Unit,
+    linkPreviewState: Result<LinkPreview>?,
+    initialUrl: String?,
+    onAddScrap: (url: String, memo: String?, linkPreview: LinkPreview?) -> Unit,
+    onFetchPreview: (url: String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var url by remember { mutableStateOf("") }
     var memo by remember { mutableStateOf("") }
+
+    // 공유된 URL이 있으면 자동으로 입력
+    LaunchedEffect(initialUrl) {
+        initialUrl?.let {
+            url = it
+        }
+    }
+
+    // 링크 미리보기 데이터 추출
+    val linkPreview = when (linkPreviewState) {
+        is Result.Success -> linkPreviewState.data
+        else -> null
+    }
+    val isLoadingPreview = linkPreviewState is Result.Loading
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -133,7 +171,47 @@ fun AddScrapScreenContent(
                     .weight(1f)
 
             ) {
-                Spacer(modifier.size(18.dp))
+
+                // 링크 미리보기 영역
+                if (isLoadingPreview) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .height(80.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(40.dp),
+                            color = MainColorDeep
+                        )
+                    }
+                } else if (linkPreview != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    ScrapItemCardList(
+                        scrapItem = linkPreview.toScrapItem(),
+                        isSelectionMode = false
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 링크 라벨
+                Text(
+                    text = "링크",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = Color.Black,
+                    modifier = Modifier.padding(start = 20.dp)
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 // 링크 입력 필드
                 Box(
                     modifier = Modifier
@@ -191,8 +269,9 @@ fun AddScrapScreenContent(
                 // 메모 입력 필드
                 Box(
                     modifier = Modifier
+                        .fillMaxSize()
                         .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
                 ) {
                     TextField(
                         value = memo,
@@ -208,8 +287,7 @@ fun AddScrapScreenContent(
                             )
                         },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(508.dp),
+                            .fillMaxSize(),
                         shape = RoundedCornerShape(10.dp),
                         colors = TextFieldDefaults.colors(
                             focusedContainerColor = MainColor,
@@ -228,7 +306,6 @@ fun AddScrapScreenContent(
                         enabled = !isLoading
                     )
                 }
-
             }
 
             // 하단 버튼
@@ -274,7 +351,9 @@ fun AddScrapScreenContent(
                         } else {
                             onAddScrap(
                                 url.trim(),
-                                memo.trim().ifBlank { null })
+                                memo.trim().ifBlank { null },
+                                linkPreview
+                            )
                         }
                     },
                     modifier = Modifier
@@ -347,13 +426,17 @@ fun TopBar(
     }
 }
 
+
 @Preview(showBackground = true)
 @Composable
 fun AddScrapScreenContentPreview() {
     Scrap2025Theme {
         AddScrapScreenContent(
             isLoading = false,
-            onAddScrap = { _, _ -> },
+            linkPreviewState = null,
+            initialUrl = null,
+            onAddScrap = { _, _, _ -> },
+            onFetchPreview = {},
             onBack = {}
         )
     }
