@@ -33,6 +33,14 @@ fun MainScreen(
     val currentRoute = currentBackStackEntry?.destination?.route
 
     val customBottomBar by GlobalUiState.customBottomBar.collectAsState()
+    val sharedUrl by GlobalUiState.sharedUrl.collectAsState()
+
+    // 공유된 URL이 있으면 AddScrapScreen으로 이동
+    LaunchedEffect(sharedUrl) {
+        if (sharedUrl != null) {
+            tabNavController.navigate(NavRoute.ADD_SCRAP)
+        }
+    }
 
     // 현재 라우트에 따라 자동으로 바텀바 선택 상태 동기화
     LaunchedEffect(currentRoute) {
