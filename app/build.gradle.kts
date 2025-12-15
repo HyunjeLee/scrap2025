@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose)
 
+    // jsoup for HTML parsing
+    implementation(libs.jsoup)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
