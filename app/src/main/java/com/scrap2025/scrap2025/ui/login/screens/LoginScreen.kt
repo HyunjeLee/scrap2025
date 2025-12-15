@@ -21,17 +21,23 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.LoginViewModel
 
 private val MainTextStyle = TextStyle(
     fontSize = 22.sp,
@@ -47,8 +53,20 @@ private val ButtonTextStyle = TextStyle(
 @Composable
 fun LoginScreen(
     onLoginClick: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
+
+    val context = LocalContext.current
+
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            onLoginClick()
+        }
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -102,9 +120,13 @@ fun LoginScreen(
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
-            KakaoLoginButton(onLoginClick)
+            KakaoLoginButton {
+                /* 카카오 로그인 로직 */
+            }
             Spacer(modifier = Modifier.height(12.dp))
-            NaverLoginButton(onLoginClick)
+            NaverLoginButton {
+                viewModel.loginWithNaver(context)
+            }
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
