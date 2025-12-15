@@ -1,5 +1,9 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -79,6 +83,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.ScrapDummyData
 import com.scrap2025.scrap2025.model.GlobalUiState
@@ -115,6 +120,7 @@ fun ScrapScreen(
     categoryViewModel: CategoryViewModel,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var categoryTitle by remember { mutableStateOf(initialCategoryName) }
 
     val scrapItemsResult by scrapViewModel.sortedScrapItems.collectAsState()
@@ -160,6 +166,43 @@ fun ScrapScreen(
         onSortTypeToggle = { scrapViewModel.toggleSortType() },
         onSortDirectionToggle = { scrapViewModel.toggleSortDirection() },
         onViewModeToggle = { scrapViewModel.toggleViewMode() },
+        onItemClick = { url ->
+            try {
+                // URL 유효성 검증
+                if (url.isBlank()) {
+                    Toast.makeText(context, "URL이 비어있습니다", Toast.LENGTH_SHORT).show()
+                    return@ScrapScreenContent
+                }
+
+                // URI 파싱 및 유효성 검증
+                val uri = Uri.parse(url)
+
+                // scheme 검증 (http, https만 허용)
+                if (uri.scheme.isNullOrBlank()) {
+                    Toast.makeText(context, "올바르지 않은 URL 형식입니다", Toast.LENGTH_SHORT).show()
+                    return@ScrapScreenContent
+                }
+
+                if (uri.scheme !in listOf("http", "https")) {
+                    Toast.makeText(context, "http 또는 https URL만 지원합니다", Toast.LENGTH_SHORT).show()
+                    return@ScrapScreenContent
+                }
+
+                // Intent 생성 및 실행
+                val intent = Intent(Intent.ACTION_VIEW, uri)
+
+                // 해당 Intent를 처리할 수 있는 앱이 있는지 확인
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(intent)
+                } else {
+                    Toast.makeText(context, "URL을 열 수 있는 앱이 없습니다", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: ActivityNotFoundException) {
+                Toast.makeText(context, "URL을 열 수 있는 앱이 없습니다", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Toast.makeText(context, "URL을 여는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+            }
+        },
         onItemLongClick = { itemId ->
             scrapViewModel.enterSelectionMode(itemId)
         },
@@ -205,6 +248,7 @@ fun ScrapScreenContent(
     onSortTypeToggle: () -> Unit,
     onSortDirectionToggle: () -> Unit,
     onViewModeToggle: () -> Unit,
+    onItemClick: (String) -> Unit,
     onItemLongClick: (String) -> Unit,
     onItemSelectionToggle: (String) -> Unit,
     onSelectAll: () -> Unit,
@@ -347,6 +391,9 @@ fun ScrapScreenContent(
                                             scrapItem = scrapItem,
                                             isSelectionMode = isSelectionMode,
                                             isSelected = selectedScrapIds.contains(scrapItem.id),
+                                            onClick = {
+                                                onItemClick(scrapItem.url)
+                                            },
                                             onLongClick = {
                                                 onItemLongClick(scrapItem.id)
                                             },
@@ -373,6 +420,9 @@ fun ScrapScreenContent(
                                             scrapItem = scrapItem,
                                             isSelectionMode = isSelectionMode,
                                             isSelected = selectedScrapIds.contains(scrapItem.id),
+                                            onClick = {
+                                                onItemClick(scrapItem.url)
+                                            },
                                             onLongClick = {
                                                 onItemLongClick(scrapItem.id)
                                             },
@@ -1020,6 +1070,7 @@ fun ScrapScreenContentPreview() {
             onSortTypeToggle = {},
             onSortDirectionToggle = {},
             onViewModeToggle = {},
+            onItemClick = {},
             onItemLongClick = {},
             onItemSelectionToggle = {},
             onSelectAll = {},
@@ -1050,6 +1101,7 @@ fun ScrapScreenContentSelectionModePreview() {
             onSortTypeToggle = {},
             onSortDirectionToggle = {},
             onViewModeToggle = {},
+            onItemClick = {},
             onItemLongClick = {},
             onItemSelectionToggle = {},
             onSelectAll = {},

@@ -4,6 +4,8 @@ import android.content.Context
 import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.CategoryRepositoryImpl
+import com.scrap2025.scrap2025.repository.LinkPreviewRepository
+import com.scrap2025.scrap2025.repository.LinkPreviewRepositoryImpl
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import com.scrap2025.scrap2025.repository.ScrapRepositoryImpl
 import dagger.Binds
@@ -29,6 +31,12 @@ abstract class DataModule {
     abstract fun bindCategoryRepository(
         categoryRepositoryImpl: CategoryRepositoryImpl
     ): CategoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindLinkPreviewRepository(
+        linkPreviewRepositoryImpl: LinkPreviewRepositoryImpl
+    ): LinkPreviewRepository
 
     companion object {
         @Provides

@@ -73,6 +73,9 @@ dependencies {
     // Naver Login SDK
     implementation(libs.naver.oauth)
 
+    // jsoup for HTML parsing
+    implementation(libs.jsoup)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
