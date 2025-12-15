@@ -14,8 +14,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,6 +34,10 @@ class ScrapViewModel @Inject constructor(
     // 선택된 스크랩 아이템 ID 목록
     private val _selectedScrapIds = MutableStateFlow<Set<String>>(emptySet())
     val selectedScrapIds: StateFlow<Set<String>> = _selectedScrapIds.asStateFlow()
+
+    // Preferences 로딩 상태
+    private val _isPreferencesLoaded = MutableStateFlow(false)
+    val isPreferencesLoaded: StateFlow<Boolean> = _isPreferencesLoaded.asStateFlow()
 
     // 정렬 타입 (DataStore에서 로드)
     val sortType: StateFlow<SortType> = preferencesManager.sortType.stateIn(
@@ -73,6 +79,19 @@ class ScrapViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = Result.Loading
     )
+
+    init {
+        // DataStore에서 모든 preference가 로드되면 isPreferencesLoaded를 true로 설정
+        viewModelScope.launch {
+            combine(
+                preferencesManager.sortType,
+                preferencesManager.sortDirection,
+                preferencesManager.viewMode
+            ) { _, _, _ ->
+                _isPreferencesLoaded.value = true // DataStore 로드 후 실행
+            }.take(1).collect()  // 1번만 실행
+        }
+    }
 
     // 스크랩 아이템 정렬 로직
     private fun sortScrapItems(

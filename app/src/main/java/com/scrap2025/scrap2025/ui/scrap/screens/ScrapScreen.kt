@@ -123,6 +123,7 @@ fun ScrapScreen(
     val sortDirection by scrapViewModel.sortDirection.collectAsState()
     val isSelectionMode by scrapViewModel.isSelectionMode.collectAsState()
     val selectedScrapIds by scrapViewModel.selectedScrapIds.collectAsState()
+    val isPreferencesLoaded by scrapViewModel.isPreferencesLoaded.collectAsState()
 
     val selectionBottomBar: @Composable () -> Unit = {
         // 이전에 정의된 SelectionActionBar 컴포저블을 호출합니다.
@@ -155,6 +156,7 @@ fun ScrapScreen(
         sortDirection = sortDirection,
         isSelectionMode = isSelectionMode,
         selectedScrapIds = selectedScrapIds,
+        isPreferencesLoaded = isPreferencesLoaded,
         onSortTypeToggle = { scrapViewModel.toggleSortType() },
         onSortDirectionToggle = { scrapViewModel.toggleSortDirection() },
         onViewModeToggle = { scrapViewModel.toggleViewMode() },
@@ -199,6 +201,7 @@ fun ScrapScreenContent(
     sortDirection: SortDirection,
     isSelectionMode: Boolean,
     selectedScrapIds: Set<String>,
+    isPreferencesLoaded: Boolean,
     onSortTypeToggle: () -> Unit,
     onSortDirectionToggle: () -> Unit,
     onViewModeToggle: () -> Unit,
@@ -318,53 +321,66 @@ fun ScrapScreenContent(
                     }
                 }
                 is Result.Success -> {
-                    val scrapItems = result.data
-                    when (viewMode) {
-                        ViewMode.LIST -> {
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .weight(1f)
-                            ) {
-                                items(scrapItems) { scrapItem ->
-                                    ScrapItemCardList(
-                                        scrapItem = scrapItem,
-                                        isSelectionMode = isSelectionMode,
-                                        isSelected = selectedScrapIds.contains(scrapItem.id),
-                                        onLongClick = {
-                                            onItemLongClick(scrapItem.id)
-                                        },
-                                        onSelectionToggle = {
-                                            onItemSelectionToggle(scrapItem.id)
-                                        }
-                                    )
+                    // Preferences가 로드되지 않았으면 로딩 표시
+                    if (!isPreferencesLoaded) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = MainColorDeep)
+                        }
+                    } else {
+                        // Preferences 로드 완료 후 실제 리스트/그리드 렌더링
+                        val scrapItems = result.data
+                        when (viewMode) {
+                            ViewMode.LIST -> {
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .weight(1f)
+                                ) {
+                                    items(scrapItems) { scrapItem ->
+                                        ScrapItemCardList(
+                                            scrapItem = scrapItem,
+                                            isSelectionMode = isSelectionMode,
+                                            isSelected = selectedScrapIds.contains(scrapItem.id),
+                                            onLongClick = {
+                                                onItemLongClick(scrapItem.id)
+                                            },
+                                            onSelectionToggle = {
+                                                onItemSelectionToggle(scrapItem.id)
+                                            }
+                                        )
+                                    }
                                 }
                             }
-                        }
-                        ViewMode.GRID -> {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(2),
-                                state = gridState,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .weight(1f),
-                                contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                items(scrapItems) { scrapItem ->
-                                    ScrapItemCardGrid(
-                                        scrapItem = scrapItem,
-                                        isSelectionMode = isSelectionMode,
-                                        isSelected = selectedScrapIds.contains(scrapItem.id),
-                                        onLongClick = {
-                                            onItemLongClick(scrapItem.id)
-                                        },
-                                        onSelectionToggle = {
-                                            onItemSelectionToggle(scrapItem.id)
-                                        }
-                                    )
+                            ViewMode.GRID -> {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(2),
+                                    state = gridState,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .weight(1f),
+                                    contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    items(scrapItems) { scrapItem ->
+                                        ScrapItemCardGrid(
+                                            scrapItem = scrapItem,
+                                            isSelectionMode = isSelectionMode,
+                                            isSelected = selectedScrapIds.contains(scrapItem.id),
+                                            onLongClick = {
+                                                onItemLongClick(scrapItem.id)
+                                            },
+                                            onSelectionToggle = {
+                                                onItemSelectionToggle(scrapItem.id)
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -1000,6 +1016,7 @@ fun ScrapScreenContentPreview() {
             sortDirection = SortDirection.ASCENDING,
             isSelectionMode = false,
             selectedScrapIds = emptySet(),
+            isPreferencesLoaded = true,
             onSortTypeToggle = {},
             onSortDirectionToggle = {},
             onViewModeToggle = {},
@@ -1029,6 +1046,7 @@ fun ScrapScreenContentSelectionModePreview() {
             sortDirection = SortDirection.ASCENDING,
             isSelectionMode = true,
             selectedScrapIds = emptySet(),
+            isPreferencesLoaded = true,
             onSortTypeToggle = {},
             onSortDirectionToggle = {},
             onViewModeToggle = {},
