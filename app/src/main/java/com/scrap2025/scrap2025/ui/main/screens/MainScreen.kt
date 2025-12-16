@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.navigation.TabNavHost
+import com.scrap2025.scrap2025.ui.common.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
@@ -31,6 +32,18 @@ fun MainScreen(
     val tabNavController = rememberNavController()
     val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
+
+    // 메인 탭 화면들에서만 뒤로가기 종료 처리
+    val isMainTab =
+        currentRoute == NavRoute.CATEGORY ||
+                currentRoute?.startsWith(NavRoute.SCRAP) == true ||
+                currentRoute == NavRoute.FAVORITE ||
+                currentRoute == NavRoute.SEARCH ||
+                currentRoute == NavRoute.MYPAGE
+
+    if (isMainTab) {
+        BackPressToExitHandler()
+    }
 
     val customBottomBar by GlobalUiState.customBottomBar.collectAsState()
     val sharedUrl by GlobalUiState.sharedUrl.collectAsState()
@@ -61,16 +74,7 @@ fun MainScreen(
             when (customBottomBar) {
                 null -> { // 기본 바텀 바
                     // 메인 5개 탭에서만 바텀바 표시
-                    val showBottomBar =
-                        currentRoute?.let { route ->
-                            route == NavRoute.CATEGORY ||
-                                    route.startsWith(NavRoute.SCRAP) ||
-                                    route == NavRoute.FAVORITE ||
-                                    route == NavRoute.SEARCH ||
-                                    route == NavRoute.MYPAGE
-                        } == true
-
-                    if (showBottomBar) {
+                    if (isMainTab) {
                         BottomNavigationBar(
                             selectedRoute = selectedTabRoute,
                             onItemClick = { route ->
