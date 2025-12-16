@@ -38,7 +38,7 @@ fun MainScreen(
     // 공유된 URL이 있으면 AddScrapScreen으로 이동
     LaunchedEffect(sharedUrl) {
         if (sharedUrl != null) {
-            tabNavController.navigate(NavRoute.ADD_SCRAP)
+            tabNavController.navigate(NavRoute.getAddScrapRoute("1"))
         }
     }
 
@@ -47,18 +47,12 @@ fun MainScreen(
         when {
             currentRoute?.startsWith(NavRoute.CATEGORY) == true ->
                 mainViewModel.selectTab(NavRoute.CATEGORY)
-
             currentRoute?.startsWith(NavRoute.SCRAP) == true ->
                 mainViewModel.selectTab(NavRoute.SCRAP)
 
-            currentRoute == NavRoute.FAVORITE ->
-                mainViewModel.selectTab(NavRoute.FAVORITE)
-
-            currentRoute == NavRoute.SEARCH ->
-                mainViewModel.selectTab(NavRoute.SEARCH)
-
-            currentRoute == NavRoute.MYPAGE ->
-                mainViewModel.selectTab(NavRoute.MYPAGE)
+            currentRoute == NavRoute.FAVORITE -> mainViewModel.selectTab(NavRoute.FAVORITE)
+            currentRoute == NavRoute.SEARCH -> mainViewModel.selectTab(NavRoute.SEARCH)
+            currentRoute == NavRoute.MYPAGE -> mainViewModel.selectTab(NavRoute.MYPAGE)
         }
     }
 
@@ -81,10 +75,9 @@ fun MainScreen(
                         BottomNavigationBar(
                             selectedRoute = selectedTabRoute,
                             onItemClick = { route ->
-                                if (selectedTabRoute != route) {  //memo: 현재 탭과 이동하려는 탭이 같은 탭이라면 이동하지 않도록 구현
-                                    tabNavController.navigate(route) {
-                                        popUpTo(0)
-                                    }
+                                if (selectedTabRoute != route
+                                ) { // memo: 현재 탭과 이동하려는 탭이 같은 탭이라면 이동하지 않도록 구현
+                                    tabNavController.navigate(route) { popUpTo(0) }
 
                                     mainViewModel.selectTab(route)
                                 }
@@ -99,11 +92,9 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)) {
             TabNavHost(tabNavController = tabNavController)
         }
     }
@@ -112,9 +103,5 @@ fun MainScreen(
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    Scrap2025Theme {
-        MainScreen(
-            parentNavController = rememberNavController()
-        )
-    }
+    Scrap2025Theme { MainScreen(parentNavController = rememberNavController()) }
 }

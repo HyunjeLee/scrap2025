@@ -206,7 +206,7 @@ fun ScrapScreen(
         onItemSelectionToggle = { itemId -> scrapViewModel.toggleScrapItemSelection(itemId) },
         onSelectAll = { scrapViewModel.selectAllScrapItems() },
         onDeselectAll = { scrapViewModel.deselectAllScrapItems() },
-        onAddScrap = { navController.navigate("${NavRoute.ADD_SCRAP}/$categoryId") },
+        onAddScrap = { navController.navigate(NavRoute.getAddScrapRoute(categoryId)) },
         onUpdateCategoryTitle = { categoryId, newTitle ->
             categoryViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
             categoryTitle = newTitle
@@ -270,11 +270,9 @@ fun ScrapScreenContent(
         }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-    ) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(BackgroundColor)) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 상단 바: 선택 모드에 따라 다른 UI 표시
             if (isSelectionMode) {

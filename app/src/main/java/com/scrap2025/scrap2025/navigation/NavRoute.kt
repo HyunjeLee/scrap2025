@@ -1,8 +1,6 @@
 package com.scrap2025.scrap2025.navigation
 
-/**
- * Navigation routes for the app
- */
+/** Navigation routes for the app */
 object NavRoute {
     // Auth routes
     const val LOGIN = "login_route"
@@ -18,4 +16,8 @@ object NavRoute {
     const val FAVORITE = "favorite_route"
     const val SEARCH = "search_route"
     const val MYPAGE = "mypage_route"
+
+    fun getAddScrapRoute(categoryId: String): String {
+        return "$ADD_SCRAP/$categoryId"
+    }
 }
