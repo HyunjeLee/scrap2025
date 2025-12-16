@@ -16,13 +16,17 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ScrapViewModel @Inject constructor(
+class ScrapViewModel
+@Inject
+constructor(
     private val scrapRepository: ScrapRepository,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
@@ -30,6 +34,10 @@ class ScrapViewModel @Inject constructor(
     // 선택 모드 상태
     private val _isSelectionMode = MutableStateFlow(false)
     val isSelectionMode: StateFlow<Boolean> = _isSelectionMode.asStateFlow()
+
+    // 선택된 카테고리 ID (null이면 전체)
+    private val _selectedCategoryId = MutableStateFlow<String?>(null)
+    val selectedCategoryId: StateFlow<String?> = _selectedCategoryId.asStateFlow()
 
     // 선택된 스크랩 아이템 ID 목록
     private val _selectedScrapIds = MutableStateFlow<Set<String>>(emptySet())
@@ -40,45 +48,53 @@ class ScrapViewModel @Inject constructor(
     val isPreferencesLoaded: StateFlow<Boolean> = _isPreferencesLoaded.asStateFlow()
 
     // 정렬 타입 (DataStore에서 로드)
-    val sortType: StateFlow<SortType> = preferencesManager.sortType.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = SortType.DATE
-    )
+    val sortType: StateFlow<SortType> =
+        preferencesManager.sortType.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SortType.DATE
+        )
 
     // 정렬 방향 (DataStore에서 로드)
-    val sortDirection: StateFlow<SortDirection> = preferencesManager.sortDirection.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = SortDirection.ASCENDING
-    )
+    val sortDirection: StateFlow<SortDirection> =
+        preferencesManager.sortDirection.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SortDirection.ASCENDING
+        )
 
     // 뷰 모드 (DataStore에서 로드)
-    val viewMode: StateFlow<ViewMode> = preferencesManager.viewMode.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = ViewMode.LIST
-    )
+    val viewMode: StateFlow<ViewMode> =
+        preferencesManager.viewMode.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ViewMode.LIST
+        )
 
-    // 정렬된 스크랩 아이템 목록 (Repository, sortType, sortDirection 조합)
-    val sortedScrapItems: StateFlow<Result<List<ScrapItem>>> = combine(
-        scrapRepository.getScrapItems(),
-        sortType,
-        sortDirection
-    ) { result, type, direction ->
-        when (result) {
-            is Result.Success -> {
-                val sortedItems = sortScrapItems(result.data, type, direction)
-                Result.Success(sortedItems)
-            }
-            is Result.Error -> result
-            is Result.Loading -> result
+    // 정렬된 스크랩 아이템 목록 (Repository, sortType, sortDirection, selectedCategory 조합)
+    val sortedScrapItems: StateFlow<Result<List<ScrapItem>>> =
+        combine(_selectedCategoryId, sortType, sortDirection) { categoryId, type, direction ->
+            Triple(categoryId, type, direction)
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = Result.Loading
-    )
+            .flatMapLatest { (categoryId, type, direction) ->
+                // categoryId가 null이면 전체 조회, null이 아니면 해당 카테고리만 조회
+                scrapRepository.getScrapItems(categoryId).map { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            val sortedItems = sortScrapItems(result.data, type, direction)
+                            Result.Success(sortedItems)
+                        }
+
+                        is Result.Error -> result
+                        is Result.Loading -> result
+                    }
+                }
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = Result.Loading
+            )
 
     init {
         // DataStore에서 모든 preference가 로드되면 isPreferencesLoaded를 true로 설정
@@ -89,7 +105,9 @@ class ScrapViewModel @Inject constructor(
                 preferencesManager.viewMode
             ) { _, _, _ ->
                 _isPreferencesLoaded.value = true // DataStore 로드 후 실행
-            }.take(1).collect()  // 1번만 실행
+            }
+                .take(1)
+                .collect() // 1번만 실행
         }
     }
 
@@ -99,14 +117,16 @@ class ScrapViewModel @Inject constructor(
         sortType: SortType,
         sortDirection: SortDirection
     ): List<ScrapItem> {
-        val sorted = when (sortType) {
-            SortType.DATE -> {
-                items.sortedBy { it.createdDate }
+        val sorted =
+            when (sortType) {
+                SortType.DATE -> {
+                    items.sortedBy { it.createdDate }
+                }
+
+                SortType.TITLE -> {
+                    items.sortedBy { it.title.lowercase() }
+                }
             }
-            SortType.TITLE -> {
-                items.sortedBy { it.title.lowercase() }
-            }
-        }
 
         return if (sortDirection == SortDirection.ASCENDING) {
             sorted
@@ -118,11 +138,12 @@ class ScrapViewModel @Inject constructor(
     // 정렬 타입 토글 (DATE ⇄ TITLE, 오름차순으로 리셋)
     fun toggleSortType() {
         viewModelScope.launch {
-            val newSortType = if (sortType.value == SortType.DATE) {
-                SortType.TITLE
-            } else {
-                SortType.DATE
-            }
+            val newSortType =
+                if (sortType.value == SortType.DATE) {
+                    SortType.TITLE
+                } else {
+                    SortType.DATE
+                }
             preferencesManager.setSortType(newSortType)
             preferencesManager.setSortDirection(SortDirection.ASCENDING)
         }
@@ -131,11 +152,12 @@ class ScrapViewModel @Inject constructor(
     // 정렬 방향 토글
     fun toggleSortDirection() {
         viewModelScope.launch {
-            val newDirection = if (sortDirection.value == SortDirection.ASCENDING) {
-                SortDirection.DESCENDING
-            } else {
-                SortDirection.ASCENDING
-            }
+            val newDirection =
+                if (sortDirection.value == SortDirection.ASCENDING) {
+                    SortDirection.DESCENDING
+                } else {
+                    SortDirection.ASCENDING
+                }
             preferencesManager.setSortDirection(newDirection)
         }
     }
@@ -143,11 +165,12 @@ class ScrapViewModel @Inject constructor(
     // 뷰 모드 토글
     fun toggleViewMode() {
         viewModelScope.launch {
-            val newViewMode = if (viewMode.value == ViewMode.LIST) {
-                ViewMode.GRID
-            } else {
-                ViewMode.LIST
-            }
+            val newViewMode =
+                if (viewMode.value == ViewMode.LIST) {
+                    ViewMode.GRID
+                } else {
+                    ViewMode.LIST
+                }
             preferencesManager.setViewMode(newViewMode)
         }
     }
@@ -167,11 +190,12 @@ class ScrapViewModel @Inject constructor(
     // 개별 아이템 선택 토글
     fun toggleScrapItemSelection(id: String) {
         val currentSelection = _selectedScrapIds.value
-        _selectedScrapIds.value = if (currentSelection.contains(id)) {
-            currentSelection - id
-        } else {
-            currentSelection + id
-        }
+        _selectedScrapIds.value =
+            if (currentSelection.contains(id)) {
+                currentSelection - id
+            } else {
+                currentSelection + id
+            }
     }
 
     // 전체 선택
@@ -188,9 +212,7 @@ class ScrapViewModel @Inject constructor(
     // 선택된 아이템 삭제
     fun deleteSelectedItems() {
         viewModelScope.launch {
-            _selectedScrapIds.value.forEach { id ->
-                scrapRepository.deleteScrapItem(id)
-            }
+            _selectedScrapIds.value.forEach { id -> scrapRepository.deleteScrapItem(id) }
             exitSelectionMode()
         }
     }
@@ -198,9 +220,7 @@ class ScrapViewModel @Inject constructor(
     // 선택된 아이템 이동
     fun moveSelectedItems(categoryId: String) {
         viewModelScope.launch {
-            _selectedScrapIds.value.forEach { id ->
-                scrapRepository.moveScrapItem(id, categoryId)
-            }
+            _selectedScrapIds.value.forEach { id -> scrapRepository.moveScrapItem(id, categoryId) }
             // Todo: 구현 예정
             exitSelectionMode()
         }
@@ -216,11 +236,13 @@ class ScrapViewModel @Inject constructor(
     // 선택된 아이템 즐겨찾기 토글
     fun toggleFavoriteSelectedItems() {
         viewModelScope.launch {
-            _selectedScrapIds.value.forEach { id ->
-                scrapRepository.toggleFavorite(id)
-            }
+            _selectedScrapIds.value.forEach { id -> scrapRepository.toggleFavorite(id) }
             exitSelectionMode()
         }
     }
 
+    // 카테고리 선택
+    fun setSelectedCategory(categoryId: String?) {
+        _selectedCategoryId.value = categoryId
+    }
 }
