@@ -14,4 +14,10 @@ interface AuthService {
             @Query("sns") sns: String,
             @Header("Authorization") token: String
     ): Response<BaseResponse<LoginResult>>
+
+    @retrofit2.http.Headers("accept: application/json")
+    @POST("/token")
+    suspend fun refreshToken(
+            @Query("refresh_token") refreshToken: String
+    ): Response<BaseResponse<LoginResult>>
 }
