@@ -17,7 +17,7 @@ import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
     navigation(
         startDestination = "${NavRoute.SCRAP}?categoryId={categoryId}&categoryName={categoryName}",
-        route = "scrap_graph"
+        route = NavRoute.SCRAP_GRAPH
     ) {
         composable(
             route = "${NavRoute.SCRAP}?categoryId={categoryId}&categoryName={categoryName}",

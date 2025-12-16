@@ -33,6 +33,7 @@ import com.scrap2025.scrap2025.data.local.CategoryDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.navigation.NavRoute
+import com.scrap2025.scrap2025.navigation.navigateToScrap
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
@@ -56,11 +57,10 @@ fun CategoryScreen(
     CategoryScreenContent(
         categoriesResult = categoriesResult,
         onCategoryClick = { category ->
-            navController?.navigate(
-                "${NavRoute.SCRAP}?categoryId=${category.id}&categoryName=${category.name}"
-            ) {
-                popUpTo(0)
-            }
+            navController?.navigateToScrap(
+                categoryId = category.id,
+                categoryName = category.name
+            )
         },
         onAddClick = {
             navController?.navigate(NavRoute.ADD_CATEGORY)
