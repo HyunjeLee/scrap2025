@@ -18,4 +18,7 @@ object NavRoute {
     const val FAVORITE = "favorite_route"
     const val SEARCH = "search_route"
     const val MYPAGE = "mypage_route"
+
+    // Graph routes
+    const val SCRAP_GRAPH = "scrap_graph"
 }
