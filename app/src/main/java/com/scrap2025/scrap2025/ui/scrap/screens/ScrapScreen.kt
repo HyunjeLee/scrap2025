@@ -74,6 +74,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -83,7 +84,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.ScrapDummyData
 import com.scrap2025.scrap2025.model.GlobalUiState
@@ -107,10 +107,7 @@ import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 import kotlinx.coroutines.launch
 
-/**
- * ScrapScreen - Container Composable
- * ViewModel에서 상태를 추출하여 ScrapScreenContent에 전달
- */
+/** ScrapScreen - Container Composable ViewModel에서 상태를 추출하여 ScrapScreenContent에 전달 */
 @Composable
 fun ScrapScreen(
     categoryId: String = "1",
@@ -131,6 +128,9 @@ fun ScrapScreen(
     val selectedScrapIds by scrapViewModel.selectedScrapIds.collectAsState()
     val isPreferencesLoaded by scrapViewModel.isPreferencesLoaded.collectAsState()
 
+    // 뷰모델에 현재 카테고리 설정 (DB 필터링용)
+    LaunchedEffect(categoryId) { scrapViewModel.setSelectedCategory(categoryId) }
+
     val selectionBottomBar: @Composable () -> Unit = {
         // 이전에 정의된 SelectionActionBar 컴포저블을 호출합니다.
         SelectionActionBar(
@@ -149,9 +149,7 @@ fun ScrapScreen(
     }
 
     // 뒤로가기 버튼 처리: 선택 모드일 때는 선택 모드 종료
-    BackHandler(enabled = isSelectionMode) {
-        scrapViewModel.exitSelectionMode()
-    }
+    BackHandler(enabled = isSelectionMode) { scrapViewModel.exitSelectionMode() }
 
     ScrapScreenContent(
         categoryId = categoryId,
@@ -184,7 +182,8 @@ fun ScrapScreen(
                 }
 
                 if (uri.scheme !in listOf("http", "https")) {
-                    Toast.makeText(context, "http 또는 https URL만 지원합니다", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "http 또는 https URL만 지원합니다", Toast.LENGTH_SHORT)
+                        .show()
                     return@ScrapScreenContent
                 }
 
@@ -203,21 +202,11 @@ fun ScrapScreen(
                 Toast.makeText(context, "URL을 여는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
             }
         },
-        onItemLongClick = { itemId ->
-            scrapViewModel.enterSelectionMode(itemId)
-        },
-        onItemSelectionToggle = { itemId ->
-            scrapViewModel.toggleScrapItemSelection(itemId)
-        },
-        onSelectAll = {
-            scrapViewModel.selectAllScrapItems()
-        },
-        onDeselectAll = {
-            scrapViewModel.deselectAllScrapItems()
-        },
-        onAddScrap = {
-            navController.navigate(NavRoute.ADD_SCRAP)
-        },
+        onItemLongClick = { itemId -> scrapViewModel.enterSelectionMode(itemId) },
+        onItemSelectionToggle = { itemId -> scrapViewModel.toggleScrapItemSelection(itemId) },
+        onSelectAll = { scrapViewModel.selectAllScrapItems() },
+        onDeselectAll = { scrapViewModel.deselectAllScrapItems() },
+        onAddScrap = { navController.navigate("${NavRoute.ADD_SCRAP}/$categoryId") },
         onUpdateCategoryTitle = { categoryId, newTitle ->
             categoryViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
             categoryTitle = newTitle
@@ -230,10 +219,7 @@ fun ScrapScreen(
     )
 }
 
-/**
- * ScrapScreenContent - Presentational Composable
- * ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링
- */
+/** ScrapScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
 @Composable
 fun ScrapScreenContent(
     categoryId: String,
@@ -267,16 +253,18 @@ fun ScrapScreenContent(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     // 파생 상태: 스크롤 위치에서 버튼 표시 여부 계산
-    val showScrollToTop by remember(viewMode) {
+    val showScrollToTop by
+    remember(viewMode) {
         derivedStateOf {
             when (viewMode) {
                 ViewMode.LIST -> {
                     listState.firstVisibleItemIndex > 0 ||
-                    listState.firstVisibleItemScrollOffset > 0
+                            listState.firstVisibleItemScrollOffset > 0
                 }
+
                 ViewMode.GRID -> {
                     gridState.firstVisibleItemIndex > 0 ||
-                    gridState.firstVisibleItemScrollOffset > 0
+                            gridState.firstVisibleItemScrollOffset > 0
                 }
             }
         }
@@ -287,16 +275,15 @@ fun ScrapScreenContent(
             .fillMaxSize()
             .background(BackgroundColor)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             // 상단 바: 선택 모드에 따라 다른 UI 표시
             if (isSelectionMode) {
                 // 선택 모드 - 선택 개수 및 전체 선택 버튼
-                val totalCount = when (val result = scrapItemsResult) {
-                    is Result.Success -> result.data.size
-                    else -> 0
-                }
+                val totalCount =
+                    when (val result = scrapItemsResult) {
+                        is Result.Success -> result.data.size
+                        else -> 0
+                    }
                 SelectionTopBar(
                     categoryTitle = categoryTitle,
                     selectedCount = selectedScrapIds.size,
@@ -310,11 +297,10 @@ fun ScrapScreenContent(
                     categoryId = categoryId,
                     categoryTitle = categoryTitle,
                     onUpdateCategory = { categoryId, categoryName ->
-                        onUpdateCategoryTitle(
-                            categoryId, categoryName
-                        )
+                        onUpdateCategoryTitle(categoryId, categoryName)
                     },
-                    onDeleteCategory = { showDeleteDialog = true })
+                    onDeleteCategory = { showDeleteDialog = true }
+                )
 
                 // 톱바 - 검색
                 SearchBar()
@@ -338,9 +324,7 @@ fun ScrapScreenContent(
                             .fillMaxSize()
                             .weight(1f),
                         contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = MainColorDeep)
-                    }
+                    ) { CircularProgressIndicator(color = MainColorDeep) }
                 }
                 is Result.Error -> {
                     Box(
@@ -352,7 +336,11 @@ fun ScrapScreenContent(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = "스크랩을 불러올 수 없습니다",
-                                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                                style =
+                                    TextStyle(
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Medium
+                                    ),
                                 color = GrayColor
                             )
                             Spacer(modifier = Modifier.height(8.dp))
@@ -372,9 +360,7 @@ fun ScrapScreenContent(
                                 .fillMaxSize()
                                 .weight(1f),
                             contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = MainColorDeep)
-                        }
+                        ) { CircularProgressIndicator(color = MainColorDeep) }
                     } else {
                         // Preferences 로드 완료 후 실제 리스트/그리드 렌더링
                         val scrapItems = result.data
@@ -390,13 +376,10 @@ fun ScrapScreenContent(
                                         ScrapItemCardList(
                                             scrapItem = scrapItem,
                                             isSelectionMode = isSelectionMode,
-                                            isSelected = selectedScrapIds.contains(scrapItem.id),
-                                            onClick = {
-                                                onItemClick(scrapItem.url)
-                                            },
-                                            onLongClick = {
-                                                onItemLongClick(scrapItem.id)
-                                            },
+                                            isSelected =
+                                                selectedScrapIds.contains(scrapItem.id),
+                                            onClick = { onItemClick(scrapItem.url) },
+                                            onLongClick = { onItemLongClick(scrapItem.id) },
                                             onSelectionToggle = {
                                                 onItemSelectionToggle(scrapItem.id)
                                             }
@@ -411,7 +394,8 @@ fun ScrapScreenContent(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .weight(1f),
-                                    contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
+                                    contentPadding =
+                                        PaddingValues(horizontal = 23.dp, vertical = 8.dp),
                                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
@@ -419,13 +403,10 @@ fun ScrapScreenContent(
                                         ScrapItemCardGrid(
                                             scrapItem = scrapItem,
                                             isSelectionMode = isSelectionMode,
-                                            isSelected = selectedScrapIds.contains(scrapItem.id),
-                                            onClick = {
-                                                onItemClick(scrapItem.url)
-                                            },
-                                            onLongClick = {
-                                                onItemLongClick(scrapItem.id)
-                                            },
+                                            isSelected =
+                                                selectedScrapIds.contains(scrapItem.id),
+                                            onClick = { onItemClick(scrapItem.url) },
+                                            onLongClick = { onItemLongClick(scrapItem.id) },
                                             onSelectionToggle = {
                                                 onItemSelectionToggle(scrapItem.id)
                                             }
@@ -460,6 +441,7 @@ fun ScrapScreenContent(
                                     listState.animateScrollToItem(0)
                                     gridState.scrollToItem(0)
                                 }
+
                                 ViewMode.GRID -> {
                                     gridState.animateScrollToItem(0)
                                     listState.scrollToItem(0)
@@ -482,7 +464,7 @@ fun ScrapScreenContent(
             }
 
             // 스크랩 추가 버튼
-            if (!isSelectionMode) {  // 일반 모드일 때만 FAB 표시
+            if (!isSelectionMode) { // 일반 모드일 때만 FAB 표시
                 Spacer(Modifier.height(16.dp))
 
                 FloatingActionButton(
@@ -490,8 +472,7 @@ fun ScrapScreenContent(
                     shape = CircleShape,
                     containerColor = MainColor,
                     contentColor = MainColorDeep,
-                    modifier = Modifier
-                        .size(60.dp)
+                    modifier = Modifier.size(60.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Add,
@@ -518,7 +499,6 @@ fun ScrapScreenContent(
 /**
  * TopBarWithTitle - 카테고리 제목 표시 및 편집 기능 '
  *
- *
  * 내부적으로 편집 모드 상태를 관리하며, 모드에 따라 TopBarDefault/TopBarEditMode를 전환
  */
 @Composable
@@ -539,9 +519,7 @@ fun TopBarWithTitle(
                 onUpdateCategory(categoryId, newTitle)
                 isEditMode = false
             },
-            onCancel = {
-                isEditMode = false
-            },
+            onCancel = { isEditMode = false },
             modifier = modifier
         )
     } else {
@@ -554,9 +532,7 @@ fun TopBarWithTitle(
     }
 }
 
-/**
- * TopBarDefault - 일반 모드 (카테고리명 표시 + 편집/삭제 버튼)
- */
+/** TopBarDefault - 일반 모드 (카테고리명 표시 + 편집/삭제 버튼) */
 @Composable
 private fun TopBarDefault(
     categoryTitle: String,
@@ -574,15 +550,11 @@ private fun TopBarDefault(
         // 카테고리 제목
         Text(
             text = categoryTitle,
-            style = TextStyle(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
-            ),
+            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
             color = Color.Black,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .padding(start = 21.dp, end = 85.dp)
+            modifier = Modifier.padding(start = 21.dp, end = 85.dp)
         )
 
         if (categoryTitle != "분류되지 않음") {
@@ -594,10 +566,7 @@ private fun TopBarDefault(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // 편집 버튼
-                IconButton(
-                    onClick = onEditClick,
-                    modifier = Modifier.size(28.dp)
-                ) {
+                IconButton(onClick = onEditClick, modifier = Modifier.size(28.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.Edit,
                         contentDescription = "편집",
@@ -607,10 +576,7 @@ private fun TopBarDefault(
                 }
 
                 // 삭제 버튼
-                IconButton(
-                    onClick = { onDeleteClick() },
-                    modifier = Modifier.size(28.dp)
-                ) {
+                IconButton(onClick = { onDeleteClick() }, modifier = Modifier.size(28.dp)) {
                     Icon(
                         imageVector = Icons.Outlined.Delete,
                         contentDescription = "삭제",
@@ -623,10 +589,7 @@ private fun TopBarDefault(
     }
 }
 
-/**
- * TopBarEditMode - 편집 모드 (TextField + 저장 버튼)
- * 커서를 텍스트 끝으로 자동 이동하며, 유효성 검사를 수행
- */
+/** TopBarEditMode - 편집 모드 (TextField + 저장 버튼) 커서를 텍스트 끝으로 자동 이동하며, 유효성 검사를 수행 */
 @Composable
 private fun TopBarEditMode(
     categoryTitle: String,
@@ -635,7 +598,8 @@ private fun TopBarEditMode(
     modifier: Modifier = Modifier
 ) {
     // === 내부 상태: 편집 중인 텍스트와 커서 위치를 포함한 TextFieldValue ===
-    var textFieldState by remember(categoryTitle) {
+    var textFieldState by
+    remember(categoryTitle) {
         mutableStateOf(
             TextFieldValue(
                 text = categoryTitle,
@@ -652,9 +616,7 @@ private fun TopBarEditMode(
     val focusRequester = remember { FocusRequester() }
 
     // 편집 모드 진입 시 자동 포커스
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     Box(
         modifier = modifier
@@ -666,18 +628,18 @@ private fun TopBarEditMode(
         // 편집용 TextField
         BasicTextField(
             value = textFieldState,
-            onValueChange = { newValue ->
-                textFieldState = newValue
-            },
-            modifier = Modifier
-                .padding(start = 21.dp, end = 60.dp)
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
-            textStyle = TextStyle(
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Black
-            ),
+            onValueChange = { newValue -> textFieldState = newValue },
+            modifier =
+                Modifier
+                    .padding(start = 21.dp, end = 60.dp)
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+            textStyle =
+                TextStyle(
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black
+                ),
             singleLine = true
         )
 
@@ -707,19 +669,22 @@ private fun TopBarEditMode(
 @Composable
 fun SearchBar(modifier: Modifier = Modifier) {
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(52.dp)
-            .background(MainColor)
-            .padding(horizontal = 21.dp, vertical = 5.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .background(MainColor)
+                .padding(horizontal = 21.dp, vertical = 5.dp)
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    color = MainColorLight, shape = RoundedCornerShape(7.dp)
-                )
-                .padding(horizontal = 8.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = MainColorLight,
+                        shape = RoundedCornerShape(7.dp)
+                    )
+                    .padding(horizontal = 8.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Row(
@@ -735,10 +700,7 @@ fun SearchBar(modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "제목, 본문내용, 메모로 검색하기",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Normal
-                    ),
+                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
                     color = GrayColor
                 )
             }
@@ -756,17 +718,19 @@ fun SortBar(
     onViewModeToggle: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val sortTypeText = when (sortType) {
-        SortType.DATE -> "스크랩한 날짜 순"
-        SortType.TITLE -> "제목 순"
-    }
+    val sortTypeText =
+        when (sortType) {
+            SortType.DATE -> "스크랩한 날짜 순"
+            SortType.TITLE -> "제목 순"
+        }
 
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(46.dp)
-            .background(MainColor)
-            .padding(horizontal = 24.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(46.dp)
+                .background(MainColor)
+                .padding(horizontal = 24.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -777,15 +741,13 @@ fun SortBar(
             Spacer(modifier = Modifier.weight(1f))
 
             // 정렬 아이콘 (클릭 시 오름차순/내림차순 토글)
-            IconButton(
-                onClick = onSortDirectionToggle,
-                modifier = Modifier.size(20.dp)
-            ) {
+            IconButton(onClick = onSortDirectionToggle, modifier = Modifier.size(20.dp)) {
                 Icon(
-                    imageVector = when (sortDirection) {
-                        SortDirection.ASCENDING -> Icons.Outlined.ArrowCircleUp
-                        SortDirection.DESCENDING -> Icons.Outlined.ArrowCircleDown
-                    },
+                    imageVector =
+                        when (sortDirection) {
+                            SortDirection.ASCENDING -> Icons.Outlined.ArrowCircleUp
+                            SortDirection.DESCENDING -> Icons.Outlined.ArrowCircleDown
+                        },
                     contentDescription = "정렬 방향",
                     tint = Color.Black,
                     modifier = Modifier.size(20.dp)
@@ -798,10 +760,7 @@ fun SortBar(
 
             Text(
                 text = sortTypeText,
-                style = TextStyle(
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal
-                ),
+                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
                 color = GrayColor,
                 modifier = Modifier.clickable(enabled = true, onClick = onSortTypeToggle)
             )
@@ -811,25 +770,20 @@ fun SortBar(
             // 구분선
             Text(
                 text = "|",
-                style = TextStyle(
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal
-                ),
+                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
                 color = Color(0xFF8C8C8C)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
 
             // 뷰모드 전환
-            IconButton(
-                onClick = onViewModeToggle,
-                modifier = Modifier.size(20.dp)
-            ) {
+            IconButton(onClick = onViewModeToggle, modifier = Modifier.size(20.dp)) {
                 Icon(
-                    imageVector = when (viewMode) {
-                        ViewMode.LIST -> Icons.Outlined.ViewAgenda
-                        ViewMode.GRID -> Icons.Outlined.GridView
-                    },
+                    imageVector =
+                        when (viewMode) {
+                            ViewMode.LIST -> Icons.Outlined.ViewAgenda
+                            ViewMode.GRID -> Icons.Outlined.GridView
+                        },
                     contentDescription = "뷰모드 전환",
                     tint = Color.Black,
                     modifier = Modifier.size(20.dp)
@@ -839,10 +793,7 @@ fun SortBar(
     }
 }
 
-/**
- * SelectionTopBar - 선택 모드일 때 상단 바
- * 선택된 개수 표시 및 "전체" 선택 버튼
- */
+/** SelectionTopBar - 선택 모드일 때 상단 바 선택된 개수 표시 및 "전체" 선택 버튼 */
 @Composable
 fun SelectionTopBar(
     categoryTitle: String,
@@ -863,9 +814,7 @@ fun SelectionTopBar(
             // 카테고리 제목
             Text(
                 text = categoryTitle,
-                style = TextStyle(
-                    fontSize = 18.sp, fontWeight = FontWeight.SemiBold
-                ),
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
                 color = Color.Black,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -887,58 +836,55 @@ fun SelectionTopBar(
             ) {
                 // 전체 선택 체크박스
                 Row(
-                    modifier = Modifier.clickable {
-                        if (selectedCount == totalCount) {
-                            onDeselectAll()
-                        } else {
-                            onSelectAll()
-                        }
-                    }, verticalAlignment = Alignment.CenterVertically
+                    modifier =
+                        Modifier.clickable {
+                            if (selectedCount == totalCount) {
+                                onDeselectAll()
+                            } else {
+                                onSelectAll()
+                            }
+                        },
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            imageVector = if (selectedCount == totalCount) {
-                                Icons.Filled.CheckCircle
-                            } else {
-                                Icons.Outlined.Circle
-                            },
+                            imageVector =
+                                if (selectedCount == totalCount) {
+                                    Icons.Filled.CheckCircle
+                                } else {
+                                    Icons.Outlined.Circle
+                                },
                             contentDescription = "전체 선택",
-                            tint = if (selectedCount == totalCount) {
-                                MainColorDeep
-                            } else {
-                                GrayColor
-                            },
+                            tint =
+                                if (selectedCount == totalCount) {
+                                    MainColorDeep
+                                } else {
+                                    GrayColor
+                                },
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            text = "전체", style = TextStyle(
-                                fontSize = 12.sp, fontWeight = FontWeight.Normal
-                            ), color = GrayColor
+                            text = "전체",
+                            style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                            color = GrayColor
                         )
                     }
-
-
                 }
 
                 Spacer(modifier = Modifier.width(13.dp))
 
                 // 선택 개수 표시
                 Text(
-                    text = "${selectedCount}개 선택됨", style = TextStyle(
-                        fontSize = 16.sp, fontWeight = FontWeight.Normal
-                    ), modifier = Modifier.padding(bottom = 6.dp)
+                    text = "${selectedCount}개 선택됨",
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal),
+                    modifier = Modifier.padding(bottom = 6.dp)
                 )
             }
         }
     }
 }
 
-/**
- * SelectionActionBar - 선택 모드일 때 하단 액션 바
- * 삭제, 이동, 공유, 즐겨찾기 버튼
- */
+/** SelectionActionBar - 선택 모드일 때 하단 액션 바 삭제, 이동, 공유, 즐겨찾기 버튼 */
 @Composable
 fun SelectionActionBar(
     onDelete: () -> Unit,
@@ -948,30 +894,31 @@ fun SelectionActionBar(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .dropShadow(
-                shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp),
-                shadow = Shadow(
-                    radius = 15.dp,
-                    spread = 0.dp,
-                    color = Color(0xFFBEBEBE).copy(alpha = 0.4f),
-                    offset = DpOffset(x = 0.dp, y = (-3).dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .dropShadow(
+                    shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp),
+                    shadow =
+                        Shadow(
+                            radius = 15.dp,
+                            spread = 0.dp,
+                            color = Color(0xFFBEBEBE).copy(alpha = 0.4f),
+                            offset = DpOffset(x = 0.dp, y = (-3).dp)
+                        )
                 )
-            )
-            .clip(
-                shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
-            )
-            .background(MainColor)
-            .padding(vertical = 10.dp)
-            .windowInsetsPadding(WindowInsets.navigationBars),
+                .clip(shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
+                .background(MainColor)
+                .padding(vertical = 10.dp)
+                .windowInsetsPadding(WindowInsets.navigationBars),
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // 삭제
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable { onDelete() }) {
+            modifier = Modifier.clickable { onDelete() }
+        ) {
             Icon(
                 imageVector = Icons.Outlined.Delete,
                 contentDescription = "삭제",
@@ -980,48 +927,55 @@ fun SelectionActionBar(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "삭제", style = TextStyle(
-                    fontSize = 12.sp, fontWeight = FontWeight.Normal
-                ), color = Color.Black
+                text = "삭제",
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                color = Color.Black
             )
         }
 
         // 공유
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable { onShare() }) {
+            modifier = Modifier.clickable { onShare() }
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
-                contentDescription = "공유", tint = Color.Black, modifier = Modifier.size(30.dp)
+                contentDescription = "공유",
+                tint = Color.Black,
+                modifier = Modifier.size(30.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "공유", style = TextStyle(
-                    fontSize = 12.sp, fontWeight = FontWeight.Normal
-                ), color = Color.Black
+                text = "공유",
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                color = Color.Black
             )
         }
 
         // 이동
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable { onMove() }) {
+            modifier = Modifier.clickable { onMove() }
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
-                contentDescription = "이동", tint = Color.Black, modifier = Modifier.size(30.dp)
+                contentDescription = "이동",
+                tint = Color.Black,
+                modifier = Modifier.size(30.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "이동", style = TextStyle(
-                    fontSize = 12.sp, fontWeight = FontWeight.Normal
-                ), color = Color.Black
+                text = "이동",
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                color = Color.Black
             )
         }
 
         // 즐겨찾기
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.clickable { onFavorite() }) {
+            modifier = Modifier.clickable { onFavorite() }
+        ) {
             Icon(
                 imageVector = Icons.Outlined.StarBorder,
                 contentDescription = "즐겨찾기",
@@ -1030,9 +984,9 @@ fun SelectionActionBar(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "즐겨찾기", style = TextStyle(
-                    fontSize = 12.sp, fontWeight = FontWeight.Normal
-                ), color = Color.Black
+                text = "즐겨찾기",
+                style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                color = Color.Black
             )
         }
     }
@@ -1041,14 +995,7 @@ fun SelectionActionBar(
 @Preview(showBackground = true)
 @Composable
 fun SelectionActionBarPreview() {
-    Scrap2025Theme {
-        SelectionActionBar(
-            onDelete = {},
-            onMove = {},
-            onShare = {},
-            onFavorite = {}
-        )
-    }
+    Scrap2025Theme { SelectionActionBar(onDelete = {}, onMove = {}, onShare = {}, onFavorite = {}) }
 }
 
 @Preview(showBackground = true)
@@ -1058,9 +1005,7 @@ fun ScrapScreenContentPreview() {
         ScrapScreenContent(
             categoryId = "1",
             categoryTitle = "분류되지 않음",
-            scrapItemsResult = Result.Success(
-                ScrapDummyData.dummyScrapItems
-            ),
+            scrapItemsResult = Result.Success(ScrapDummyData.dummyScrapItems),
             viewMode = ViewMode.GRID,
             sortType = SortType.DATE,
             sortDirection = SortDirection.ASCENDING,
@@ -1089,9 +1034,7 @@ fun ScrapScreenContentSelectionModePreview() {
         ScrapScreenContent(
             categoryId = "1",
             categoryTitle = "분류되지 않음",
-            scrapItemsResult = Result.Success(
-                ScrapDummyData.dummyScrapItems
-            ),
+            scrapItemsResult = Result.Success(ScrapDummyData.dummyScrapItems),
             viewMode = ViewMode.LIST,
             sortType = SortType.DATE,
             sortDirection = SortDirection.ASCENDING,
@@ -1130,38 +1073,24 @@ fun TopBarWithTitlePreview() {
 @Composable
 fun TopBarDefaultPreview() {
     Scrap2025Theme {
-        TopBarDefault(
-            categoryTitle = "분류되지 않음",
-            onEditClick = {},
-            onDeleteClick = {}
-        )
+        TopBarDefault(categoryTitle = "분류되지 않음", onEditClick = {}, onDeleteClick = {})
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun TopBarEditModePreview() {
-    Scrap2025Theme {
-        TopBarEditMode(
-            categoryTitle = "분류되지 않음",
-            onSave = {},
-            onCancel = {}
-        )
-    }
+    Scrap2025Theme { TopBarEditMode(categoryTitle = "분류되지 않음", onSave = {}, onCancel = {}) }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun SearchBarPreview() {
-    Scrap2025Theme {
-        SearchBar()
-    }
+    Scrap2025Theme { SearchBar() }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun SortBarPreview() {
-    Scrap2025Theme {
-        SortBar()
-    }
+    Scrap2025Theme { SortBar() }
 }

@@ -1,30 +1,23 @@
 package com.scrap2025.scrap2025.repository
 
-import com.scrap2025.scrap2025.data.local.CategoryDummyData
+import com.scrap2025.scrap2025.data.local.dao.CategoryDao
+import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * CategoryRepositoryImpl - CategoryRepository 구현체
- * 더미 데이터를 MutableStateFlow로 관리하며, Result 래퍼로 에러 처리
- */
+/** CategoryRepositoryImpl - CategoryRepository 구현체 Room DB(CategoryDao)를 사용하여 데이터 관리 */
 @Singleton
-class CategoryRepositoryImpl @Inject constructor() : CategoryRepository {
-
-    // 더미 데이터를 기반으로 MutableStateFlow 생성
-    private val _categories = MutableStateFlow<List<CategoryItem>>(
-        CategoryDummyData.dummyCategories
-    )
+class CategoryRepositoryImpl @Inject constructor(private val categoryDao: CategoryDao) :
+    CategoryRepository {
 
     override fun getCategories(): Flow<Result<List<CategoryItem>>> {
-        return _categories.map { items ->
+        return categoryDao.getAllCategories().map { entities ->
             try {
-                Result.Success(items)
+                Result.Success(entities.map { it.toDomainModel() })
             } catch (e: Exception) {
                 Result.Error(e, "카테고리 목록 조회 실패")
             }
@@ -33,9 +26,12 @@ class CategoryRepositoryImpl @Inject constructor() : CategoryRepository {
 
     override suspend fun getCategoryById(id: String): Result<CategoryItem> {
         return try {
-            val item = _categories.value.find { it.id == id }
-            if (item != null) {
-                Result.Success(item)
+            val entity = categoryDao.getCategoryById(id)
+            if (entity != null) {
+                // 단일 조회 시 카운트가 필요하다면 DAO를 수정해야 하지만,
+                // 현재 요구사항에서는 목록에서만 카운트가 중요하므로 0으로 처리하거나 별도 쿼리 필요.
+                // 일단 0으로 매핑 (상세 화면에서 카운트가 필요한지 확인 필요하지만 지금은 안전하게 0)
+                Result.Success(entity.toDomainModel())
             } else {
                 Result.Error(
                     NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."),
@@ -49,9 +45,7 @@ class CategoryRepositoryImpl @Inject constructor() : CategoryRepository {
 
     override suspend fun addCategory(item: CategoryItem): Result<Unit> {
         return try {
-            val currentItems = _categories.value.toMutableList()
-            currentItems.add(item)
-            _categories.value = currentItems
+            categoryDao.insertCategory(CategoryEntity.fromDomainModel(item))
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 추가 실패")
@@ -68,10 +62,10 @@ class CategoryRepositoryImpl @Inject constructor() : CategoryRepository {
                 )
             }
 
-            val currentItems = _categories.value.toMutableList()
-            val removed = currentItems.removeIf { it.id == id }
-            if (removed) {
-                _categories.value = currentItems
+            // 존재하는지 확인 후 삭제
+            val existing = categoryDao.getCategoryById(id)
+            if (existing != null) {
+                categoryDao.deleteCategory(id)
                 Result.Success(Unit)
             } else {
                 Result.Error(
@@ -94,11 +88,9 @@ class CategoryRepositoryImpl @Inject constructor() : CategoryRepository {
                 )
             }
 
-            val currentItems = _categories.value.toMutableList()
-            val index = currentItems.indexOfFirst { it.id == id }
-            if (index != -1) {
-                currentItems[index] = currentItems[index].copy(name = name)
-                _categories.value = currentItems
+            val existing = categoryDao.getCategoryById(id)
+            if (existing != null) {
+                categoryDao.updateCategoryName(id, name)
                 Result.Success(Unit)
             } else {
                 Result.Error(
