@@ -38,7 +38,7 @@ fun MainScreen(
     // 공유된 URL이 있으면 AddScrapScreen으로 이동
     LaunchedEffect(sharedUrl) {
         if (sharedUrl != null) {
-            tabNavController.navigate(NavRoute.getAddScrapRoute("1"))
+            tabNavController.navigate(NavRoute.CATEGORY_SELECTION)
         }
     }
 
@@ -49,7 +49,6 @@ fun MainScreen(
                 mainViewModel.selectTab(NavRoute.CATEGORY)
             currentRoute?.startsWith(NavRoute.SCRAP) == true ->
                 mainViewModel.selectTab(NavRoute.SCRAP)
-
             currentRoute == NavRoute.FAVORITE -> mainViewModel.selectTab(NavRoute.FAVORITE)
             currentRoute == NavRoute.SEARCH -> mainViewModel.selectTab(NavRoute.SEARCH)
             currentRoute == NavRoute.MYPAGE -> mainViewModel.selectTab(NavRoute.MYPAGE)
