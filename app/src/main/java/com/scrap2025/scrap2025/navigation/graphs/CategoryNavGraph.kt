@@ -10,24 +10,32 @@ import com.scrap2025.scrap2025.ui.category.screens.CategoryScreen
 import com.scrap2025.scrap2025.viewmodel.AddCategoryViewModel
 import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 
-/**
- * CategoryNavGraph - 카테고리 관련 네비게이션 그래프
- * ViewModel을 Hilt로 주입하여 MVVM 아키텍처 준수
- */
+/** CategoryNavGraph - 카테고리 관련 네비게이션 그래프 ViewModel을 Hilt로 주입하여 MVVM 아키텍처 준수 */
 fun NavGraphBuilder.categoryNavGraph(navController: NavHostController) {
     composable(NavRoute.CATEGORY) {
         val viewModel: CategoryViewModel = hiltViewModel()
-        CategoryScreen(
-            navController = navController,
-            viewModel = viewModel
-        )
+        CategoryScreen(navController = navController, viewModel = viewModel)
     }
 
     composable(NavRoute.ADD_CATEGORY) {
         val viewModel: AddCategoryViewModel = hiltViewModel()
-        AddCategoryScreen(
+        AddCategoryScreen(navController = navController, viewModel = viewModel)
+    }
+
+    composable(NavRoute.CATEGORY_SELECTION) {
+        val viewModel: CategoryViewModel = hiltViewModel()
+        CategoryScreen(
             navController = navController,
-            viewModel = viewModel
+            viewModel = viewModel,
+            onCategoryClick = { category ->
+                // 1. 해당 카테고리의 스크랩 리스트로 백스택 교체
+                navController.navigate(NavRoute.getScrapListRoute(category.id, category.name)) {
+                    popUpTo(NavRoute.CATEGORY_SELECTION) { inclusive = true }
+                }
+                // 2. 스크랩 추가 화면으로 이동 (사용자가 추가 취소 시 스크랩 리스트로 돌아감)
+                navController.navigate(NavRoute.getAddScrapRoute(category.id))
+            },
+            showFab = false
         )
     }
 }

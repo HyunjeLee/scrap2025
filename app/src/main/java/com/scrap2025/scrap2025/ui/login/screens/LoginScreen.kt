@@ -34,21 +34,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.scrap2025.scrap2025.ui.common.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.LoginViewModel
 
-private val MainTextStyle = TextStyle(
-    fontSize = 22.sp,
-    fontWeight = FontWeight.SemiBold,
-    lineHeight = 28.sp
-)
+private val MainTextStyle =
+    TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
 
-private val ButtonTextStyle = TextStyle(
-    fontSize = 16.sp,
-    fontWeight = FontWeight.SemiBold
-)
+private val ButtonTextStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
 
 @Composable
 fun LoginScreen(
@@ -58,6 +53,7 @@ fun LoginScreen(
 ) {
 
     val context = LocalContext.current
+    BackPressToExitHandler()
 
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
 
@@ -68,11 +64,12 @@ fun LoginScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(horizontal = 20.dp)
-            .navigationBarsPadding(),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(horizontal = 20.dp)
+                .navigationBarsPadding(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         // 상단 헤더
@@ -85,10 +82,7 @@ fun LoginScreen(
         )
 
         // 메인 컨텐츠
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
+        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
             Text(text = "언제 어디서든", style = MainTextStyle)
             Text(text = "간편하게", style = MainTextStyle)
 
@@ -108,10 +102,14 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
-                modifier = Modifier
-                    .border(1.5.dp, LightGrayColor, RoundedCornerShape(30.dp))
-                    .background(color = MainColor, shape = RoundedCornerShape(30.dp))
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                modifier =
+                    Modifier
+                        .border(1.5.dp, LightGrayColor, RoundedCornerShape(30.dp))
+                        .background(
+                            color = MainColor,
+                            shape = RoundedCornerShape(30.dp)
+                        )
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -124,9 +122,7 @@ fun LoginScreen(
                 /* 카카오 로그인 로직 */
             }
             Spacer(modifier = Modifier.height(12.dp))
-            NaverLoginButton {
-                viewModel.loginWithNaver(context)
-            }
+            NaverLoginButton { viewModel.loginWithNaver(context) }
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
@@ -139,13 +135,9 @@ private fun KakaoLoginButton(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFFFE500)
-        ),
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE500)),
         shape = RoundedCornerShape(8.dp)
-    ) {
-        Text(text = "카카오 로그인", style = ButtonTextStyle, color = Color.Black)
-    }
+    ) { Text(text = "카카오 로그인", style = ButtonTextStyle, color = Color.Black) }
 }
 
 @Composable
@@ -155,20 +147,17 @@ private fun NaverLoginButton(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF00C73C),
-            contentColor = Color.White
-        ),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF00C73C),
+                contentColor = Color.White
+            ),
         shape = RoundedCornerShape(8.dp)
-    ) {
-        Text(text = "네이버 로그인", style = ButtonTextStyle)
-    }
+    ) { Text(text = "네이버 로그인", style = ButtonTextStyle) }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    Scrap2025Theme {
-        LoginScreen()
-    }
+    Scrap2025Theme { LoginScreen() }
 }

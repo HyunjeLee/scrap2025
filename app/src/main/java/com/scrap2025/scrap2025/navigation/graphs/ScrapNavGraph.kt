@@ -16,22 +16,23 @@ import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 
 fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
     navigation(
-        startDestination = "${NavRoute.SCRAP}?categoryId={categoryId}&categoryName={categoryName}",
+        startDestination =
+            "${NavRoute.SCRAP}?categoryId={categoryId}&categoryName={categoryName}",
         route = NavRoute.SCRAP_GRAPH
     ) {
         composable(
             route = "${NavRoute.SCRAP}?categoryId={categoryId}&categoryName={categoryName}",
-            arguments = listOf(
-                navArgument("categoryId") {
-                    type = NavType.StringType
-                    nullable = true
-                    defaultValue = null
-                },
-                navArgument("categoryName") {
-                    type = NavType.StringType
-                    defaultValue = "분류되지 않음"
-                }
-            )
+            arguments =
+                listOf(
+                    navArgument("categoryId") {
+                        type = NavType.StringType
+                        defaultValue = "1"
+                    },
+                    navArgument("categoryName") {
+                        type = NavType.StringType
+                        defaultValue = "분류되지 않음"
+                    }
+                )
         ) { backStackEntry ->
             val categoryId = backStackEntry.arguments?.getString("categoryId") ?: "1"
             val categoryName = backStackEntry.arguments?.getString("categoryName") ?: "분류되지 않음"
@@ -49,10 +50,21 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
             )
         }
 
-        composable(route = NavRoute.ADD_SCRAP) {
+        composable(
+            route = "${NavRoute.ADD_SCRAP}/{categoryId}",
+            arguments =
+                listOf(
+                    navArgument("categoryId") {
+                        type = NavType.StringType
+                        defaultValue = "1" // 기본값: 분류되지 않음
+                    }
+                )
+        ) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId") ?: "1"
             val addScrapViewModel: AddScrapViewModel = hiltViewModel()
 
             AddScrapScreen(
+                categoryId = categoryId,
                 navController = navController,
                 viewModel = addScrapViewModel
             )

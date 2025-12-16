@@ -17,7 +17,9 @@ import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
-class AddScrapViewModel @Inject constructor(
+class AddScrapViewModel
+@Inject
+constructor(
     private val scrapRepository: ScrapRepository,
     private val linkPreviewRepository: LinkPreviewRepository
 ) : ViewModel() {
@@ -46,21 +48,27 @@ class AddScrapViewModel @Inject constructor(
      * @param memo 메모 (선택사항)
      * @param linkPreview 링크 미리보기 데이터 (선택사항)
      */
-    fun addScrapItem(url: String, memo: String?, linkPreview: LinkPreview? = null) {
+    fun addScrapItem(
+        url: String,
+        memo: String?,
+        linkPreview: LinkPreview? = null,
+        categoryId: String = "1" // 기본값: 분류되지 않음
+    ) {
         viewModelScope.launch {
             // Loading 상태 설정
             _addScrapState.value = Result.Loading
 
-            val newItem = ScrapItem(
-                id = UUID.randomUUID().toString(),
-                title = linkPreview?.title ?: url,
-                url = url,
-                imageUrl = linkPreview?.imageUrl,
-                createdDate = LocalDateTime.now(),
-                isFavorite = false,
-                categoryId = null, // 분류되지 않음
-                memo = memo
-            )
+            val newItem =
+                ScrapItem(
+                    id = UUID.randomUUID().toString(),
+                    title = linkPreview?.title ?: url,
+                    url = url,
+                    imageUrl = linkPreview?.imageUrl,
+                    createdDate = LocalDateTime.now(),
+                    isFavorite = false,
+                    categoryId = categoryId,
+                    memo = memo
+                )
 
             // Repository를 통해 스크랩 추가
             val result = scrapRepository.addScrapItem(newItem)
@@ -78,19 +86,18 @@ class AddScrapViewModel @Inject constructor(
             // 링크 미리보기 가져오기
             val previewResult = linkPreviewRepository.fetchLinkPreview(url)
 
-            val linkPreview = when (previewResult) {
-                is Result.Success -> previewResult.data
-                else -> null
-            }
+            val linkPreview =
+                when (previewResult) {
+                    is Result.Success -> previewResult.data
+                    else -> null
+                }
 
             // 스크랩 추가
             addScrapItem(url, memo, linkPreview)
         }
     }
 
-    /**
-     * 상태 초기화 (다음 추가를 위해)
-     */
+    /** 상태 초기화 (다음 추가를 위해) */
     fun resetState() {
         _addScrapState.value = null
     }

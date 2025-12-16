@@ -26,10 +26,22 @@ android {
         val localPropertiesFile = rootProject.file("local.properties")
         if (localPropertiesFile.exists()) {
             properties.load(localPropertiesFile.inputStream())
+        } else {
+            // local.properties 파일 자체가 없으면 에러 발생
+            throw GradleException("local.properties file found in root project.")
         }
 
-        buildConfigField("String", "NAVER_CLIENT_ID", "\"${properties.getProperty("NAVER_CLIENT_ID", "")}\"")
-        buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${properties.getProperty("NAVER_CLIENT_SECRET", "")}\"")
+        // 키값을 가져오되, 없거나 비어있으면 에러를 발생시키는 함수
+        fun getSecret(key: String): String {
+            val value = properties.getProperty(key)
+            if (value.isNullOrEmpty()) {
+                throw GradleException("Key '$key' is missing or empty in local.properties")
+            }
+            return value
+        }
+
+        buildConfigField("String", "NAVER_CLIENT_ID", "\"${getSecret("NAVER_CLIENT_ID")}\"")
+        buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${getSecret("NAVER_CLIENT_SECRET")}\"")
         buildConfigField("String", "NAVER_CLIENT_NAME", "\"${properties.getProperty("NAVER_CLIENT_NAME", "scrap2025")}\"")
     }
 
@@ -68,13 +80,24 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.tink.android)
     implementation(libs.coil.compose)
 
     // Naver Login SDK
     implementation(libs.naver.oauth)
 
+    // Network
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
+
     // jsoup for HTML parsing
     implementation(libs.jsoup)
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // Hilt
     implementation(libs.hilt.android)

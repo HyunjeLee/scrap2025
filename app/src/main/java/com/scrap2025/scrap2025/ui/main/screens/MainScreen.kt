@@ -17,20 +17,33 @@ import androidx.navigation.compose.rememberNavController
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.navigation.TabNavHost
+import com.scrap2025.scrap2025.ui.common.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 @Composable
 fun MainScreen(
-        parentNavController: NavHostController,
-        mainViewModel: MainViewModel = viewModel(),
-        modifier: Modifier = Modifier
+    parentNavController: NavHostController,
+    mainViewModel: MainViewModel = viewModel(),
+    modifier: Modifier = Modifier
 ) {
     val selectedTabRoute by mainViewModel.selectedTabRoute.collectAsState()
     val tabNavController = rememberNavController()
     val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
+
+    // 메인 탭 화면들에서만 뒤로가기 종료 처리
+    val isMainTab =
+        currentRoute == NavRoute.CATEGORY ||
+                currentRoute?.startsWith(NavRoute.SCRAP) == true ||
+                currentRoute == NavRoute.FAVORITE ||
+                currentRoute == NavRoute.SEARCH ||
+                currentRoute == NavRoute.MYPAGE
+
+    if (isMainTab) {
+        BackPressToExitHandler()
+    }
 
     val customBottomBar by GlobalUiState.customBottomBar.collectAsState()
     val sharedUrl by GlobalUiState.sharedUrl.collectAsState()
@@ -38,7 +51,7 @@ fun MainScreen(
     // 공유된 URL이 있으면 AddScrapScreen으로 이동
     LaunchedEffect(sharedUrl) {
         if (sharedUrl != null) {
-            tabNavController.navigate(NavRoute.ADD_SCRAP)
+            tabNavController.navigate(NavRoute.CATEGORY_SELECTION)
         }
     }
 
@@ -46,9 +59,9 @@ fun MainScreen(
     LaunchedEffect(currentRoute) {
         when {
             currentRoute?.startsWith(NavRoute.CATEGORY) == true ->
-                    mainViewModel.selectTab(NavRoute.CATEGORY)
+                mainViewModel.selectTab(NavRoute.CATEGORY)
             currentRoute?.startsWith(NavRoute.SCRAP) == true ->
-                    mainViewModel.selectTab(NavRoute.SCRAP)
+                mainViewModel.selectTab(NavRoute.SCRAP)
             currentRoute == NavRoute.FAVORITE -> mainViewModel.selectTab(NavRoute.FAVORITE)
             currentRoute == NavRoute.SEARCH -> mainViewModel.selectTab(NavRoute.SEARCH)
             currentRoute == NavRoute.MYPAGE -> mainViewModel.selectTab(NavRoute.MYPAGE)
@@ -56,40 +69,35 @@ fun MainScreen(
     }
 
     Scaffold(
-            modifier = modifier.fillMaxSize(),
-            bottomBar = {
-                when (customBottomBar) {
-                    null -> { // 기본 바텀 바
-                        val isMainTab =
-                                currentRoute in
-                                        listOf(
-                                                NavRoute.CATEGORY,
-                                                NavRoute.FAVORITE,
-                                                NavRoute.SEARCH,
-                                                NavRoute.MYPAGE
-                                        ) || currentRoute?.startsWith(NavRoute.SCRAP) == true
+        modifier = modifier.fillMaxSize(),
+        bottomBar = {
+            when (customBottomBar) {
+                null -> { // 기본 바텀 바
+                    // 메인 5개 탭에서만 바텀바 표시
+                    if (isMainTab) {
+                        BottomNavigationBar(
+                            selectedRoute = selectedTabRoute,
+                            onItemClick = { route ->
+                                if (selectedTabRoute != route
+                                ) { // memo: 현재 탭과 이동하려는 탭이 같은 탭이라면 이동하지 않도록 구현
+                                    tabNavController.navigate(route) { popUpTo(0) }
 
-                        if (isMainTab) {
-                            BottomNavigationBar(
-                                    selectedRoute = selectedTabRoute,
-                                    onItemClick = { route ->
-                                        if (selectedTabRoute != route
-                                        ) { // memo: 현재 탭과 이동하려는 탭이 같은 탭이라면 이동하지 않도록 구현
-                                            tabNavController.navigate(route) { popUpTo(0) }
-
-                                            mainViewModel.selectTab(route)
-                                        }
-                                    }
-                            )
-                        }
-                    }
-                    else -> {
-                        customBottomBar!!.invoke()
+                                    mainViewModel.selectTab(route)
+                                }
+                            }
+                        )
                     }
                 }
+
+                else -> {
+                    customBottomBar!!.invoke()
+                }
             }
+        }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)) {
             TabNavHost(tabNavController = tabNavController)
         }
     }

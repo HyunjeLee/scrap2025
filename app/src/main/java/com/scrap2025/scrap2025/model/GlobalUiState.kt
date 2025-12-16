@@ -12,19 +12,24 @@ object GlobalUiState {
     private val _sharedUrl = MutableStateFlow<String?>(null)
     val sharedUrl: StateFlow<String?> = _sharedUrl.asStateFlow()
 
-    /**
-     * 바텀바에 표시할 커스텀 컴포저블을 설정합니다.
-     * null을 전달하면 기본 바텀바를 표시합니다.
-     */
+    /** 바텀바에 표시할 커스텀 컴포저블을 설정합니다. null을 전달하면 기본 바텀바를 표시합니다. */
     fun setBottomBar(content: (@Composable () -> Unit)?) {
         _customBottomBar.value = content
     }
 
-    /**
-     * 다른 앱에서 공유된 URL을 설정합니다.
-     * 스크랩 화면에서 이 URL을 감지하여 자동으로 스크랩을 추가할 수 있습니다.
-     */
+    /** 다른 앱에서 공유된 URL을 설정합니다. 스크랩 화면에서 이 URL을 감지하여 자동으로 스크랩을 추가할 수 있습니다. */
     fun setSharedUrl(url: String?) {
         _sharedUrl.value = url
+    }
+
+    private val _selectedCategoryId = MutableStateFlow<String>("1")
+    val selectedCategoryId: StateFlow<String> = _selectedCategoryId.asStateFlow()
+
+    private val _selectedCategoryName = MutableStateFlow<String>("분류되지 않음")
+    val selectedCategoryName: StateFlow<String> = _selectedCategoryName.asStateFlow()
+
+    fun setCategory(id: String, name: String) {
+        _selectedCategoryId.value = id
+        _selectedCategoryName.value = name
     }
 }

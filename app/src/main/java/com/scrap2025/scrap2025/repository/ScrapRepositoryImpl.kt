@@ -1,26 +1,31 @@
 package com.scrap2025.scrap2025.repository
 
-import com.scrap2025.scrap2025.data.local.ScrapDummyData
+import com.scrap2025.scrap2025.data.local.dao.CategoryDao
+import com.scrap2025.scrap2025.data.local.dao.ScrapDao
+import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ScrapRepositoryImpl @Inject constructor() : ScrapRepository {
+class ScrapRepositoryImpl @Inject constructor(
+    private val scrapDao: ScrapDao,
+    private val categoryDao: CategoryDao
+) : ScrapRepository {
 
-    // 더미 데이터를 기반으로 MutableStateFlow 생성
-    private val _scrapItems = MutableStateFlow<List<ScrapItem>>(
-        ScrapDummyData.dummyScrapItems
-    )
+    override fun getScrapItems(categoryId: String?): Flow<Result<List<ScrapItem>>> {
+        val flow = if (categoryId != null) {
+            scrapDao.getScrapsByCategoryId(categoryId)
+        } else {
+            scrapDao.getAllScraps()
+        }
 
-    override fun getScrapItems(): Flow<Result<List<ScrapItem>>> {
-        return _scrapItems.map { items ->
+        return flow.map { entities ->
             try {
-                Result.Success(items)
+                Result.Success(entities.map { it.toDomainModel() })
             } catch (e: Exception) {
                 Result.Error(e, "스크랩 목록 조회 실패")
             }
@@ -29,14 +34,11 @@ class ScrapRepositoryImpl @Inject constructor() : ScrapRepository {
 
     override suspend fun getScrapItemById(id: String): Result<ScrapItem> {
         return try {
-            val item = _scrapItems.value.find { it.id == id }
-            if (item != null) {
-                Result.Success(item)
+            val entity = scrapDao.getScrapById(id)
+            if (entity != null) {
+                Result.Success(entity.toDomainModel())
             } else {
-                Result.Error(
-                    NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."),
-                    "스크랩을 찾을 수 없습니다"
-                )
+                Result.Error(NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."), "스크랩을 찾을 수 없습니다")
             }
         } catch (e: Exception) {
             Result.Error(e, "스크랩 조회 실패")
@@ -45,9 +47,10 @@ class ScrapRepositoryImpl @Inject constructor() : ScrapRepository {
 
     override suspend fun addScrapItem(item: ScrapItem): Result<Unit> {
         return try {
-            val currentItems = _scrapItems.value.toMutableList()
-            currentItems.add(item)
-            _scrapItems.value = currentItems
+            scrapDao.insertScrap(ScrapEntity.fromDomainModel(item))
+            // 카테고리 카운트 증가
+            categoryDao.incrementScrapCount(item.categoryId!!)
+
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "스크랩 추가 실패")
@@ -56,16 +59,15 @@ class ScrapRepositoryImpl @Inject constructor() : ScrapRepository {
 
     override suspend fun deleteScrapItem(id: String): Result<Unit> {
         return try {
-            val currentItems = _scrapItems.value.toMutableList()
-            val removed = currentItems.removeIf { it.id == id }
-            if (removed) {
-                _scrapItems.value = currentItems
+            val existing = scrapDao.getScrapById(id)
+            if (existing != null) {
+                scrapDao.deleteScrap(id)
+                // 카테고리 카운트 감소
+                categoryDao.decrementScrapCount(existing.categoryId!!)
+
                 Result.Success(Unit)
             } else {
-                Result.Error(
-                    NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."),
-                    "스크랩을 찾을 수 없습니다"
-                )
+                Result.Error(NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."), "스크랩을 찾을 수 없습니다")
             }
         } catch (e: Exception) {
             Result.Error(e, "스크랩 삭제 실패")
@@ -74,17 +76,12 @@ class ScrapRepositoryImpl @Inject constructor() : ScrapRepository {
 
     override suspend fun updateScrapItem(id: String, memo: String?): Result<Unit> {
         return try {
-            val currentItems = _scrapItems.value.toMutableList()
-            val index = currentItems.indexOfFirst { it.id == id }
-            if (index != -1) {
-                currentItems[index] = currentItems[index].copy(memo = memo)
-                _scrapItems.value = currentItems
+            val existing = scrapDao.getScrapById(id)
+            if (existing != null) {
+                scrapDao.updateScrapMemo(id, memo)
                 Result.Success(Unit)
             } else {
-                Result.Error(
-                    NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."),
-                    "스크랩을 찾을 수 없습니다"
-                )
+                Result.Error(NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."), "스크랩을 찾을 수 없습니다")
             }
         } catch (e: Exception) {
             Result.Error(e, "스크랩 업데이트 실패")
@@ -93,11 +90,9 @@ class ScrapRepositoryImpl @Inject constructor() : ScrapRepository {
 
     override suspend fun moveScrapItem(scrapId: String, categoryId: String): Result<Unit> {
         return try {
-            val currentItems = _scrapItems.value.toMutableList()
-            val index = currentItems.indexOfFirst { it.id == scrapId }
-            if (index != -1) {
-                currentItems[index] = currentItems[index].copy(categoryId = categoryId)
-                _scrapItems.value = currentItems
+            val existing = scrapDao.getScrapById(scrapId)
+            if (existing != null) {
+                scrapDao.moveScrap(scrapId, categoryId)
                 Result.Success(Unit)
             } else {
                 Result.Error(
@@ -112,13 +107,9 @@ class ScrapRepositoryImpl @Inject constructor() : ScrapRepository {
 
     override suspend fun toggleFavorite(scrapId: String): Result<Unit> {
         return try {
-            val currentItems = _scrapItems.value.toMutableList()
-            val index = currentItems.indexOfFirst { it.id == scrapId }
-            if (index != -1) {
-                currentItems[index] = currentItems[index].copy(
-                    isFavorite = !currentItems[index].isFavorite
-                )
-                _scrapItems.value = currentItems
+            val existing = scrapDao.getScrapById(scrapId)
+            if (existing != null) {
+                scrapDao.updateIsFavorite(scrapId, !existing.isFavorite)
                 Result.Success(Unit)
             } else {
                 Result.Error(

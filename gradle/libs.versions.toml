@@ -16,6 +16,10 @@ datastorePreferences = "1.1.1"
 hiltNavigationCompose = "1.2.0"
 oauth = "5.11.0"
 jsoup = "1.21.2"
+retrofit = "2.9.0"
+okhttp = "4.12.0"
+tink = "1.10.0"
+room = "2.6.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +45,13 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 naver-oauth = { group = "com.navercorp.nid", name = "oauth", version.ref = "oauth" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+tink-android = { group = "com.google.crypto.tink", name = "tink-android", version.ref = "tink" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

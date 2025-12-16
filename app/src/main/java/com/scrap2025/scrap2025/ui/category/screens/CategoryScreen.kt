@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.CategoryDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
+import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.navigation.navigateToScrap
@@ -42,14 +43,13 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 
-/**
- * CategoryScreen - Container Composable
- * ViewModel에서 상태를 추출하여 CategoryScreenContent에 전달
- */
+/** CategoryScreen - Container Composable ViewModel에서 상태를 추출하여 CategoryScreenContent에 전달 */
 @Composable
 fun CategoryScreen(
     navController: NavHostController? = null,
     viewModel: CategoryViewModel,
+    onCategoryClick: ((CategoryItem) -> Unit)? = null,
+    showFab: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val categoriesResult by viewModel.categories.collectAsState()
@@ -57,27 +57,30 @@ fun CategoryScreen(
     CategoryScreenContent(
         categoriesResult = categoriesResult,
         onCategoryClick = { category ->
-            navController?.navigateToScrap(
-                categoryId = category.id,
-                categoryName = category.name
-            )
+            GlobalUiState.setCategory(category.id, category.name)
+
+            if (onCategoryClick != null) {
+                onCategoryClick(category)
+            } else {
+                navController?.navigateToScrap(
+                    categoryId = category.id,
+                    categoryName = category.name
+                )
+            }
         },
-        onAddClick = {
-            navController?.navigate(NavRoute.ADD_CATEGORY)
-        },
+        onAddClick = { navController?.navigate(NavRoute.ADD_CATEGORY) },
+        showFab = showFab,
         modifier = modifier
     )
 }
 
-/**
- * CategoryScreenContent - Presentational Composable
- * ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링
- */
+/** CategoryScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
 @Composable
 fun CategoryScreenContent(
     categoriesResult: Result<List<CategoryItem>>,
     onCategoryClick: (CategoryItem) -> Unit,
     onAddClick: () -> Unit,
+    showFab: Boolean = true,
     modifier: Modifier = Modifier
 ) {
 
@@ -86,9 +89,7 @@ fun CategoryScreenContent(
             .fillMaxSize()
             .background(BackgroundColor)
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             // 헤더 (높이 68dp)
             Box(
                 modifier = Modifier
@@ -99,10 +100,7 @@ fun CategoryScreenContent(
             ) {
                 Text(
                     text = "카테고리",
-                    style = TextStyle(
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
-                    ),
+                    style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
                     modifier = Modifier.padding(start = 21.dp),
                 )
             }
@@ -116,23 +114,20 @@ fun CategoryScreenContent(
             // 카테고리 리스트 - Result 상태 처리
             when (val result = categoriesResult) {
                 is Result.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MainColorDeep)
                     }
                 }
-
                 is Result.Error -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = "카테고리를 불러올 수 없습니다",
-                                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                                style =
+                                    TextStyle(
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Medium
+                                    ),
                                 color = GrayColor
                             )
                             Text(
@@ -144,19 +139,14 @@ fun CategoryScreenContent(
                         }
                     }
                 }
-
                 is Result.Success -> {
                     val categoryList = result.data
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(count = categoryList.size) { index ->
                             val category = categoryList[index]
                             CategoryItemCard(
                                 categoryItem = category,
-                                onClick = {
-                                    onCategoryClick(category)
-                                }
+                                onClick = { onCategoryClick(category) }
                             )
                             HorizontalDivider(
                                 modifier = Modifier.fillMaxWidth(),
@@ -170,21 +160,24 @@ fun CategoryScreenContent(
         }
 
         // FAB 버튼 - 오른쪽 하단에 고정
-        FloatingActionButton(
-            onClick = onAddClick,
-            shape = CircleShape,
-            containerColor = MainColor,
-            contentColor = MainColorDeep,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 21.dp, bottom = 21.dp)
-                .size(60.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = "카테고리 추가",
-                modifier = Modifier.size(50.dp)
-            )
+        if (showFab) {
+            FloatingActionButton(
+                onClick = onAddClick,
+                shape = CircleShape,
+                containerColor = MainColor,
+                contentColor = MainColorDeep,
+                modifier =
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 21.dp, bottom = 21.dp)
+                        .size(60.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = "카테고리 추가",
+                    modifier = Modifier.size(50.dp)
+                )
+            }
         }
     }
 }
