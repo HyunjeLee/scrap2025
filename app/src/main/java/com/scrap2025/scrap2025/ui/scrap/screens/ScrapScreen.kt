@@ -118,7 +118,10 @@ fun ScrapScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var categoryTitle by remember { mutableStateOf(initialCategoryName) }
+    val globalCategoryId by GlobalUiState.selectedCategoryId.collectAsState()
+    val globalCategoryName by GlobalUiState.selectedCategoryName.collectAsState()
+
+    var categoryTitle by remember(globalCategoryName) { mutableStateOf(globalCategoryName) }
 
     val scrapItemsResult by scrapViewModel.sortedScrapItems.collectAsState()
     val viewMode by scrapViewModel.viewMode.collectAsState()
@@ -129,7 +132,7 @@ fun ScrapScreen(
     val isPreferencesLoaded by scrapViewModel.isPreferencesLoaded.collectAsState()
 
     // 뷰모델에 현재 카테고리 설정 (DB 필터링용)
-    LaunchedEffect(categoryId) { scrapViewModel.setSelectedCategory(categoryId) }
+    LaunchedEffect(globalCategoryId) { scrapViewModel.setSelectedCategory(globalCategoryId) }
 
     val selectionBottomBar: @Composable () -> Unit = {
         // 이전에 정의된 SelectionActionBar 컴포저블을 호출합니다.
@@ -152,7 +155,7 @@ fun ScrapScreen(
     BackHandler(enabled = isSelectionMode) { scrapViewModel.exitSelectionMode() }
 
     ScrapScreenContent(
-        categoryId = categoryId,
+        categoryId = globalCategoryId,
         categoryTitle = categoryTitle,
         scrapItemsResult = scrapItemsResult,
         viewMode = viewMode,
@@ -209,7 +212,7 @@ fun ScrapScreen(
         onAddScrap = { navController.navigate(NavRoute.getAddScrapRoute(categoryId)) },
         onUpdateCategoryTitle = { categoryId, newTitle ->
             categoryViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
-            categoryTitle = newTitle
+            GlobalUiState.setCategory(categoryId, newTitle)
         },
         onDeleteCategory = {
             categoryViewModel.deleteCategory(categoryId)

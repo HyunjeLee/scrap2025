@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.CategoryDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
+import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.navigation.NavRoute
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
@@ -55,6 +56,8 @@ fun CategoryScreen(
     CategoryScreenContent(
         categoriesResult = categoriesResult,
         onCategoryClick = { category ->
+            GlobalUiState.setCategory(category.id, category.name)
+
             if (onCategoryClick != null) {
                 onCategoryClick(category)
             } else {
