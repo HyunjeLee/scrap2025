@@ -66,8 +66,18 @@ fun MainScreen(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
             when (customBottomBar) {
-                null -> {  // 기본 바텀 바
-                    if (currentRoute != NavRoute.ADD_CATEGORY && currentRoute != NavRoute.ADD_SCRAP) {
+                null -> { // 기본 바텀 바
+                    // 메인 5개 탭에서만 바텀바 표시
+                    val showBottomBar =
+                        currentRoute?.let { route ->
+                            route == NavRoute.CATEGORY ||
+                                    route.startsWith(NavRoute.SCRAP) ||
+                                    route == NavRoute.FAVORITE ||
+                                    route == NavRoute.SEARCH ||
+                                    route == NavRoute.MYPAGE
+                        } == true
+
+                    if (showBottomBar) {
                         BottomNavigationBar(
                             selectedRoute = selectedTabRoute,
                             onItemClick = { route ->
