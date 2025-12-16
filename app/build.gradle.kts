@@ -80,10 +80,16 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.tink.android)
     implementation(libs.coil.compose)
 
     // Naver Login SDK
     implementation(libs.naver.oauth)
+
+    // Network
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
 
     // jsoup for HTML parsing
     implementation(libs.jsoup)

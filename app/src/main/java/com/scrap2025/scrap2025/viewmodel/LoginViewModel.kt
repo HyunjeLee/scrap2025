@@ -9,10 +9,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import com.scrap2025.scrap2025.repository.AuthRepository
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor() : ViewModel() {
+class LoginViewModel @Inject constructor(
+    private val authRepository: AuthRepository
+) : ViewModel() {
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
 
@@ -34,8 +39,19 @@ class LoginViewModel @Inject constructor() : ViewModel() {
                 Log.d(TAG, "액세스 토큰: $accessToken")
                 Log.d(TAG, "리프레시 토큰: $refreshToken")
 
-                // 로그인 상태 업데이트
-                _isLoggedIn.value = true  // todo: 서버와의 연동 필요
+                // 서버 로그인 시도
+                if (accessToken != null) {
+                    viewModelScope.launch {
+                        val result = authRepository.loginWithNaver(accessToken)
+                        if (result.isSuccess) {
+                            _isLoggedIn.value = true
+                            Log.d(TAG, "서버 로그인 성공")
+                        } else {
+                            _loginErrorMessage.value = "서버 로그인 실패"
+                            Log.e(TAG, "서버 로그인 실패: ${result.exceptionOrNull()?.message}")
+                        }
+                    }
+                }
             }
 
             override fun onFailure(errorCode: String, errorDesc: String) {
