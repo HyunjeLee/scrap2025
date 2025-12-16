@@ -1,49 +1,55 @@
 package com.scrap2025.scrap2025.data.local
 
 import android.content.Context
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
+val Context.authDataStore: DataStore<Preferences> by preferencesDataStore(name = "auth_prefs")
 
 @Singleton
-class TokenManager @Inject constructor(@ApplicationContext private val context: Context) {
+class TokenManager @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val tinkManager: TinkManager
+) {
     companion object {
-        private const val PREFS_NAME = "auth_prefs"
-        private const val ACCESS_TOKEN_KEY = "access_token"
-        private const val REFRESH_TOKEN_KEY = "refresh_token"
+        private val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
+        private val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
     }
 
-    private val masterKey =
-            MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build()
-
-    private val sharedPreferences =
-            EncryptedSharedPreferences.create(
-                    context,
-                    PREFS_NAME,
-                    masterKey,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-            )
-
-    fun getAccessToken(): String? {
-        return sharedPreferences.getString(ACCESS_TOKEN_KEY, null)
+    val accessToken: Flow<String?> = context.authDataStore.data.map { preferences ->
+        preferences[ACCESS_TOKEN_KEY]?.let { encrypted ->
+            if (encrypted.isNotEmpty()) tinkManager.decrypt(encrypted).takeIf { it.isNotEmpty() } else null
+        }
     }
 
-    fun getRefreshToken(): String? {
-        return sharedPreferences.getString(REFRESH_TOKEN_KEY, null)
+    val refreshToken: Flow<String?> = context.authDataStore.data.map { preferences ->
+        preferences[REFRESH_TOKEN_KEY]?.let { encrypted ->
+            if (encrypted.isNotEmpty()) tinkManager.decrypt(encrypted).takeIf { it.isNotEmpty() } else null
+        }
     }
 
-    fun saveTokens(accessToken: String, refreshToken: String) {
-        sharedPreferences
-                .edit()
-                .putString(ACCESS_TOKEN_KEY, accessToken)
-                .putString(REFRESH_TOKEN_KEY, refreshToken)
-                .apply()
+    suspend fun saveTokens(accessToken: String, refreshToken: String) {
+        val encryptedAccess = tinkManager.encrypt(accessToken)
+        val encryptedRefresh = tinkManager.encrypt(refreshToken)
+
+        context.authDataStore.edit { preferences ->
+            preferences[ACCESS_TOKEN_KEY] = encryptedAccess
+            preferences[REFRESH_TOKEN_KEY] = encryptedRefresh
+        }
     }
 
-    fun clearTokens() {
-        sharedPreferences.edit().remove(ACCESS_TOKEN_KEY).remove(REFRESH_TOKEN_KEY).apply()
+    suspend fun clearTokens() {
+        context.authDataStore.edit { preferences ->
+            preferences.remove(ACCESS_TOKEN_KEY)
+            preferences.remove(REFRESH_TOKEN_KEY)
+        }
     }
 }

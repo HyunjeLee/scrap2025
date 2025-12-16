@@ -68,7 +68,7 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.security.crypto)
+    implementation(libs.tink.android)
     implementation(libs.coil.compose)
 
     // Naver Login SDK
