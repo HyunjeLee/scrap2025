@@ -121,4 +121,17 @@ class ScrapRepositoryImpl @Inject constructor(
             Result.Error(e, "즐겨찾기 토글 실패")
         }
     }
+
+    override suspend fun moveScrapsToCategory(fromId: String, toId: String): Result<Unit> {
+        return try {
+            val movedCount = scrapDao.moveScraps(fromId, toId)
+            if (movedCount > 0) {
+                categoryDao.updateScrapCount(fromId, -movedCount)
+                categoryDao.updateScrapCount(toId, movedCount)
+            }
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e, "스크랩 이동 실패")
+        }
+    }
 }

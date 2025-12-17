@@ -1,5 +1,4 @@
 package com.scrap2025.scrap2025.data.local.dao
-
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -32,4 +31,7 @@ interface ScrapDao {
 
     @Query("UPDATE scraps SET isFavorite = :isFavorite WHERE id = :id")
     suspend fun updateIsFavorite(id: String, isFavorite: Boolean)
+
+    @Query("UPDATE scraps SET categoryId = :targetId WHERE categoryId = :sourceId")
+    suspend fun moveScraps(sourceId: String, targetId: String): Int
 }

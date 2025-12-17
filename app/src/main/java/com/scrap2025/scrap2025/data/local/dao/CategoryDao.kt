@@ -32,4 +32,7 @@ interface CategoryDao {
 
     @Query("UPDATE categories SET scrapCount = scrapCount - 1 WHERE id = :id AND scrapCount > 0")
     suspend fun decrementScrapCount(id: String)
+
+    @Query("UPDATE categories SET scrapCount = scrapCount + :amount WHERE id = :id")
+    suspend fun updateScrapCount(id: String, amount: Int)
 }
