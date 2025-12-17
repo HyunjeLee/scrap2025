@@ -10,36 +10,39 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.scrap2025.scrap2025.model.GlobalUiState
-import com.scrap2025.scrap2025.navigation.NavRoute
+import com.scrap2025.scrap2025.navigation.Category
+import com.scrap2025.scrap2025.navigation.CategorySelection
+import com.scrap2025.scrap2025.navigation.Favorite
+import com.scrap2025.scrap2025.navigation.MyPage
+import com.scrap2025.scrap2025.navigation.Scrap
+import com.scrap2025.scrap2025.navigation.Search
 import com.scrap2025.scrap2025.navigation.TabNavHost
 import com.scrap2025.scrap2025.ui.common.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
-import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 @Composable
 fun MainScreen(
     parentNavController: NavHostController,
-    mainViewModel: MainViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val selectedTabRoute by mainViewModel.selectedTabRoute.collectAsState()
     val tabNavController = rememberNavController()
     val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route
+    val currentDestination = currentBackStackEntry?.destination
 
     // 메인 탭 화면들에서만 뒤로가기 종료 처리
     val isMainTab =
-        currentRoute == NavRoute.CATEGORY ||
-                currentRoute?.startsWith(NavRoute.SCRAP) == true ||
-                currentRoute == NavRoute.FAVORITE ||
-                currentRoute == NavRoute.SEARCH ||
-                currentRoute == NavRoute.MYPAGE
+        currentDestination?.hasRoute<Category>() == true ||
+                currentDestination?.hasRoute<Scrap>() == true ||
+                currentDestination?.hasRoute<Favorite>() == true ||
+                currentDestination?.hasRoute<Search>() == true ||
+                currentDestination?.hasRoute<MyPage>() == true
 
     if (isMainTab) {
         BackPressToExitHandler()
@@ -51,20 +54,7 @@ fun MainScreen(
     // 공유된 URL이 있으면 AddScrapScreen으로 이동
     LaunchedEffect(sharedUrl) {
         if (sharedUrl != null) {
-            tabNavController.navigate(NavRoute.CATEGORY_SELECTION)
-        }
-    }
-
-    // 현재 라우트에 따라 자동으로 바텀바 선택 상태 동기화
-    LaunchedEffect(currentRoute) {
-        when {
-            currentRoute?.startsWith(NavRoute.CATEGORY) == true ->
-                mainViewModel.selectTab(NavRoute.CATEGORY)
-            currentRoute?.startsWith(NavRoute.SCRAP) == true ->
-                mainViewModel.selectTab(NavRoute.SCRAP)
-            currentRoute == NavRoute.FAVORITE -> mainViewModel.selectTab(NavRoute.FAVORITE)
-            currentRoute == NavRoute.SEARCH -> mainViewModel.selectTab(NavRoute.SEARCH)
-            currentRoute == NavRoute.MYPAGE -> mainViewModel.selectTab(NavRoute.MYPAGE)
+            tabNavController.navigate(CategorySelection)
         }
     }
 
@@ -76,13 +66,19 @@ fun MainScreen(
                     // 메인 5개 탭에서만 바텀바 표시
                     if (isMainTab) {
                         BottomNavigationBar(
-                            selectedRoute = selectedTabRoute,
+                            currentDestination = currentDestination,
                             onItemClick = { route ->
-                                if (selectedTabRoute != route
-                                ) { // memo: 현재 탭과 이동하려는 탭이 같은 탭이라면 이동하지 않도록 구현
-                                    tabNavController.navigate(route) { popUpTo(0) }
-
-                                    mainViewModel.selectTab(route)
+                                // 현재 라우트와 다른 경우에만 이동 (hasRoute로 체크)
+                                if (currentDestination?.hasRoute(route::class) != true) {
+                                    tabNavController.navigate(route) {
+                                        popUpTo(
+                                            tabNavController.graph
+                                                .findStartDestination()
+                                                .id
+                                        ) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             }
                         )

@@ -12,7 +12,7 @@ fun AppNavHost() {
 
     NavHost(
         navController = navController,
-        startDestination = NavRoute.LOGIN
+        startDestination = Login
     ) {
         mainNavGraph(navController)
     }

@@ -18,48 +18,50 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.scrap2025.scrap2025.navigation.NavRoute
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hasRoute
+import com.scrap2025.scrap2025.navigation.Category
+import com.scrap2025.scrap2025.navigation.Favorite
+import com.scrap2025.scrap2025.navigation.MyPage
+import com.scrap2025.scrap2025.navigation.Route
+import com.scrap2025.scrap2025.navigation.Scrap
+import com.scrap2025.scrap2025.navigation.Search
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import kotlin.reflect.KClass
 
 data class BottomNavItem(
     val label: String,
-    val icon: ImageVector?,
-    val route: String
+    val icon: ImageVector,
+    val route: Route,
+    val routeClass: KClass<out Route>
 )
 
 @Composable
 fun BottomNavigationBar(
-    selectedRoute: String = NavRoute.CATEGORY,
-    onItemClick: (String) -> Unit = {},
+    currentDestination: NavDestination?,
+    onItemClick: (Route) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val items = listOf(
-        BottomNavItem("카테고리", Icons.Outlined.Folder, NavRoute.CATEGORY),
-        BottomNavItem("스크랩", Icons.Outlined.AttachFile, NavRoute.SCRAP),
-        BottomNavItem("즐겨찾기", Icons.Outlined.Star, NavRoute.FAVORITE),
-        BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch, NavRoute.SEARCH),
-        BottomNavItem("마이페이지", Icons.Outlined.Person, NavRoute.MYPAGE)
+        BottomNavItem("카테고리", Icons.Outlined.Folder, Category, Category::class),
+        BottomNavItem("스크랩", Icons.Outlined.AttachFile, Scrap(), Scrap::class),
+        BottomNavItem("즐겨찾기", Icons.Outlined.Star, Favorite, Favorite::class),
+        BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch, Search, Search::class),
+        BottomNavItem("마이페이지", Icons.Outlined.Person, MyPage, MyPage::class)
     )
 
     NavigationBar(
-        modifier = modifier.clip(
-            RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
-        ),
+        modifier = modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)),
         containerColor = Color.White,
         tonalElevation = 0.dp
     ) {
         items.forEach { item ->
+            val isSelected = currentDestination?.hasRoute(item.routeClass) == true
+
             NavigationBarItem(
-                selected = item.route == selectedRoute,
+                selected = isSelected,
                 onClick = { onItemClick(item.route) },
-                icon = {
-                    item.icon?.let {
-                        Icon(
-                            imageVector = it,
-                            contentDescription = item.label
-                        )
-                    }
-                },
+                icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
                 label = { Text(item.label) },
                 alwaysShowLabel = true
             )
@@ -70,15 +72,11 @@ fun BottomNavigationBar(
 @Preview(showBackground = true)
 @Composable
 fun BottomNavigationBarPreview() {
-    Scrap2025Theme {
-        BottomNavigationBar(selectedRoute = NavRoute.CATEGORY)
-    }
+    Scrap2025Theme { BottomNavigationBar(currentDestination = null) }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun BottomNavigationBarPreviewSelected() {
-    Scrap2025Theme {
-        BottomNavigationBar(selectedRoute = NavRoute.FAVORITE)
-    }
+    Scrap2025Theme { BottomNavigationBar(currentDestination = null) }
 }

@@ -33,8 +33,8 @@ import com.scrap2025.scrap2025.data.local.CategoryDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.Result
-import com.scrap2025.scrap2025.navigation.NavRoute
-import com.scrap2025.scrap2025.navigation.navigateToScrap
+import com.scrap2025.scrap2025.navigation.AddCategory
+import com.scrap2025.scrap2025.navigation.Scrap
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
@@ -62,13 +62,12 @@ fun CategoryScreen(
             if (onCategoryClick != null) {
                 onCategoryClick(category)
             } else {
-                navController?.navigateToScrap(
-                    categoryId = category.id,
-                    categoryName = category.name
-                )
+                navController?.navigate(
+                    Scrap(categoryId = category.id, categoryName = category.name)
+                ) { popUpTo(0) }
             }
         },
-        onAddClick = { navController?.navigate(NavRoute.ADD_CATEGORY) },
+        onAddClick = { navController?.navigate(AddCategory) },
         showFab = showFab,
         modifier = modifier
     )

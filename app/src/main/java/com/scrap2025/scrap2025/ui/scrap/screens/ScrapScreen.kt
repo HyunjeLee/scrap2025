@@ -92,7 +92,8 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
-import com.scrap2025.scrap2025.navigation.NavRoute
+import com.scrap2025.scrap2025.navigation.AddScrap
+import com.scrap2025.scrap2025.navigation.Category
 import com.scrap2025.scrap2025.ui.common.dialogs.DeleteCategoryDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardGrid
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
@@ -209,7 +210,7 @@ fun ScrapScreen(
             onItemSelectionToggle = { itemId -> scrapViewModel.toggleScrapItemSelection(itemId) },
             onSelectAll = { scrapViewModel.selectAllScrapItems() },
             onDeselectAll = { scrapViewModel.deselectAllScrapItems() },
-            onAddScrap = { navController.navigate(NavRoute.getAddScrapRoute(categoryId)) },
+            onAddScrap = { navController.navigate(AddScrap(categoryId)) },
             onUpdateCategoryTitle = { categoryId, newTitle ->
                 categoryViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
                 GlobalUiState.setCategory(categoryId, newTitle)
@@ -217,7 +218,7 @@ fun ScrapScreen(
             onDeleteCategory = {
                 categoryViewModel.deleteCategory(categoryId)
                 GlobalUiState.setCategory("1", "분류되지 않음")
-                navController.navigate(NavRoute.CATEGORY)
+                navController.navigate(Category)
             },
             modifier = modifier
     )

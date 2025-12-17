@@ -7,17 +7,19 @@ import com.scrap2025.scrap2025.ui.login.screens.LoginScreen
 import com.scrap2025.scrap2025.ui.main.screens.MainScreen
 
 fun NavGraphBuilder.mainNavGraph(navController: NavHostController) {
-    composable(NavRoute.LOGIN) {
+    composable<Login> {
         LoginScreen(
             onLoginClick = {
-                navController.navigate(NavRoute.MAIN) {
-                    popUpTo(NavRoute.LOGIN) { inclusive = true }
+                navController.navigate(Main) {
+                    popUpTo<Login> { inclusive = true }
                 }
             }
         )
     }
 
-    composable(NavRoute.MAIN) {
-        MainScreen(parentNavController = navController)
+    composable<Main> {
+        MainScreen(
+            parentNavController = navController
+        )
     }
 }
