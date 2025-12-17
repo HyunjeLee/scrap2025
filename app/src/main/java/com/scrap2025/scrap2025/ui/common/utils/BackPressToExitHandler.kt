@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.common
+package com.scrap2025.scrap2025.ui.common.utils
 
 import android.app.Activity
 import android.widget.Toast

@@ -34,22 +34,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.scrap2025.scrap2025.ui.common.BackPressToExitHandler
+import com.scrap2025.scrap2025.ui.common.utils.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.LoginViewModel
 
 private val MainTextStyle =
-    TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
+        TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
 
 private val ButtonTextStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
 
 @Composable
 fun LoginScreen(
-    onLoginClick: () -> Unit = {},
-    modifier: Modifier = Modifier,
-    viewModel: LoginViewModel = hiltViewModel()
+        onLoginClick: () -> Unit = {},
+        modifier: Modifier = Modifier,
+        viewModel: LoginViewModel = hiltViewModel()
 ) {
 
     val context = LocalContext.current
@@ -64,21 +64,18 @@ fun LoginScreen(
     }
 
     Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(horizontal = 20.dp)
-                .navigationBarsPadding(),
-        verticalArrangement = Arrangement.SpaceBetween
+            modifier =
+                    modifier.fillMaxSize()
+                            .background(Color.White)
+                            .padding(horizontal = 20.dp)
+                            .navigationBarsPadding(),
+            verticalArrangement = Arrangement.SpaceBetween
     ) {
         // 상단 헤더
         Text(
-            text = "로그인",
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Normal),
-            modifier = Modifier
-                .padding(top = 37.dp)
-                .align(Alignment.CenterHorizontally)
+                text = "로그인",
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Normal),
+                modifier = Modifier.padding(top = 37.dp).align(Alignment.CenterHorizontally)
         )
 
         // 메인 컨텐츠
@@ -89,32 +86,31 @@ fun LoginScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "스크랩하기_", style = MainTextStyle)
                 Icon(
-                    imageVector = Icons.Outlined.AttachFile,
-                    contentDescription = "첨부 아이콘",
-                    modifier = Modifier.size(24.dp)
+                        imageVector = Icons.Outlined.AttachFile,
+                        contentDescription = "첨부 아이콘",
+                        modifier = Modifier.size(24.dp)
                 )
             }
         }
 
         // 하단 버튼 영역
         Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
-                modifier =
-                    Modifier
-                        .border(1.5.dp, LightGrayColor, RoundedCornerShape(30.dp))
-                        .background(
-                            color = MainColor,
-                            shape = RoundedCornerShape(30.dp)
-                        )
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
+                    modifier =
+                            Modifier.border(1.5.dp, LightGrayColor, RoundedCornerShape(30.dp))
+                                    .background(
+                                            color = MainColor,
+                                            shape = RoundedCornerShape(30.dp)
+                                    )
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "3초만에 시작하기 ✨",
-                    style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal)
+                        text = "3초만에 시작하기 ✨",
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal)
                 )
             }
             Spacer(modifier = Modifier.height(20.dp))
@@ -131,28 +127,24 @@ fun LoginScreen(
 @Composable
 private fun KakaoLoginButton(onClick: () -> Unit) {
     Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE500)),
-        shape = RoundedCornerShape(8.dp)
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE500)),
+            shape = RoundedCornerShape(8.dp)
     ) { Text(text = "카카오 로그인", style = ButtonTextStyle, color = Color.Black) }
 }
 
 @Composable
 private fun NaverLoginButton(onClick: () -> Unit) {
     Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
-        colors =
-            ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF00C73C),
-                contentColor = Color.White
-            ),
-        shape = RoundedCornerShape(8.dp)
+            onClick = onClick,
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            colors =
+                    ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF00C73C),
+                            contentColor = Color.White
+                    ),
+            shape = RoundedCornerShape(8.dp)
     ) { Text(text = "네이버 로그인", style = ButtonTextStyle) }
 }
 

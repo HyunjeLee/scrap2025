@@ -23,26 +23,23 @@ import com.scrap2025.scrap2025.navigation.MyPage
 import com.scrap2025.scrap2025.navigation.Scrap
 import com.scrap2025.scrap2025.navigation.Search
 import com.scrap2025.scrap2025.navigation.TabNavHost
-import com.scrap2025.scrap2025.ui.common.BackPressToExitHandler
+import com.scrap2025.scrap2025.ui.common.utils.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 @Composable
-fun MainScreen(
-    parentNavController: NavHostController,
-    modifier: Modifier = Modifier
-) {
+fun MainScreen(parentNavController: NavHostController, modifier: Modifier = Modifier) {
     val tabNavController = rememberNavController()
     val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
 
     // 메인 탭 화면들에서만 뒤로가기 종료 처리
     val isMainTab =
-        currentDestination?.hasRoute<Category>() == true ||
-                currentDestination?.hasRoute<Scrap>() == true ||
-                currentDestination?.hasRoute<Favorite>() == true ||
-                currentDestination?.hasRoute<Search>() == true ||
-                currentDestination?.hasRoute<MyPage>() == true
+            currentDestination?.hasRoute<Category>() == true ||
+                    currentDestination?.hasRoute<Scrap>() == true ||
+                    currentDestination?.hasRoute<Favorite>() == true ||
+                    currentDestination?.hasRoute<Search>() == true ||
+                    currentDestination?.hasRoute<MyPage>() == true
 
     if (isMainTab) {
         BackPressToExitHandler()
@@ -59,41 +56,38 @@ fun MainScreen(
     }
 
     Scaffold(
-        modifier = modifier.fillMaxSize(),
-        bottomBar = {
-            when (customBottomBar) {
-                null -> { // 기본 바텀 바
-                    // 메인 5개 탭에서만 바텀바 표시
-                    if (isMainTab) {
-                        BottomNavigationBar(
-                            currentDestination = currentDestination,
-                            onItemClick = { route ->
-                                // 현재 라우트와 다른 경우에만 이동 (hasRoute로 체크)
-                                if (currentDestination?.hasRoute(route::class) != true) {
-                                    tabNavController.navigate(route) {
-                                        popUpTo(
-                                            tabNavController.graph
-                                                .findStartDestination()
-                                                .id
-                                        ) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
+            modifier = modifier.fillMaxSize(),
+            bottomBar = {
+                when (customBottomBar) {
+                    null -> { // 기본 바텀 바
+                        // 메인 5개 탭에서만 바텀바 표시
+                        if (isMainTab) {
+                            BottomNavigationBar(
+                                    currentDestination = currentDestination,
+                                    onItemClick = { route ->
+                                        // 현재 라우트와 다른 경우에만 이동 (hasRoute로 체크)
+                                        if (currentDestination?.hasRoute(route::class) != true) {
+                                            tabNavController.navigate(route) {
+                                                popUpTo(
+                                                        tabNavController.graph
+                                                                .findStartDestination()
+                                                                .id
+                                                ) { saveState = true }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                        )
+                            )
+                        }
+                    }
+                    else -> {
+                        customBottomBar!!.invoke()
                     }
                 }
-
-                else -> {
-                    customBottomBar!!.invoke()
-                }
             }
-        }
     ) { innerPadding ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)) {
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             TabNavHost(tabNavController = tabNavController)
         }
     }
