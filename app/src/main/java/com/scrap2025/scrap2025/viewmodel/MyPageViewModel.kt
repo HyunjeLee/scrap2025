@@ -2,19 +2,16 @@ package com.scrap2025.scrap2025.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.repository.AuthRepository
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
-import androidx.lifecycle.viewModelScope
-import com.scrap2025.scrap2025.data.model.MyPageResult
-import com.scrap2025.scrap2025.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,8 +20,8 @@ class MyPageViewModel
 @Inject
 constructor(
     private val authRepository: AuthRepository,
-    private val scrapRepository: ScrapRepository,
-    private val categoryRepository: CategoryRepository
+    scrapRepository: ScrapRepository,
+    categoryRepository: CategoryRepository
 ) : ViewModel() {
 
     private val _myPageInfo = MutableStateFlow<MyPageResult?>(null)
@@ -54,7 +51,6 @@ constructor(
             }
         }
     }
-
 
     fun showWithdrawalDialog() {
         _showWithdrawDialog.value = true
