@@ -47,6 +47,7 @@ fun MyPageScreen(
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
+    val myPageInfo by viewModel.myPageInfo.collectAsState()
     val scrapCount by viewModel.scrapCount.collectAsState()
     val categoryCount by viewModel.categoryCount.collectAsState()
 
@@ -71,7 +72,7 @@ fun MyPageScreen(
         // Greeting
         val greetingText = buildAnnotatedString {
             append("안녕하세요 ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("XXX") }
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(myPageInfo?.memberInfo?.name ?: "") }
             append(" 님!")
         }
         Text(
