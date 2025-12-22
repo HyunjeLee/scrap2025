@@ -38,33 +38,34 @@ import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
 
 /**
- * DeleteCategoryDialog - 카테고리 삭제 확인 다이얼로그
+ * CommonDeleteDialog - 공통 삭제/탈퇴 확인 다이얼로그
  *
+ * @param title 메인 메시지 (필수)
+ * @param description 부가 설명 (선택, 주황색 텍스트)
+ * @param confirmText 삭제/확인 버튼 텍스트 (필수)
  * @param onDismiss 취소 버튼 클릭 시 호출
- * @param onConfirm 삭제하기 버튼 클릭 시 호출
+ * @param onConfirm 삭제/확인 버튼 클릭 시 호출
  */
 @Composable
-fun DeleteCategoryDialog(
+fun CommonDeleteDialog(
+    title: String,
+    confirmText: String,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    description: String? = null,
 ) {
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true
-        )
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
     ) {
         Box(
-            modifier = modifier
-                .width(318.dp)
-                .height(245.dp)
-                .background(
-                    color = Color.White,
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .padding(20.dp),
+            modifier =
+                modifier
+                    .width(318.dp)
+                    .height(245.dp)
+                    .background(color = Color.White, shape = RoundedCornerShape(20.dp))
+                    .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -72,16 +73,14 @@ fun DeleteCategoryDialog(
                 modifier = Modifier.fillMaxSize()
             ) {
                 // 상단 여백
-                Spacer(modifier = Modifier.height(13.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // 경고 아이콘 (빨간색 원 + X)
                 Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color = WarningColor,
-                            shape = CircleShape
-                        ),
+                    modifier =
+                        Modifier
+                            .size(40.dp)
+                            .background(color = WarningColor, shape = CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -92,39 +91,33 @@ fun DeleteCategoryDialog(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.weight(1f))
 
                 // 메인 메시지
                 Text(
-                    text = "정말 카테고리를 삭제하시겠습니까?",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Medium
-                    ),
+                    text = title,
+                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
                     color = Color.Black,
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                // 부가 설명 (주황색, 선택적)
+                if (description != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                // 부가 설명 (주황색)
-                Text(
-                    text = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
-                    style = TextStyle(
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
-                    ),
-                    color = CautionColor,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 10.dp)
-                )
+                    Text(
+                        text = description,
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium),
+                        color = CautionColor,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 // 버튼 영역
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Row(modifier = Modifier.fillMaxWidth()) {
                     // 취소 버튼
                     Button(
                         onClick = onDismiss,
@@ -132,40 +125,44 @@ fun DeleteCategoryDialog(
                             .weight(1f)
                             .height(55.dp),
                         shape = RoundedCornerShape(15.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = LightGrayColor,
-                            contentColor = DarkGrayColor
-                        )
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = LightGrayColor,
+                                contentColor = DarkGrayColor
+                            )
                     ) {
                         Text(
                             text = "취소",
-                            style = TextStyle(
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            style =
+                                TextStyle(
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                         )
                     }
 
                     Spacer(modifier = Modifier.width(13.dp))
 
-                    // 삭제하기 버튼
+                    // 삭제/확인 버튼
                     Button(
                         onClick = onConfirm,
                         modifier = Modifier
                             .weight(1f)
                             .height(55.dp),
                         shape = RoundedCornerShape(15.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = WarningColor,
-                            contentColor = Color.White
-                        )
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = WarningColor,
+                                contentColor = Color.White
+                            )
                     ) {
                         Text(
-                            text = "삭제하기",
-                            style = TextStyle(
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            text = confirmText,
+                            style =
+                                TextStyle(
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                         )
                     }
                 }
@@ -176,9 +173,25 @@ fun DeleteCategoryDialog(
 
 @Preview(showBackground = true)
 @Composable
-fun DeleteCategoryDialogPreview() {
+fun CommonDeleteDialogPreview() {
     Scrap2025Theme {
-        DeleteCategoryDialog(
+        CommonDeleteDialog(
+            title = "정말 카테고리를 삭제하시겠습니까?",
+            description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
+            confirmText = "삭제하기",
+            onDismiss = {},
+            onConfirm = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "No Description")
+@Composable
+fun CommonDeleteDialogNoDescriptionPreview() {
+    Scrap2025Theme {
+        CommonDeleteDialog(
+            title = "정말 회원탈퇴 하시겠습니까?",
+            confirmText = "회원탈퇴",
             onDismiss = {},
             onConfirm = {}
         )

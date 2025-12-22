@@ -94,7 +94,7 @@ import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
 import com.scrap2025.scrap2025.navigation.AddScrap
 import com.scrap2025.scrap2025.navigation.Category
-import com.scrap2025.scrap2025.ui.common.dialogs.DeleteCategoryDialog
+import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardGrid
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
@@ -467,12 +467,14 @@ fun ScrapScreenContent(
                             modifier = Modifier.size(50.dp)
                     )
                 }
-            }
         }
 
         // 삭제 확인 모달
         if (showDeleteDialog) {
-            DeleteCategoryDialog(
+            CommonDeleteDialog(
+                    title = "정말 카테고리를 삭제하시겠습니까?",
+                    description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
+                    confirmText = "삭제하기",
                     onDismiss = { showDeleteDialog = false },
                     onConfirm = {
                         showDeleteDialog = false
@@ -481,6 +483,7 @@ fun ScrapScreenContent(
             )
         }
     }
+}
 }
 
 /**
