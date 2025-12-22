@@ -42,7 +42,7 @@ import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 
 @Composable
 fun MyPageScreen(
-    onLogoutClick: () -> Unit,
+    onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
@@ -103,7 +103,7 @@ fun MyPageScreen(
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "고객센터") {}
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "로그아웃") { onLogoutClick() }  // todo: 토큰 초기화
+        MenuItem(text = "로그아웃") { viewModel.logout(onSignOut) }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "회원탈퇴") { viewModel.showWithdrawalDialog() }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
@@ -113,8 +113,8 @@ fun MyPageScreen(
         CommonDeleteDialog(
             title = "정말 회원탈퇴 하시겠습니까?",
             confirmText = "회원탈퇴",
+            onConfirm = { viewModel.withdraw(onSignOut) },
             onDismiss = { viewModel.dismissWithdrawalDialog() },
-            onConfirm = { viewModel.withdraw() }
         )
     }
 }
@@ -152,5 +152,5 @@ fun MenuItem(text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun MyPageScreenPreview() {
-    Scrap2025Theme { MyPageScreen(onLogoutClick = {}) }
+    Scrap2025Theme { MyPageScreen(onSignOut = {}) }
 }
