@@ -3,6 +3,7 @@ package com.scrap2025.scrap2025.di
 import android.content.Context
 import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
+import com.scrap2025.scrap2025.data.local.dao.MyPageDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import dagger.Module
 import dagger.Provides
@@ -31,5 +32,11 @@ object DatabaseModule {
     @Singleton
     fun provideScrapDao(database: AppDatabase): ScrapDao {
         return database.scrapDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMyPageDao(database: AppDatabase): MyPageDao {
+        return database.myPageDao()
     }
 }
