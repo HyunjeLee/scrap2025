@@ -16,7 +16,7 @@ class MyPageScreenTest {
     @Test
     fun myPageScreen_displaysEffectively() {
         // Given
-        composeTestRule.setContent { Scrap2025Theme { MyPageScreen() } }
+        composeTestRule.setContent { Scrap2025Theme { MyPageScreen(onSignOut = {}) } }
 
         // When & Then - Verify Title
         composeTestRule.onNodeWithText("마이페이지").assertIsDisplayed()
@@ -42,7 +42,9 @@ class MyPageScreenTest {
     @Test
     fun myPageScreen_menuItems_areClickable() {
         // Given
-        composeTestRule.setContent { Scrap2025Theme { MyPageScreen() } }
+        composeTestRule.setContent {
+            Scrap2025Theme { MyPageScreen(onSignOut = { }) }
+        }
 
         // When & Then - Verify Menu Items
         val menuItems = listOf("고객센터", "로그아웃", "회원탈퇴")
