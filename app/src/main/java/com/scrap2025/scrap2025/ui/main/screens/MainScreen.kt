@@ -87,8 +87,10 @@ fun MainScreen(parentNavController: NavHostController, modifier: Modifier = Modi
                 }
             }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            TabNavHost(tabNavController = tabNavController)
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)) {
+            TabNavHost(rootNavController = parentNavController, tabNavController = tabNavController)
         }
     }
 }

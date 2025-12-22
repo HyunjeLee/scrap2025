@@ -42,6 +42,7 @@ import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 
 @Composable
 fun MyPageScreen(
+    onLogoutClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
@@ -102,7 +103,7 @@ fun MyPageScreen(
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "고객센터") {}
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "로그아웃") {} // todo: 로그아웃 로직 추가
+        MenuItem(text = "로그아웃") { onLogoutClick() }  // todo: 토큰 초기화
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "회원탈퇴") { viewModel.showWithdrawalDialog() }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
@@ -151,5 +152,5 @@ fun MenuItem(text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun MyPageScreenPreview() {
-    Scrap2025Theme { MyPageScreen() }
+    Scrap2025Theme { MyPageScreen(onLogoutClick = {}) }
 }
