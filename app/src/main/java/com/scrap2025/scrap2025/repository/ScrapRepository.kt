@@ -29,4 +29,7 @@ interface ScrapRepository {
 
     /** 특정 카테고리의 모든 스크랩을 다른 카테고리로 이동 */
     suspend fun moveScrapsToCategory(fromId: String, toId: String): Result<Unit>
+
+    /** 전체 스크랩 개수 조회 */
+    fun getScrapCount(): Flow<Int>
 }

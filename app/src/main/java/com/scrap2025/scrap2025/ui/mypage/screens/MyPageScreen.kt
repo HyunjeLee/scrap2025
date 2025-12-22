@@ -47,6 +47,8 @@ fun MyPageScreen(
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
+    val scrapCount by viewModel.scrapCount.collectAsState()
+    val categoryCount by viewModel.categoryCount.collectAsState()
 
     Column(
         modifier = modifier
@@ -89,12 +91,12 @@ fun MyPageScreen(
             horizontalArrangement = Arrangement.Center
         ) {
             // Scrap Stat
-            StatItem(icon = Icons.Outlined.AttachFile, count = "276개", label = "스크랩")
+            StatItem(icon = Icons.Outlined.AttachFile, count = "${scrapCount}개", label = "스크랩")
 
             Spacer(modifier = Modifier.width(80.dp))
 
             // Category Stat
-            StatItem(icon = Icons.Outlined.Folder, count = "6개", label = "카테고리")
+            StatItem(icon = Icons.Outlined.Folder, count = "${categoryCount}개", label = "카테고리")
         }
 
         Spacer(modifier = Modifier.height(40.dp))
@@ -103,7 +105,7 @@ fun MyPageScreen(
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "고객센터") {}
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "로그아웃") { onLogoutClick() }  // todo: 토큰 초기화
+        MenuItem(text = "로그아웃") { viewModel.logout { onLogoutClick() } }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "회원탈퇴") { viewModel.showWithdrawalDialog() }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
@@ -114,7 +116,7 @@ fun MyPageScreen(
             title = "정말 회원탈퇴 하시겠습니까?",
             confirmText = "회원탈퇴",
             onDismiss = { viewModel.dismissWithdrawalDialog() },
-            onConfirm = { viewModel.withdraw() }
+            onConfirm = { viewModel.withdraw { onLogoutClick() } }
         )
     }
 }

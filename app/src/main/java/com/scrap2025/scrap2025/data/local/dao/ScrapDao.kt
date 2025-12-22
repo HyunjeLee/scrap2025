@@ -34,4 +34,7 @@ interface ScrapDao {
 
     @Query("UPDATE scraps SET categoryId = :targetId WHERE categoryId = :sourceId")
     suspend fun moveScraps(sourceId: String, targetId: String): Int
+
+    @Query("SELECT COUNT(*) FROM scraps")
+    fun getScrapCount(): Flow<Int>
 }

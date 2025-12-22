@@ -9,12 +9,18 @@ import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-@Database(entities = [CategoryEntity::class, ScrapEntity::class], version = 4, exportSchema = false)
+@Database(entities = [CategoryEntity::class, ScrapEntity::class], version = 5, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
     abstract fun scrapDao(): ScrapDao
+
+    suspend fun clearAllData() {
+        withContext(Dispatchers.IO) { clearAllTables() }
+    }
 
     companion object {
         @Volatile

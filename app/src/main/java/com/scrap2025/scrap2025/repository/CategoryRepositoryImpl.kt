@@ -102,4 +102,6 @@ class CategoryRepositoryImpl @Inject constructor(private val categoryDao: Catego
             Result.Error(e, "카테고리 업데이트 실패")
         }
     }
+
+    override fun getCategoryCount(): Flow<Int> = categoryDao.getCategoryCount()
 }
