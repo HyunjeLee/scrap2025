@@ -11,7 +11,7 @@ import com.scrap2025.scrap2025.ui.mypage.screens.MyPageScreen
 fun NavGraphBuilder.myPageNavGraph(rootNavController: NavHostController) {
     composable<MyPage> {
         MyPageScreen(
-            onLogoutClick = {
+            onSignOut = {
                 rootNavController.navigate(Login) { popUpTo(Main) { inclusive = true } }
             }
         )

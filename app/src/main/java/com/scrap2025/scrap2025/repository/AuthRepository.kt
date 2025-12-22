@@ -4,7 +4,9 @@ import android.util.Log
 import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.DatabaseInitializer
 import com.scrap2025.scrap2025.data.local.TokenManager
+import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.data.remote.AuthService
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 class AuthRepository
@@ -42,15 +44,58 @@ constructor(
         }
     }
 
-    suspend fun logout() {
-        tokenManager.clearTokens()
+    suspend fun getMyPage(): Result<MyPageResult> {
+        return try {
+            val token =
+                tokenManager.accessToken.firstOrNull()
+                    ?: throw Exception("No access token found")
+            val response = authService.getMyPage(token)
+            if (response.isSuccessful) {
+                response.body()?.result?.let { Result.success(it) }
+                    ?: Result.failure(Exception("MyPage result is null"))
+            } else {
+                Result.failure(Exception("Failed to get MyPage: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
-    suspend fun withdraw() {
-        // TODO: 회원탈퇴 API 호출 (현재 API가 없으므로 로컬 데이터만 삭제)
-        tokenManager.clearTokens()
-        database.clearAllData()
+    suspend fun logout(): Result<Unit> {
+        return try {
+            val token =
+                tokenManager.accessToken.firstOrNull()
+                    ?: throw Exception("No access token found")
+            val response = authService.logout(token)
+            if (response.isSuccessful) {
+                tokenManager.clearTokens()
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Logout failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
-        databaseInitializer.init()
+    suspend fun withdraw(): Result<Unit> {
+        return try {
+            val token =
+                tokenManager.accessToken.firstOrNull()
+                    ?: throw Exception("No access token found")
+            val response = authService.withdraw(token)
+            if (response.isSuccessful) {
+                tokenManager.clearTokens()
+                database.clearAllData()
+
+                databaseInitializer.init()
+
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Signout failed: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }
