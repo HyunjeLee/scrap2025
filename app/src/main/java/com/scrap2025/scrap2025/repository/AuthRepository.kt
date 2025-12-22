@@ -1,6 +1,8 @@
 package com.scrap2025.scrap2025.repository
 
 import android.util.Log
+import com.scrap2025.scrap2025.data.local.AppDatabase
+import com.scrap2025.scrap2025.data.local.DatabaseInitializer
 import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.data.remote.AuthService
@@ -9,7 +11,12 @@ import javax.inject.Inject
 
 class AuthRepository
 @Inject
-constructor(private val authService: AuthService, private val tokenManager: TokenManager) {
+constructor(
+    private val authService: AuthService,
+    private val tokenManager: TokenManager,
+    private val database: AppDatabase,
+    private val databaseInitializer: DatabaseInitializer
+) {
     suspend fun loginWithNaver(token: String): Result<Unit> {
         return try {
             val response = authService.login(sns = "naver", token = token)
@@ -79,6 +86,10 @@ constructor(private val authService: AuthService, private val tokenManager: Toke
             val response = authService.withdraw(token)
             if (response.isSuccessful) {
                 tokenManager.clearTokens()
+                database.clearAllData()
+
+                databaseInitializer.init()
+
                 Result.success(Unit)
             } else {
                 Result.failure(Exception("Signout failed: ${response.code()}"))

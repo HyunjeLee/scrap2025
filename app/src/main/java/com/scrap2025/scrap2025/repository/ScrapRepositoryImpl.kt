@@ -11,17 +11,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ScrapRepositoryImpl @Inject constructor(
-    private val scrapDao: ScrapDao,
-    private val categoryDao: CategoryDao
-) : ScrapRepository {
+class ScrapRepositoryImpl
+@Inject
+constructor(private val scrapDao: ScrapDao, private val categoryDao: CategoryDao) :
+    ScrapRepository {
 
     override fun getScrapItems(categoryId: String?): Flow<Result<List<ScrapItem>>> {
-        val flow = if (categoryId != null) {
-            scrapDao.getScrapsByCategoryId(categoryId)
-        } else {
-            scrapDao.getAllScraps()
-        }
+        val flow =
+            if (categoryId != null) {
+                scrapDao.getScrapsByCategoryId(categoryId)
+            } else {
+                scrapDao.getAllScraps()
+            }
 
         return flow.map { entities ->
             try {
@@ -134,4 +135,6 @@ class ScrapRepositoryImpl @Inject constructor(
             Result.Error(e, "스크랩 이동 실패")
         }
     }
+
+    override fun getScrapCount(): Flow<Int> = scrapDao.getScrapCount()
 }

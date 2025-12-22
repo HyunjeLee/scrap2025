@@ -47,6 +47,9 @@ fun MyPageScreen(
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
+    val myPageInfo by viewModel.myPageInfo.collectAsState()
+    val scrapCount by viewModel.scrapCount.collectAsState()
+    val categoryCount by viewModel.categoryCount.collectAsState()
 
     Column(
         modifier = modifier
@@ -69,7 +72,7 @@ fun MyPageScreen(
         // Greeting
         val greetingText = buildAnnotatedString {
             append("안녕하세요 ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append("XXX") }
+            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(myPageInfo?.memberInfo?.name ?: "") }
             append(" 님!")
         }
         Text(
@@ -89,12 +92,12 @@ fun MyPageScreen(
             horizontalArrangement = Arrangement.Center
         ) {
             // Scrap Stat
-            StatItem(icon = Icons.Outlined.AttachFile, count = "276개", label = "스크랩")
+            StatItem(icon = Icons.Outlined.AttachFile, count = "${scrapCount}개", label = "스크랩")
 
             Spacer(modifier = Modifier.width(80.dp))
 
             // Category Stat
-            StatItem(icon = Icons.Outlined.Folder, count = "6개", label = "카테고리")
+            StatItem(icon = Icons.Outlined.Folder, count = "${categoryCount}개", label = "카테고리")
         }
 
         Spacer(modifier = Modifier.height(40.dp))

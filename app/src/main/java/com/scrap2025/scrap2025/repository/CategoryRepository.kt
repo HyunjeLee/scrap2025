@@ -4,10 +4,7 @@ import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import kotlinx.coroutines.flow.Flow
 
-/**
- * CategoryRepository - 카테고리 데이터 접근 추상화 인터페이스
- * 데이터 소스(로컬/리모트)에 독립적인 비즈니스 로직 제공
- */
+/** CategoryRepository - 카테고리 데이터 접근 추상화 인터페이스 데이터 소스(로컬/리모트)에 독립적인 비즈니스 로직 제공 */
 interface CategoryRepository {
     /**
      * 전체 카테고리 목록 조회
@@ -43,4 +40,10 @@ interface CategoryRepository {
      * @return Result<Unit> (성공/실패)
      */
     suspend fun updateCategory(id: String, name: String): Result<Unit>
+
+    /**
+     * 전체 카테고리 개수 조회
+     * @return Flow<Int>
+     */
+    fun getCategoryCount(): Flow<Int>
 }
