@@ -41,19 +41,21 @@ class MyPageViewModel
         _showWithdrawDialog.value = false
     }
 
-    fun logout() {
+    fun logout(onSignOut: () -> Unit) {
         viewModelScope.launch {
             authRepository.logout().onSuccess {
-                // TODO: Handle logout success (e.g. navigate to login)
+                // todo
+                onSignOut()
             }
         }
     }
 
-    fun withdraw() {
+    fun withdraw(onSignOut: () -> Unit) {
         viewModelScope.launch {
             authRepository.withdraw().onSuccess {
                 _showWithdrawDialog.value = false
-                // TODO: Handle signout success (e.g. navigate to login)
+                // todo
+                onSignOut()
             }
         }
     }
