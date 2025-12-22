@@ -20,6 +20,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,12 +33,20 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 
 @Composable
-fun MyPageScreen(modifier: Modifier = Modifier) {
+fun MyPageScreen(
+    modifier: Modifier = Modifier,
+    viewModel: MyPageViewModel = hiltViewModel()
+) {
+    val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -92,10 +102,19 @@ fun MyPageScreen(modifier: Modifier = Modifier) {
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "고객센터") {}
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "로그아웃") {}  //todo: 로그아웃 로직 추가
+        MenuItem(text = "로그아웃") {} // todo: 로그아웃 로직 추가
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "회원탈퇴") {}  // todo: 회원탈퇴 로직 추가
+        MenuItem(text = "회원탈퇴") { viewModel.showWithdrawalDialog() }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
+    }
+
+    if (showWithdrawDialog) {
+        CommonDeleteDialog(
+            title = "정말 회원탈퇴 하시겠습니까?",
+            confirmText = "회원탈퇴",
+            onDismiss = { viewModel.dismissWithdrawalDialog() },
+            onConfirm = { viewModel.withdraw() }
+        )
     }
 }
 
@@ -115,10 +134,7 @@ fun StatItem(icon: ImageVector, count: String, label: String) {
 }
 
 @Composable
-fun MenuItem(
-    text: String,
-    onClick: () -> Unit
-) {
+fun MenuItem(text: String, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
