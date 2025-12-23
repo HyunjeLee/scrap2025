@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.repository
 
+import com.scrap2025.scrap2025.data.model.CategoryCreateResult
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import kotlinx.coroutines.flow.Flow
@@ -53,4 +54,11 @@ interface CategoryRepository {
      * @return Result<Unit>
      */
     suspend fun syncCategories(token: String): Result<Unit>
+    /**
+     * 카테고리 생성 (Remote)
+     * @param token API Access Token
+     * @param title 생성할 카테고리 제목
+     * @return Result<CategoryCreateResult>
+     */
+    suspend fun createCategoryRemote(token: String, title: String): Result<CategoryCreateResult>
 }

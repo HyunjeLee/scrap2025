@@ -1,10 +1,13 @@
 package com.scrap2025.scrap2025.data.remote
 
 import com.scrap2025.scrap2025.data.model.BaseResponse
+import com.scrap2025.scrap2025.data.model.CategoryCreateRequest
+import com.scrap2025.scrap2025.data.model.CategoryCreateResult
 import com.scrap2025.scrap2025.data.model.CategoryListResponse
 import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
@@ -45,4 +48,11 @@ interface AuthService {
     suspend fun getCategories(
         @Header("Authorization") token: String
     ): Response<BaseResponse<CategoryListResponse>>
+
+    @Headers("accept: application/json")
+    @POST("/auth/categories")
+    suspend fun createCategory(
+        @Header("Authorization") token: String,
+        @Body body: CategoryCreateRequest
+    ): Response<BaseResponse<CategoryCreateResult>>
 }

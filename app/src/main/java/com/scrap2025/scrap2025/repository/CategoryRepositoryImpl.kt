@@ -5,6 +5,8 @@ import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
+import com.scrap2025.scrap2025.data.model.CategoryCreateRequest
+import com.scrap2025.scrap2025.data.model.CategoryCreateResult
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
@@ -134,6 +136,28 @@ constructor(
             }
         } catch (e: Exception) {
             Result.Error(e, "카테고리 동기화 중 오류 발생")
+        }
+    }
+
+    override suspend fun createCategoryRemote(
+        token: String,
+        title: String
+    ): Result<CategoryCreateResult> {
+        return try {
+            val request = CategoryCreateRequest(categoryTitle = title)
+            val response = authService.createCategory(token, request)
+            if (response.isSuccessful) {
+                val result = response.body()?.result
+                if (result != null) {
+                    Result.Success(result)
+                } else {
+                    Result.Error(Exception("Response body is null"), "카테고리 생성 응답 오류")
+                }
+            } else {
+                Result.Error(Exception("Create failed code: ${response.code()}"), "카테고리 생성 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "카테고리 생성 중 오류 발생")
         }
     }
 }
