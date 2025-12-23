@@ -1,14 +1,14 @@
 package com.scrap2025.scrap2025.data.remote
 
 import com.scrap2025.scrap2025.data.local.TokenManager
-import javax.inject.Inject
-import javax.inject.Provider
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
+import javax.inject.Inject
+import javax.inject.Provider
 
 class TokenAuthenticator
 @Inject
@@ -26,6 +26,7 @@ constructor(
         val newToken = runBlocking {
             val refreshToken = tokenManager.refreshToken.firstOrNull()
             if (refreshToken.isNullOrEmpty()) {
+                tokenManager.clearTokens()
                 return@runBlocking null
             }
 
@@ -38,10 +39,15 @@ constructor(
                         val newRefreshToken = body.result.refreshToken
                         tokenManager.saveTokens(newAccessToken, newRefreshToken)
                         return@runBlocking newAccessToken
+                    } else {
+                        tokenManager.clearTokens()
                     }
+                } else {
+                    tokenManager.clearTokens()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
+                tokenManager.clearTokens()
             }
             null
         }

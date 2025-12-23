@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -19,6 +20,7 @@ import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.navigation.Category
 import com.scrap2025.scrap2025.navigation.CategorySelection
 import com.scrap2025.scrap2025.navigation.Favorite
+import com.scrap2025.scrap2025.navigation.Login
 import com.scrap2025.scrap2025.navigation.MyPage
 import com.scrap2025.scrap2025.navigation.Scrap
 import com.scrap2025.scrap2025.navigation.Search
@@ -26,12 +28,30 @@ import com.scrap2025.scrap2025.navigation.TabNavHost
 import com.scrap2025.scrap2025.ui.common.utils.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 @Composable
-fun MainScreen(parentNavController: NavHostController, modifier: Modifier = Modifier) {
+fun MainScreen(
+    parentNavController: NavHostController,
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel = hiltViewModel()
+) {
     val tabNavController = rememberNavController()
     val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
+
+    val accessToken by viewModel.accessToken.collectAsState()
+
+    // 토큰이 null이면 로그인 화면으로 이동
+    // 초기값인 ""(빈 문자열)일 때는 무시
+    LaunchedEffect(accessToken) {
+        if (accessToken == null) {
+            parentNavController.navigate(Login) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
 
     // 메인 탭 화면들에서만 뒤로가기 종료 처리
     val isMainTab =
@@ -90,7 +110,7 @@ fun MainScreen(parentNavController: NavHostController, modifier: Modifier = Modi
         Box(modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)) {
-            TabNavHost(rootNavController = parentNavController, tabNavController = tabNavController)
+            TabNavHost(tabNavController = tabNavController)
         }
     }
 }

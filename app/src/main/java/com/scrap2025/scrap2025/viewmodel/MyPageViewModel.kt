@@ -87,16 +87,13 @@ constructor(
         _showWithdrawDialog.value = false
     }
 
-    fun logout(onSignOut: () -> Unit) {
-        viewModelScope.launch { authRepository.logout().onSuccess { onSignOut() } }
+    fun logout() {
+        viewModelScope.launch { authRepository.logout() }
     }
 
-    fun withdraw(onSignOut: () -> Unit) {
+    fun withdraw() {
         viewModelScope.launch {
-            authRepository.withdraw().onSuccess {
-                _showWithdrawDialog.value = false
-                onSignOut()
-            }
+            authRepository.withdraw().onSuccess { _showWithdrawDialog.value = false }
         }
     }
 }

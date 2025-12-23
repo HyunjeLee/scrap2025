@@ -44,7 +44,6 @@ import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 /** MyPageScreen - Container Composable */
 @Composable
 fun MyPageScreen(
-    onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
@@ -54,9 +53,9 @@ fun MyPageScreen(
     MyPageScreenContent(
         uiState = uiState,
         showWithdrawDialog = showWithdrawDialog,
-        onLogout = { viewModel.logout(onSignOut) },
+        onLogout = { viewModel.logout() },
         onWithdrawClick = { viewModel.showWithdrawalDialog() },
-        onWithdrawConfirm = { viewModel.withdraw(onSignOut) },
+        onWithdrawConfirm = { viewModel.withdraw() },
         onWithdrawDismiss = { viewModel.dismissWithdrawalDialog() },
         modifier = modifier
     )
