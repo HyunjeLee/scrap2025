@@ -21,6 +21,10 @@ interface CategoryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: CategoryEntity)
 
+    // 리스트 전체 업데이트 (순서 변경 시 사용)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCategories(categories: List<CategoryEntity>)
+
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun deleteCategory(id: String)
 
@@ -35,4 +39,8 @@ interface CategoryDao {
 
     @Query("UPDATE categories SET scrapCount = scrapCount + :amount WHERE id = :id")
     suspend fun updateScrapCount(id: String, amount: Int)
+
+    // 순서 변경을 위한 개별 업데이트
+    @Query("UPDATE categories SET orderIndex = :orderIndex WHERE id = :id")
+    suspend fun updateCategoryOrder(id: String, orderIndex: Int)
 }

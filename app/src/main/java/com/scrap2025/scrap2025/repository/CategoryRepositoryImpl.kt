@@ -117,4 +117,18 @@ constructor(
     }
 
     override fun getCategoryCount(): Flow<Int> = categoryDao.getCategoryCount()
+
+    override suspend fun reorderCategories(items: List<CategoryItem>): Result<Unit> {
+        return try {
+            db.withTransaction {
+                // 각 아이템의 orderIndex를 리스트의 인덱스로 업데이트
+                items.forEachIndexed { index, item ->
+                    categoryDao.updateCategoryOrder(item.id, index)
+                }
+            }
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e, "카테고리 순서 변경 실패")
+        }
+    }
 }

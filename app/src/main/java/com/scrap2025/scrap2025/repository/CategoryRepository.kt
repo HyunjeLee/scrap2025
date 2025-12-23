@@ -46,4 +46,11 @@ interface CategoryRepository {
      * @return Flow<Int>
      */
     fun getCategoryCount(): Flow<Int>
+
+    /**
+     * 카테고리 순서 변경
+     * @param items 순서가 변경된 CategoryItem 리스트
+     * @return Result<Unit>
+     */
+    suspend fun reorderCategories(items: List<CategoryItem>): Result<Unit>
 }

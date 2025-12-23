@@ -15,9 +15,8 @@ import javax.inject.Inject
 
 /** CategoryViewModel - 카테고리 목록 화면의 상태 관리 CategoryRepository를 통해 카테고리 목록을 조회하고 관리 */
 @HiltViewModel
-class CategoryViewModel
-@Inject
-constructor(private val categoryRepository: CategoryRepository) : ViewModel() {
+class CategoryViewModel @Inject constructor(private val categoryRepository: CategoryRepository) :
+    ViewModel() {
 
     private val _uiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
@@ -59,6 +58,29 @@ constructor(private val categoryRepository: CategoryRepository) : ViewModel() {
      */
     fun updateCategoryTitle(id: String, newTitle: String) {
         viewModelScope.launch { categoryRepository.updateCategory(id, newTitle) }
+    }
+
+    /**
+     * 카테고리 순서 변경
+     * @param fromIndex 원래 위치
+     * @param toIndex 새로운 위치
+     */
+    fun moveCategory(fromIndex: Int, toIndex: Int) {
+        val currentState = _uiState.value
+        if (currentState !is CategoryUiState.Success) return
+
+        val currentList = currentState.categories
+        // "분류되지 않음" (ID 1) 카테고리는 이동 불가 & 0번 인덱스 고정
+        if (currentList[fromIndex].id == "1") return
+        if (toIndex == 0 && currentList[0].id == "1") return
+
+        val updatedList = currentList.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
+
+        // 낙관적 업데이트 (UI 즉시 반영)
+        _uiState.update { CategoryUiState.Success(updatedList) }
+
+        // DB 업데이트
+        viewModelScope.launch { categoryRepository.reorderCategories(updatedList) }
     }
 }
 
