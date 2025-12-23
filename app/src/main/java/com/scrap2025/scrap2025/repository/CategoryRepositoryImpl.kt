@@ -1,6 +1,9 @@
 package com.scrap2025.scrap2025.repository
 
+import androidx.room.withTransaction
+import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
+import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
@@ -11,8 +14,13 @@ import javax.inject.Singleton
 
 /** CategoryRepositoryImpl - CategoryRepository 구현체 Room DB(CategoryDao)를 사용하여 데이터 관리 */
 @Singleton
-class CategoryRepositoryImpl @Inject constructor(private val categoryDao: CategoryDao) :
-    CategoryRepository {
+class CategoryRepositoryImpl
+@Inject
+constructor(
+    private val categoryDao: CategoryDao,
+    private val scrapDao: ScrapDao,
+    private val db: AppDatabase
+) : CategoryRepository {
 
     override fun getCategories(): Flow<Result<List<CategoryItem>>> {
         return categoryDao.getAllCategories().map { entities ->
@@ -65,7 +73,12 @@ class CategoryRepositoryImpl @Inject constructor(private val categoryDao: Catego
             // 존재하는지 확인 후 삭제
             val existing = categoryDao.getCategoryById(id)
             if (existing != null) {
-                categoryDao.deleteCategory(id)
+                db.withTransaction {
+                    // 1. 해당 카테고리의 모든 스크랩을 기본 카테고리로 이동
+                    scrapDao.moveScraps(id, CategoryItem.DEFAULT_CATEGORY_ID)
+                    // 2. 카테고리 삭제
+                    categoryDao.deleteCategory(id)
+                }
                 Result.Success(Unit)
             } else {
                 Result.Error(
