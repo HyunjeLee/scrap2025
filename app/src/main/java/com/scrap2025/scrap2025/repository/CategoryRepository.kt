@@ -46,4 +46,11 @@ interface CategoryRepository {
      * @return Flow<Int>
      */
     fun getCategoryCount(): Flow<Int>
+
+    /**
+     * 카테고리 동기화 (Remote -> Local)
+     * @param token API Access Token
+     * @return Result<Unit>
+     */
+    suspend fun syncCategories(token: String): Result<Unit>
 }

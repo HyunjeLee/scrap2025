@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -20,6 +21,9 @@ interface CategoryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: CategoryEntity)
+
+    @Upsert
+    suspend fun upsertCategories(categories: List<CategoryEntity>)
 
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun deleteCategory(id: String)

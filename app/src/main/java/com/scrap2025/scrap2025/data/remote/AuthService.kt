@@ -1,6 +1,7 @@
 package com.scrap2025.scrap2025.data.remote
 
 import com.scrap2025.scrap2025.data.model.BaseResponse
+import com.scrap2025.scrap2025.data.model.CategoryListResponse
 import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import retrofit2.Response
@@ -38,4 +39,10 @@ interface AuthService {
     @Headers("accept: application/json")
     @PATCH("/auth/signout")
     suspend fun withdraw(@Header("Authorization") token: String): Response<BaseResponse<Unit?>>
+
+    @Headers("accept: application/json")
+    @GET("/auth/categories")
+    suspend fun getCategories(
+        @Header("Authorization") token: String
+    ): Response<BaseResponse<CategoryListResponse>>
 }

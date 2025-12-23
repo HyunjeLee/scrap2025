@@ -5,6 +5,7 @@ import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
+import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import kotlinx.coroutines.flow.Flow
@@ -19,7 +20,8 @@ class CategoryRepositoryImpl
 constructor(
     private val categoryDao: CategoryDao,
     private val scrapDao: ScrapDao,
-    private val db: AppDatabase
+    private val db: AppDatabase,
+    private val authService: AuthService
 ) : CategoryRepository {
 
     override fun getCategories(): Flow<Result<List<CategoryItem>>> {
@@ -117,4 +119,21 @@ constructor(
     }
 
     override fun getCategoryCount(): Flow<Int> = categoryDao.getCategoryCount()
+
+    override suspend fun syncCategories(token: String): Result<Unit> {
+        return try {
+            val response = authService.getCategories(token)
+            if (response.isSuccessful) {
+                response.body()?.result?.let { categoryListResponse ->
+                    val entities = categoryListResponse.categories.map { it.toEntity() }
+                    categoryDao.upsertCategories(entities)
+                }
+                Result.Success(Unit)
+            } else {
+                Result.Error(Exception("Sync failed code: ${response.code()}"), "카테고리 동기화 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "카테고리 동기화 중 오류 발생")
+        }
+    }
 }
