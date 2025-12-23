@@ -9,6 +9,6 @@ data class CategoryItem(
         val syncStatus: SyncStatus = SyncStatus.PENDING
 ) {
     companion object {
-        const val DEFAULT_CATEGORY_ID = "1"
+        const val DEFAULT_CATEGORY_ID = "10"
     }
 }
