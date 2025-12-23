@@ -10,10 +10,17 @@ data class CategoryEntity(
     @PrimaryKey val id: String,
     val name: String,
     val scrapCount: Int,
+    val orderIndex: Int = 0,
     val syncStatus: SyncStatus = SyncStatus.PENDING
 ) {
     fun toDomainModel(): CategoryItem {
-        return CategoryItem(id = id, name = name, scrapCount = scrapCount, syncStatus = syncStatus)
+        return CategoryItem(
+            id = id,
+            name = name,
+            scrapCount = scrapCount,
+            orderIndex = orderIndex,
+            syncStatus = syncStatus
+        )
     }
 
     companion object {
@@ -22,6 +29,7 @@ data class CategoryEntity(
                 id = item.id,
                 name = item.name,
                 scrapCount = item.scrapCount,
+                orderIndex = item.orderIndex,
                 syncStatus = item.syncStatus
             )
         }

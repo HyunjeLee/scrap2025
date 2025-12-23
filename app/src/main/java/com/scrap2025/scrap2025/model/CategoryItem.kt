@@ -6,6 +6,7 @@ data class CategoryItem(
         val id: String,
         val name: String,
         val scrapCount: Int = 0,
+        val orderIndex: Int = 0,
         val syncStatus: SyncStatus = SyncStatus.PENDING
 ) {
     companion object {
