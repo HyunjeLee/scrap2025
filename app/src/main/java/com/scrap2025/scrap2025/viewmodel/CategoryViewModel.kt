@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.repository.CategoryRepository
-import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,10 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CategoryViewModel
 @Inject
-constructor(
-    private val categoryRepository: CategoryRepository,
-    private val scrapRepository: ScrapRepository
-) : ViewModel() {
+constructor(private val categoryRepository: CategoryRepository) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
@@ -51,9 +47,7 @@ constructor(
      */
     fun deleteCategory(id: String) {
         viewModelScope.launch {
-            // 1. 해당 카테고리의 모든 스크랩을 기본 카테고리(1)로 이동
-            scrapRepository.moveScrapsToCategory(id, "1")
-            // 2. 카테고리 삭제
+            // Repository 내에서 트랜잭션으로 처리 (스크랩 이동 + 카테고리 삭제)
             categoryRepository.deleteCategory(id)
         }
     }
@@ -64,9 +58,7 @@ constructor(
      * @param newTitle 새로운 카테고리명
      */
     fun updateCategoryTitle(id: String, newTitle: String) {
-        viewModelScope.launch {
-            categoryRepository.updateCategory(id, newTitle)
-        }
+        viewModelScope.launch { categoryRepository.updateCategory(id, newTitle) }
     }
 }
 
