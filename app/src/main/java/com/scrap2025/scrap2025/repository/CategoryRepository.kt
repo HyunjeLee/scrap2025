@@ -23,9 +23,10 @@ interface CategoryRepository {
     /**
      * 새로운 카테고리 추가
      * @param item 추가할 CategoryItem
+     * @param token API Access Token (Optional)
      * @return Result<Unit> (성공/실패)
      */
-    suspend fun addCategory(item: CategoryItem): Result<Unit>
+    suspend fun addCategory(item: CategoryItem, token: String? = null): Result<Unit>
 
     /**
      * 카테고리 삭제

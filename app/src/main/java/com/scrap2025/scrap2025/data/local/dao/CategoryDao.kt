@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
+import com.scrap2025.scrap2025.data.model.SyncStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -39,4 +40,7 @@ interface CategoryDao {
 
     @Query("UPDATE categories SET scrapCount = scrapCount + :amount WHERE id = :id")
     suspend fun updateScrapCount(id: String, amount: Int)
+
+    @Query("UPDATE categories SET syncStatus = :status WHERE id = :id")
+    suspend fun updateCategoryStatus(id: String, status: SyncStatus)
 }

@@ -55,9 +55,26 @@ constructor(
         }
     }
 
-    override suspend fun addCategory(item: CategoryItem): Result<Unit> {
+    override suspend fun addCategory(item: CategoryItem, token: String?): Result<Unit> {
         return try {
-            categoryDao.insertCategory(CategoryEntity.fromDomainModel(item))
+            // 1. Local Insert (PENDING)
+            val entity = CategoryEntity.fromDomainModel(item)
+            categoryDao.insertCategory(entity)
+
+            // 2. Remote Sync (if token exists)
+            if (token != null) {
+                val remoteResult = createCategoryRemote(token, item.name)
+                if (remoteResult is Result.Success) {
+                    // 3. Update Local Status to SYNCED
+                    // Note: If server returned ID, we would update it here too.
+                    categoryDao.updateCategoryStatus(
+                        item.id,
+                        com.scrap2025.scrap2025.data.model.SyncStatus.SYNCED
+                    )
+                }
+                // If remote fails, it stays PENDING (Success for UI)
+            }
+
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 추가 실패")
