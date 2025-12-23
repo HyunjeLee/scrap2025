@@ -32,7 +32,6 @@ import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.CategoryDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.navigation.AddCategory
 import com.scrap2025.scrap2025.navigation.Scrap
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
@@ -41,21 +40,22 @@ import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 
 /** CategoryScreen - Container Composable ViewModel에서 상태를 추출하여 CategoryScreenContent에 전달 */
 @Composable
 fun CategoryScreen(
+    modifier: Modifier = Modifier,
     navController: NavHostController? = null,
     viewModel: CategoryViewModel,
     onCategoryClick: ((CategoryItem) -> Unit)? = null,
     showFab: Boolean = true,
-    modifier: Modifier = Modifier
 ) {
-    val categoriesResult by viewModel.categories.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     CategoryScreenContent(
-        categoriesResult = categoriesResult,
+        uiState = uiState,
         onCategoryClick = { category ->
             GlobalUiState.setCategory(category.id, category.name)
 
@@ -76,18 +76,15 @@ fun CategoryScreen(
 /** CategoryScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
 @Composable
 fun CategoryScreenContent(
-    categoriesResult: Result<List<CategoryItem>>,
+    uiState: CategoryUiState,
     onCategoryClick: (CategoryItem) -> Unit,
     onAddClick: () -> Unit,
+    modifier: Modifier = Modifier,
     showFab: Boolean = true,
-    modifier: Modifier = Modifier
 ) {
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-    ) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(BackgroundColor)) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 헤더 (높이 68dp)
             Box(
@@ -110,14 +107,15 @@ fun CategoryScreenContent(
                 thickness = 0.5.dp
             )
 
-            // 카테고리 리스트 - Result 상태 처리
-            when (val result = categoriesResult) {
-                is Result.Loading -> {
+            // 카테고리 리스트 - 상태 처리
+            when (uiState) {
+                is CategoryUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MainColorDeep)
                     }
                 }
-                is Result.Error -> {
+
+                is CategoryUiState.Error -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
@@ -129,20 +127,22 @@ fun CategoryScreenContent(
                                     ),
                                 color = GrayColor
                             )
-                            Text(
-                                text = result.message ?: "알 수 없는 오류",
-                                style = TextStyle(fontSize = 14.sp),
-                                color = GrayColor,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
+                            uiState.message?.let {
+                                Text(
+                                    text = it,
+                                    style = TextStyle(fontSize = 14.sp),
+                                    color = GrayColor,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                )
+                            }
                         }
                     }
                 }
-                is Result.Success -> {
-                    val categoryList = result.data
+
+                is CategoryUiState.Success -> {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(count = categoryList.size) { index ->
-                            val category = categoryList[index]
+                        items(count = uiState.categories.size) { index ->
+                            val category = uiState.categories[index]
                             CategoryItemCard(
                                 categoryItem = category,
                                 onClick = { onCategoryClick(category) }
@@ -186,7 +186,7 @@ fun CategoryScreenContent(
 fun CategoryScreenContentPreview() {
     Scrap2025Theme {
         CategoryScreenContent(
-            categoriesResult = Result.Success(CategoryDummyData.dummyCategories),
+            uiState = CategoryUiState.Success(CategoryDummyData.dummyCategories),
             onCategoryClick = {},
             onAddClick = {}
         )

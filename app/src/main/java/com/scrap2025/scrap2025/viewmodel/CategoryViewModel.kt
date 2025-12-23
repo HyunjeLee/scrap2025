@@ -7,26 +7,43 @@ import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** CategoryViewModel - 카테고리 목록 화면의 상태 관리 CategoryRepository를 통해 카테고리 목록을 조회하고 관리 */
 @HiltViewModel
-class CategoryViewModel @Inject constructor(
+class CategoryViewModel
+@Inject
+constructor(
     private val categoryRepository: CategoryRepository,
     private val scrapRepository: ScrapRepository
 ) : ViewModel() {
 
-    /** 카테고리 목록 상태 Repository의 Flow를 StateFlow로 변환하여 UI에 노출 */
-    val categories: StateFlow<Result<List<CategoryItem>>> =
-        categoryRepository.getCategories().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Result.Loading
-        )
+    private val _uiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
+    val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
+
+    init {
+        fetchCategories()
+    }
+
+    private fun fetchCategories() {
+        viewModelScope.launch {
+            _uiState.value = CategoryUiState.Loading
+            categoryRepository.getCategories().collect { result ->
+                _uiState.update {
+                    when (result) {
+                        is Result.Loading -> CategoryUiState.Loading
+                        is Result.Success -> CategoryUiState.Success(result.data)
+                        is Result.Error -> CategoryUiState.Error(result.message)
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * 카테고리 삭제
@@ -51,4 +68,10 @@ class CategoryViewModel @Inject constructor(
             categoryRepository.updateCategory(id, newTitle)
         }
     }
+}
+
+sealed interface CategoryUiState {
+    data object Loading : CategoryUiState
+    data class Success(val categories: List<CategoryItem>) : CategoryUiState
+    data class Error(val message: String?) : CategoryUiState
 }
