@@ -55,7 +55,7 @@ class CategoryRepositoryImpl @Inject constructor(private val categoryDao: Catego
     override suspend fun deleteCategory(id: String): Result<Unit> {
         return try {
             // "분류되지 않음" 카테고리는 삭제 불가
-            if (id == "1") {
+            if (id == CategoryItem.DEFAULT_CATEGORY_ID) {
                 return Result.Error(
                     IllegalArgumentException("기본 카테고리는 삭제할 수 없습니다."),
                     "기본 카테고리는 삭제할 수 없습니다"
@@ -81,7 +81,7 @@ class CategoryRepositoryImpl @Inject constructor(private val categoryDao: Catego
     override suspend fun updateCategory(id: String, name: String): Result<Unit> {
         return try {
             // "분류되지 않음" 카테고리는 이름 변경 불가
-            if (id == "1") {
+            if (id == CategoryItem.DEFAULT_CATEGORY_ID) {
                 return Result.Error(
                     IllegalArgumentException("기본 카테고리는 수정할 수 없습니다."),
                     "기본 카테고리는 수정할 수 없습니다"
