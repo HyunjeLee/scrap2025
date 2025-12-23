@@ -86,7 +86,7 @@ fun MainScreen(
                                     currentDestination = currentDestination,
                                     onItemClick = { route ->
                                         // 현재 라우트와 다른 경우에만 이동 (hasRoute로 체크)
-                                        if (currentDestination?.hasRoute(route::class) != true) {
+                                        if (!currentDestination.hasRoute(route::class)) {
                                             tabNavController.navigate(route) {
                                                 popUpTo(
                                                         tabNavController.graph
