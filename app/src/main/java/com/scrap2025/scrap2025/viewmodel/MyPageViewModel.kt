@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -29,25 +30,41 @@ constructor(
     categoryRepository: CategoryRepository
 ) : ViewModel() {
 
-    val myPageInfo: StateFlow<MyPageResult?> =
-        myPageRepository.myPageData.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5000),
-            null
-        )
+    // Define UI State
+    sealed interface MyPageUiState {
+        data object Loading : MyPageUiState
+        data class Success(
+            val myPageInfo: MyPageResult,
+            val scrapCount: Int,
+            val categoryCount: Int
+        ) : MyPageUiState
+    }
 
     private val _showWithdrawDialog = MutableStateFlow(false)
     val showWithdrawDialog: StateFlow<Boolean> = _showWithdrawDialog.asStateFlow()
 
-    val scrapCount: StateFlow<Int> =
-        scrapRepository
-            .getScrapCount()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
-    val categoryCount: StateFlow<Int> =
-        categoryRepository
-            .getCategoryCount()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    // Combine flows into a single UI State
+    val uiState: StateFlow<MyPageUiState> =
+        combine(
+            myPageRepository.myPageData,
+            scrapRepository.getScrapCount(),
+            categoryRepository.getCategoryCount()
+        ) { myPageInfo, scrapCount, categoryCount ->
+            if (myPageInfo == null) {
+                MyPageUiState.Loading
+            } else {
+                MyPageUiState.Success(
+                    myPageInfo = myPageInfo,
+                    scrapCount = scrapCount,
+                    categoryCount = categoryCount
+                )
+            }
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = MyPageUiState.Loading
+            )
 
     init {
         fetchMyPageInfo()

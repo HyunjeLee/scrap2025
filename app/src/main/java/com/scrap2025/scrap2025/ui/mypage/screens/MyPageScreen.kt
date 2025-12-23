@@ -47,69 +47,88 @@ fun MyPageScreen(
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
-    val myPageInfo by viewModel.myPageInfo.collectAsState()
-    val scrapCount by viewModel.scrapCount.collectAsState()
-    val categoryCount by viewModel.categoryCount.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Title
-        Text(
-            text = "마이페이지",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // Greeting
-        val greetingText = buildAnnotatedString {
-            append("안녕하세요 ")
-            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(myPageInfo?.memberInfo?.name ?: "") }
-            append(" 님!")
-        }
-        Text(
-            text = greetingText,
-            fontSize = 20.sp,
-            color = Color.Black,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // Stats Row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            // Scrap Stat
-            StatItem(icon = Icons.Outlined.AttachFile, count = "${scrapCount}개", label = "스크랩")
-
-            Spacer(modifier = Modifier.width(80.dp))
-
-            // Category Stat
-            StatItem(icon = Icons.Outlined.Folder, count = "${categoryCount}개", label = "카테고리")
+    when (val state = uiState) {
+        is MyPageViewModel.MyPageUiState.Loading -> {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) { androidx.compose.material3.CircularProgressIndicator() }
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        is MyPageViewModel.MyPageUiState.Success -> {
+            Column(modifier = modifier
+                .fillMaxSize()
+                .background(Color.White)) {
+                Spacer(modifier = Modifier.height(20.dp))
 
-        // Menu Items
-        HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "고객센터") {}
-        HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "로그아웃") { viewModel.logout(onSignOut) }
-        HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "회원탈퇴") { viewModel.showWithdrawalDialog() }
-        HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
+                // Title
+                Text(
+                    text = "마이페이지",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // Greeting
+                val greetingText = buildAnnotatedString {
+                    append("안녕하세요 ")
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(state.myPageInfo.memberInfo.name)
+                    }
+                    append(" 님!")
+                }
+                Text(
+                    text = greetingText,
+                    fontSize = 20.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // Stats Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // Scrap Stat
+                    StatItem(
+                        icon = Icons.Outlined.AttachFile,
+                        count = "${state.scrapCount}개",
+                        label = "스크랩"
+                    )
+
+                    Spacer(modifier = Modifier.width(80.dp))
+
+                    // Category Stat
+                    StatItem(
+                        icon = Icons.Outlined.Folder,
+                        count = "${state.categoryCount}개",
+                        label = "카테고리"
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // Menu Items
+                HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
+                MenuItem(text = "고객센터") {}
+                HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
+                MenuItem(text = "로그아웃") { viewModel.logout(onSignOut) }
+                HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
+                MenuItem(text = "회원탈퇴") { viewModel.showWithdrawalDialog() }
+                HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
+            }
+        }
     }
 
     if (showWithdrawDialog) {
@@ -139,10 +158,9 @@ fun StatItem(icon: ImageVector, count: String, label: String) {
 
 @Composable
 fun MenuItem(text: String, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .clickable { onClick() }) {
         Text(
             text = text,
             fontSize = 16.sp,
