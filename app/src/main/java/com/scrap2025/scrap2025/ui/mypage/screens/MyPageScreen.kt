@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -40,6 +41,7 @@ import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 
+/** MyPageScreen - Container Composable */
 @Composable
 fun MyPageScreen(
     onSignOut: () -> Unit,
@@ -49,16 +51,37 @@ fun MyPageScreen(
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
-    when (val state = uiState) {
+    MyPageScreenContent(
+        uiState = uiState,
+        showWithdrawDialog = showWithdrawDialog,
+        onLogout = { viewModel.logout(onSignOut) },
+        onWithdrawClick = { viewModel.showWithdrawalDialog() },
+        onWithdrawConfirm = { viewModel.withdraw(onSignOut) },
+        onWithdrawDismiss = { viewModel.dismissWithdrawalDialog() },
+        modifier = modifier
+    )
+}
+
+/** MyPageScreenContent - Presentational Composable */
+@Composable
+fun MyPageScreenContent(
+    uiState: MyPageViewModel.MyPageUiState,
+    showWithdrawDialog: Boolean,
+    onLogout: () -> Unit,
+    onWithdrawClick: () -> Unit,
+    onWithdrawConfirm: () -> Unit,
+    onWithdrawDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    when (uiState) {
         is MyPageViewModel.MyPageUiState.Loading -> {
             Box(
                 modifier = modifier
                     .fillMaxSize()
                     .background(Color.White),
                 contentAlignment = Alignment.Center
-            ) { androidx.compose.material3.CircularProgressIndicator() }
+            ) { CircularProgressIndicator() }
         }
-
         is MyPageViewModel.MyPageUiState.Success -> {
             Column(modifier = modifier
                 .fillMaxSize()
@@ -80,7 +103,7 @@ fun MyPageScreen(
                 val greetingText = buildAnnotatedString {
                     append("안녕하세요 ")
                     withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                        append(state.myPageInfo.memberInfo.name)
+                        append(uiState.myPageInfo.memberInfo.name)
                     }
                     append(" 님!")
                 }
@@ -103,7 +126,7 @@ fun MyPageScreen(
                     // Scrap Stat
                     StatItem(
                         icon = Icons.Outlined.AttachFile,
-                        count = "${state.scrapCount}개",
+                        count = "${uiState.scrapCount}개",
                         label = "스크랩"
                     )
 
@@ -112,7 +135,7 @@ fun MyPageScreen(
                     // Category Stat
                     StatItem(
                         icon = Icons.Outlined.Folder,
-                        count = "${state.categoryCount}개",
+                        count = "${uiState.categoryCount}개",
                         label = "카테고리"
                     )
                 }
@@ -123,9 +146,9 @@ fun MyPageScreen(
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
                 MenuItem(text = "고객센터") {}
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-                MenuItem(text = "로그아웃") { viewModel.logout(onSignOut) }
+                MenuItem(text = "로그아웃") { onLogout() }
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-                MenuItem(text = "회원탈퇴") { viewModel.showWithdrawalDialog() }
+                MenuItem(text = "회원탈퇴") { onWithdrawClick() }
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
             }
         }
@@ -135,8 +158,8 @@ fun MyPageScreen(
         CommonDeleteDialog(
             title = "정말 회원탈퇴 하시겠습니까?",
             confirmText = "회원탈퇴",
-            onConfirm = { viewModel.withdraw(onSignOut) },
-            onDismiss = { viewModel.dismissWithdrawalDialog() },
+            onConfirm = onWithdrawConfirm,
+            onDismiss = onWithdrawDismiss,
         )
     }
 }
@@ -173,5 +196,14 @@ fun MenuItem(text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun MyPageScreenPreview() {
-    Scrap2025Theme { MyPageScreen(onSignOut = {}) }
+    Scrap2025Theme {
+        MyPageScreenContent(
+            uiState = MyPageViewModel.MyPageUiState.Loading,
+            showWithdrawDialog = false,
+            onLogout = {},
+            onWithdrawClick = {},
+            onWithdrawConfirm = {},
+            onWithdrawDismiss = {}
+        )
+    }
 }
