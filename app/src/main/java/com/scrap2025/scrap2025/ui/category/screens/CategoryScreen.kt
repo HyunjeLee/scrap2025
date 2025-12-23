@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.ui.category.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.CategoryDummyData
+import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.navigation.AddCategory
@@ -140,6 +143,20 @@ fun CategoryScreenContent(
                 }
 
                 is CategoryUiState.Success -> {
+                    // TODO: 전체 동기화 상태 표시 UI 추가 필요
+                    // 동기화 상태 로깅
+                    LaunchedEffect(uiState.categories) {
+                        val hasPending = uiState.categories.any {
+                            it.syncStatus == SyncStatus.PENDING
+                        }
+
+                        if (hasPending) {
+                            Log.d("CategorySync", "전체 카테고리 동기화 중... (Pending items detected)")
+                        } else {
+                            Log.d("CategorySync", "전체 카테고리 동기화 완료 (All items synced)")
+                        }
+                    }
+
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(count = uiState.categories.size) { index ->
                             val category = uiState.categories[index]
