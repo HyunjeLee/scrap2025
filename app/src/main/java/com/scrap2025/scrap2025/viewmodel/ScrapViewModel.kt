@@ -12,9 +12,12 @@ import com.scrap2025.scrap2025.model.ViewMode
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
@@ -51,6 +54,10 @@ constructor(
     // Preferences 로딩 상태
     private val _isPreferencesLoaded = MutableStateFlow(false)
     val isPreferencesLoaded: StateFlow<Boolean> = _isPreferencesLoaded.asStateFlow()
+
+    // 카테고리 삭제 이벤트
+    private val _categoryDeleteEvent = MutableSharedFlow<Result<Unit>>()
+    val categoryDeleteEvent: SharedFlow<Result<Unit>> = _categoryDeleteEvent.asSharedFlow()
 
     // 정렬 타입 (DataStore에서 로드)
     val sortType: StateFlow<SortType> =
@@ -272,12 +279,14 @@ constructor(
      */
     fun deleteCategory(id: String) {
         viewModelScope.launch {
+            _categoryDeleteEvent.emit(Result.Loading)
             val token = tokenManager.accessToken.firstOrNull()
             // Repository 내에서 트랜잭션으로 처리 (스크랩 이동 + 카테고리 삭제)
-            categoryRepository.deleteCategory(
+            val result = categoryRepository.deleteCategory(
                 id = id,
                 token = token
             )
+            _categoryDeleteEvent.emit(result)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -109,7 +110,6 @@ fun ScrapScreen(
     navigateToAddScrap: () -> Unit,
     navigateToCategory: () -> Unit,
     modifier: Modifier = Modifier,
-    categoryId: String = CategoryItem.DEFAULT_ID,
     scrapViewModel: ScrapViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -117,6 +117,7 @@ fun ScrapScreen(
     val globalCategoryName by GlobalUiState.selectedCategoryName.collectAsState()
 
     var categoryTitle by remember(globalCategoryName) { mutableStateOf(globalCategoryName) }
+    var isDeleting by remember { mutableStateOf(false) }
 
     val scrapItemsResult by scrapViewModel.sortedScrapItems.collectAsState()
     val viewMode by scrapViewModel.viewMode.collectAsState()
@@ -143,6 +144,27 @@ fun ScrapScreen(
         when (isSelectionMode) {
             true -> GlobalUiState.setBottomBar(selectionBottomBar)
             false -> GlobalUiState.setBottomBar(null)
+        }
+    }
+
+    // 카테고리 삭제 모니터링: 삭제 성공 시에만 화면 이동
+    LaunchedEffect(Unit) {
+        scrapViewModel.categoryDeleteEvent.collect { result ->
+            when (result) {
+                Result.Loading -> {
+                    isDeleting = true
+                }
+                is Result.Success -> {
+                    isDeleting = false
+                    GlobalUiState.setCategory(CategoryItem.DEFAULT_ID, CategoryItem.DEFAULT_NAME)
+                    navigateToCategory()
+                }
+                is Result.Error -> {
+                    isDeleting = false
+                    Toast.makeText(context, result.message, Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
         }
     }
 
@@ -173,10 +195,9 @@ fun ScrapScreen(
                 GlobalUiState.setCategory(categoryId, newTitle)
             },
             onDeleteCategory = {
-                scrapViewModel.deleteCategory(categoryId)
-                GlobalUiState.setCategory(CategoryItem.DEFAULT_ID, CategoryItem.DEFAULT_NAME)
-                navigateToCategory()
+                scrapViewModel.deleteCategory(globalCategoryId)
             },
+            isDeleting = isDeleting,
             modifier = modifier
     )
 }
@@ -204,7 +225,8 @@ fun ScrapScreenContent(
         onAddScrap: () -> Unit,
         onUpdateCategoryTitle: (String, String) -> Unit,
         onDeleteCategory: () -> Unit,
-        modifier: Modifier = Modifier
+        modifier: Modifier = Modifier,
+        isDeleting: Boolean = false
 ) {
     // Compose UI 상태 (View에서 관리)
     val listState = rememberLazyListState()
@@ -231,133 +253,154 @@ fun ScrapScreenContent(
                 }
             }
 
-    Box(modifier = modifier.fillMaxSize().background(BackgroundColor)) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // 상단 바: 선택 모드에 따라 다른 UI 표시
-            if (isSelectionMode) {
-                // 선택 모드 - 선택 개수 및 전체 선택 버튼
-                val totalCount =
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundColor)
+    ) {
+        if (isDeleting) {
+            CircularProgressIndicator()
+        } else {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // 상단 바: 선택 모드에 따라 다른 UI 표시
+                if (isSelectionMode) {
+                    // 선택 모드 - 선택 개수 및 전체 선택 버튼
+                    val totalCount =
                         when (val result = scrapItemsResult) {
                             is Result.Success -> result.data.size
                             else -> 0
                         }
-                SelectionTopBar(
+                    SelectionTopBar(
                         categoryTitle = categoryTitle,
                         selectedCount = selectedScrapIds.size,
                         totalCount = totalCount,
                         onSelectAll = onSelectAll,
                         onDeselectAll = onDeselectAll
-                )
-            } else {
-                // 일반 모드 - 제목, 검색, 정렬 바
-                TopBarWithTitle(
+                    )
+                } else {
+                    // 일반 모드 - 제목, 검색, 정렬 바
+                    TopBarWithTitle(
                         categoryId = categoryId,
                         categoryTitle = categoryTitle,
                         onUpdateCategory = { categoryId, categoryName ->
                             onUpdateCategoryTitle(categoryId, categoryName)
                         },
                         onDeleteCategory = { showDeleteDialog = true }
-                )
+                    )
 
-                // 톱바 - 검색
-                SearchBar()
+                    // 톱바 - 검색
+                    SearchBar()
 
-                // 정렬 바
-                SortBar(
+                    // 정렬 바
+                    SortBar(
                         sortType = sortType,
                         sortDirection = sortDirection,
                         viewMode = viewMode,
                         onSortTypeToggle = onSortTypeToggle,
                         onSortDirectionToggle = onSortDirectionToggle,
                         onViewModeToggle = onViewModeToggle
-                )
-            }
-
-            // 스크랩 리스트/그리드
-            when (val result = scrapItemsResult) {
-                is Result.Loading -> {
-                    Box(
-                            modifier = Modifier.fillMaxSize().weight(1f),
-                            contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator(color = MainColorDeep) }
+                    )
                 }
-                is Result.Error -> {
-                    Box(
-                            modifier = Modifier.fillMaxSize().weight(1f),
+
+                // 스크랩 리스트/그리드
+                when (val result = scrapItemsResult) {
+                    is Result.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .weight(1f),
                             contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
+                        ) { CircularProgressIndicator(color = MainColorDeep) }
+                    }
+
+                    is Result.Error -> {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
                                     text = "스크랩을 불러올 수 없습니다",
                                     style =
-                                            TextStyle(
-                                                    fontSize = 16.sp,
-                                                    fontWeight = FontWeight.Medium
-                                            ),
+                                        TextStyle(
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Medium
+                                        ),
                                     color = GrayColor
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
                                     text = result.message ?: "알 수 없는 오류",
                                     style = TextStyle(fontSize = 14.sp),
                                     color = GrayColor
-                            )
+                                )
+                            }
                         }
                     }
-                }
-                is Result.Success -> {
-                    // Preferences가 로드되지 않았으면 로딩 표시
-                    if (!isPreferencesLoaded) {
-                        Box(
-                                modifier = Modifier.fillMaxSize().weight(1f),
+
+                    is Result.Success -> {
+                        // Preferences가 로드되지 않았으면 로딩 표시
+                        if (!isPreferencesLoaded) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .weight(1f),
                                 contentAlignment = Alignment.Center
-                        ) { CircularProgressIndicator(color = MainColorDeep) }
-                    } else {
-                        // Preferences 로드 완료 후 실제 리스트/그리드 렌더링
-                        val scrapItems = result.data
-                        when (viewMode) {
-                            ViewMode.LIST -> {
-                                LazyColumn(
+                            ) { CircularProgressIndicator(color = MainColorDeep) }
+                        } else {
+                            // Preferences 로드 완료 후 실제 리스트/그리드 렌더링
+                            val scrapItems = result.data
+                            when (viewMode) {
+                                ViewMode.LIST -> {
+                                    LazyColumn(
                                         state = listState,
-                                        modifier = Modifier.fillMaxSize().weight(1f)
-                                ) {
-                                    items(scrapItems) { scrapItem ->
-                                        ScrapItemCardList(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .weight(1f)
+                                    ) {
+                                        items(scrapItems) { scrapItem ->
+                                            ScrapItemCardList(
                                                 scrapItem = scrapItem,
                                                 isSelectionMode = isSelectionMode,
                                                 isSelected =
-                                                        selectedScrapIds.contains(scrapItem.id),
+                                                    selectedScrapIds.contains(scrapItem.id),
                                                 onClick = { onItemClick(scrapItem.url) },
                                                 onLongClick = { onItemLongClick(scrapItem.id) },
                                                 onSelectionToggle = {
                                                     onItemSelectionToggle(scrapItem.id)
                                                 }
-                                        )
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                            ViewMode.GRID -> {
-                                LazyVerticalGrid(
+
+                                ViewMode.GRID -> {
+                                    LazyVerticalGrid(
                                         columns = GridCells.Fixed(2),
                                         state = gridState,
-                                        modifier = Modifier.fillMaxSize().weight(1f),
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .weight(1f),
                                         contentPadding =
-                                                PaddingValues(horizontal = 23.dp, vertical = 8.dp),
+                                            PaddingValues(horizontal = 23.dp, vertical = 8.dp),
                                         horizontalArrangement = Arrangement.spacedBy(20.dp),
                                         verticalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    items(scrapItems) { scrapItem ->
-                                        ScrapItemCardGrid(
+                                    ) {
+                                        items(scrapItems) { scrapItem ->
+                                            ScrapItemCardGrid(
                                                 scrapItem = scrapItem,
                                                 isSelectionMode = isSelectionMode,
                                                 isSelected =
-                                                        selectedScrapIds.contains(scrapItem.id),
+                                                    selectedScrapIds.contains(scrapItem.id),
                                                 onClick = { onItemClick(scrapItem.url) },
                                                 onLongClick = { onItemLongClick(scrapItem.id) },
                                                 onSelectionToggle = {
                                                     onItemSelectionToggle(scrapItem.id)
                                                 }
-                                        )
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -365,20 +408,21 @@ fun ScrapScreenContent(
                     }
                 }
             }
-        }
 
-        Column(
-                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 21.dp, bottom = 21.dp),
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 21.dp, bottom = 21.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // 맨 위로 가기 버튼
-            AnimatedVisibility(
+            ) {
+                // 맨 위로 가기 버튼
+                AnimatedVisibility(
                     visible = showScrollToTop,
                     enter = fadeIn() + scaleIn(),
                     exit = fadeOut() + scaleOut(),
                     modifier = Modifier
-            ) {
-                FloatingActionButton(
+                ) {
+                    FloatingActionButton(
                         onClick = {
                             coroutineScope.launch {
                                 when (viewMode) {
@@ -386,6 +430,7 @@ fun ScrapScreenContent(
                                         listState.animateScrollToItem(0)
                                         gridState.scrollToItem(0)
                                     }
+
                                     ViewMode.GRID -> {
                                         gridState.animateScrollToItem(0)
                                         listState.scrollToItem(0)
@@ -397,38 +442,38 @@ fun ScrapScreenContent(
                         containerColor = Color.White,
                         contentColor = MainColorDeep,
                         modifier = Modifier.size(50.dp)
-                ) {
-                    Icon(
+                    ) {
+                        Icon(
                             imageVector = Icons.Outlined.KeyboardArrowUp,
                             contentDescription = "맨 위로가기",
                             tint = MainColorDeep,
                             modifier = Modifier.size(40.dp)
-                    )
+                        )
+                    }
                 }
-            }
 
-            // 스크랩 추가 버튼
-            if (!isSelectionMode) { // 일반 모드일 때만 FAB 표시
-                Spacer(Modifier.height(16.dp))
+                // 스크랩 추가 버튼
+                if (!isSelectionMode) { // 일반 모드일 때만 FAB 표시
+                    Spacer(Modifier.height(16.dp))
 
-                FloatingActionButton(
+                    FloatingActionButton(
                         onClick = onAddScrap,
                         shape = CircleShape,
                         containerColor = MainColor,
                         contentColor = MainColorDeep,
                         modifier = Modifier.size(60.dp)
-                ) {
-                    Icon(
+                    ) {
+                        Icon(
                             imageVector = Icons.Rounded.Add,
                             contentDescription = "스크랩 추가",
                             modifier = Modifier.size(50.dp)
-                    )
+                        )
+                    }
                 }
-            }
 
-            // 삭제 확인 모달
-            if (showDeleteDialog) {
-                CommonDeleteDialog(
+                // 삭제 확인 모달
+                if (showDeleteDialog) {
+                    CommonDeleteDialog(
                         title = "정말 카테고리를 삭제하시겠습니까?",
                         description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
                         confirmText = "삭제하기",
@@ -437,7 +482,8 @@ fun ScrapScreenContent(
                             showDeleteDialog = false
                             onDeleteCategory()
                         }
-                )
+                    )
+                }
             }
         }
     }
@@ -488,7 +534,10 @@ private fun TopBarDefault(
         modifier: Modifier = Modifier
 ) {
     Box(
-            modifier = modifier.fillMaxWidth().height(53.dp).background(MainColor),
+            modifier = modifier
+                .fillMaxWidth()
+                .height(53.dp)
+                .background(MainColor),
             contentAlignment = Alignment.CenterStart
     ) {
         // 카테고리 제목
@@ -504,7 +553,9 @@ private fun TopBarDefault(
         if (categoryTitle != "분류되지 않음") {
             // 편집/삭제 버튼
             Row(
-                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 22.dp),
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 22.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // 편집 버튼
@@ -561,7 +612,10 @@ private fun TopBarEditMode(
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     Box(
-            modifier = modifier.fillMaxWidth().height(53.dp).background(MainColor),
+            modifier = modifier
+                .fillMaxWidth()
+                .height(53.dp)
+                .background(MainColor),
             contentAlignment = Alignment.CenterStart
     ) {
         // 편집용 TextField
@@ -569,9 +623,10 @@ private fun TopBarEditMode(
                 value = textFieldState,
                 onValueChange = { newValue -> textFieldState = newValue },
                 modifier =
-                        Modifier.padding(start = 21.dp, end = 60.dp)
-                                .fillMaxWidth()
-                                .focusRequester(focusRequester),
+                        Modifier
+                            .padding(start = 21.dp, end = 60.dp)
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
                 textStyle =
                         TextStyle(
                                 fontSize = 18.sp,
@@ -589,7 +644,10 @@ private fun TopBarEditMode(
                     }
                 },
                 enabled = isCategoryTitleValid,
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 22.dp).size(28.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 22.dp)
+                    .size(28.dp)
         ) {
             Icon(
                     imageVector = Icons.Default.CheckCircle,
@@ -605,19 +663,21 @@ private fun TopBarEditMode(
 fun SearchBar(modifier: Modifier = Modifier) {
     Box(
             modifier =
-                    modifier.fillMaxWidth()
-                            .height(52.dp)
-                            .background(MainColor)
-                            .padding(horizontal = 21.dp, vertical = 5.dp)
+                    modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .background(MainColor)
+                        .padding(horizontal = 21.dp, vertical = 5.dp)
     ) {
         Box(
                 modifier =
-                        Modifier.fillMaxSize()
-                                .background(
-                                        color = MainColorLight,
-                                        shape = RoundedCornerShape(7.dp)
-                                )
-                                .padding(horizontal = 8.dp),
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = MainColorLight,
+                                shape = RoundedCornerShape(7.dp)
+                            )
+                            .padding(horizontal = 8.dp),
                 contentAlignment = Alignment.CenterStart
         ) {
             Row(
@@ -659,10 +719,11 @@ fun SortBar(
 
     Box(
             modifier =
-                    modifier.fillMaxWidth()
-                            .height(46.dp)
-                            .background(MainColor)
-                            .padding(horizontal = 24.dp),
+                    modifier
+                        .fillMaxWidth()
+                        .height(46.dp)
+                        .background(MainColor)
+                        .padding(horizontal = 24.dp),
             contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -737,7 +798,10 @@ fun SelectionTopBar(
 ) {
     Column {
         Box(
-                modifier = modifier.fillMaxWidth().height(53.dp).background(MainColor),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(53.dp)
+                    .background(MainColor),
                 contentAlignment = Alignment.CenterStart
         ) {
             // 카테고리 제목
@@ -752,7 +816,10 @@ fun SelectionTopBar(
         }
 
         Box(
-                modifier = modifier.fillMaxWidth().height(53.dp).background(MainColor),
+                modifier = modifier
+                    .fillMaxWidth()
+                    .height(53.dp)
+                    .background(MainColor),
                 contentAlignment = Alignment.CenterStart
         ) {
             // 선택 개수 표시
@@ -821,21 +888,22 @@ fun SelectionActionBar(
 ) {
     Row(
             modifier =
-                    modifier.fillMaxWidth()
-                            .dropShadow(
-                                    shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp),
-                                    shadow =
-                                            Shadow(
-                                                    radius = 15.dp,
-                                                    spread = 0.dp,
-                                                    color = Color(0xFFBEBEBE).copy(alpha = 0.4f),
-                                                    offset = DpOffset(x = 0.dp, y = (-3).dp)
-                                            )
-                            )
-                            .clip(shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
-                            .background(MainColor)
-                            .padding(vertical = 10.dp)
-                            .windowInsetsPadding(WindowInsets.navigationBars),
+                    modifier
+                        .fillMaxWidth()
+                        .dropShadow(
+                            shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp),
+                            shadow =
+                                Shadow(
+                                    radius = 15.dp,
+                                    spread = 0.dp,
+                                    color = Color(0xFFBEBEBE).copy(alpha = 0.4f),
+                                    offset = DpOffset(x = 0.dp, y = (-3).dp)
+                                )
+                        )
+                        .clip(shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
+                        .background(MainColor)
+                        .padding(vertical = 10.dp)
+                        .windowInsetsPadding(WindowInsets.navigationBars),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
     ) {
