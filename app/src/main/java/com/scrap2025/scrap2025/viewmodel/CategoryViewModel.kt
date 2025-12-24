@@ -71,7 +71,11 @@ constructor(
      * @param newTitle 새로운 카테고리명
      */
     fun updateCategoryTitle(id: String, newTitle: String) {
-        viewModelScope.launch { categoryRepository.updateCategory(id, newTitle) }
+        viewModelScope.launch { categoryRepository.updateCategory(
+            id = id,
+            name = newTitle,
+            token = tokenManager.accessToken.firstOrNull()
+        ) }
     }
 }
 
