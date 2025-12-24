@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import androidx.navigation.toRoute
+import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.navigation.AddScrap
 import com.scrap2025.scrap2025.navigation.Scrap
 import com.scrap2025.scrap2025.navigation.ScrapGraph
@@ -17,7 +18,7 @@ import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 
 fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
     navigation<ScrapGraph>(
-        startDestination = Scrap(categoryId = "1", categoryName = "분류되지 않음")
+        startDestination = Scrap(categoryId = CategoryItem.DEFAULT_ID, categoryName = CategoryItem.DEFAULT_NAME)
     ) {
         composable<Scrap> { backStackEntry ->
             val route: Scrap = backStackEntry.toRoute()

@@ -2,8 +2,8 @@ package com.scrap2025.scrap2025.data.local
 
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
+import com.scrap2025.scrap2025.model.CategoryItem
 import kotlinx.coroutines.flow.first
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,8 +15,8 @@ constructor(private val categoryDao: CategoryDao) {
         if (categoryDao.getCategoryCount().first() == 0) {  // 카테고리가 없을 때만 초기화
             categoryDao.insertCategory(
                 CategoryEntity(
-                    id = UUID.randomUUID().toString(),
-                    name = "분류되지 않음",
+                    id = CategoryItem.DEFAULT_ID,
+                    name = CategoryItem.DEFAULT_NAME,
                     scrapCount = 0,
                     isDefault = true,
                 )

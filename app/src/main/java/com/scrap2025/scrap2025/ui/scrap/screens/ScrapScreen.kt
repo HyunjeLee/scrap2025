@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.ScrapDummyData
+import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
@@ -217,7 +218,7 @@ fun ScrapScreen(
             },
             onDeleteCategory = {
                 categoryViewModel.deleteCategory(categoryId)
-                GlobalUiState.setCategory("1", "분류되지 않음")
+                GlobalUiState.setCategory(CategoryItem.DEFAULT_ID, CategoryItem.DEFAULT_NAME)
                 navController.navigate(Category)
             },
             modifier = modifier

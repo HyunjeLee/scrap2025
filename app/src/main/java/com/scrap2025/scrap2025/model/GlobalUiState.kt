@@ -22,10 +22,10 @@ object GlobalUiState {
         _sharedUrl.value = url
     }
 
-    private val _selectedCategoryId = MutableStateFlow<String>("1")
+    private val _selectedCategoryId = MutableStateFlow(CategoryItem.DEFAULT_ID)
     val selectedCategoryId: StateFlow<String> = _selectedCategoryId.asStateFlow()
 
-    private val _selectedCategoryName = MutableStateFlow<String>("분류되지 않음")
+    private val _selectedCategoryName = MutableStateFlow(CategoryItem.DEFAULT_NAME)
     val selectedCategoryName: StateFlow<String> = _selectedCategoryName.asStateFlow()
 
     fun setCategory(id: String, name: String) {
