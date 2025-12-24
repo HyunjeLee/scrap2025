@@ -18,11 +18,9 @@ sealed interface Route
 
 @Serializable object AddCategory : Route
 
-@Serializable
-data class Scrap(val categoryId: String = "1", val categoryName: String = "분류되지 않음") : Route
+@Serializable object Scrap : Route
 
-@Serializable
-data class AddScrap(val categoryId: String = "1") : Route
+@Serializable object AddScrap : Route
 
 @Serializable object Favorite : Route
 
@@ -33,5 +31,4 @@ data class AddScrap(val categoryId: String = "1") : Route
 // Graph Routes
 @Serializable object ScrapGraph : Route
 
-@Serializable
-object CategoryGraph : Route
+@Serializable object CategoryGraph : Route

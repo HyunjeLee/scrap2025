@@ -2,7 +2,6 @@ package com.scrap2025.scrap2025.ui.scrap.screens
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -84,6 +83,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.ScrapDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
@@ -105,19 +105,17 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
-import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 /** ScrapScreen - Container Composable ViewModel에서 상태를 추출하여 ScrapScreenContent에 전달 */
 @Composable
 fun ScrapScreen(
-        categoryId: String = "1",
-        initialCategoryName: String = "분류되지 않음",
-        navController: NavHostController,
-        scrapViewModel: ScrapViewModel,
-        categoryViewModel: CategoryViewModel,
-        modifier: Modifier = Modifier
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    categoryId: String = CategoryItem.DEFAULT_ID,
+    scrapViewModel: ScrapViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val globalCategoryId by GlobalUiState.selectedCategoryId.collectAsState()
@@ -178,7 +176,7 @@ fun ScrapScreen(
                     }
 
                     // URI 파싱 및 유효성 검증
-                    val uri = Uri.parse(url)
+                    val uri = url.toUri()
 
                     // scheme 검증 (http, https만 허용)
                     if (uri.scheme.isNullOrBlank()) {
@@ -211,13 +209,13 @@ fun ScrapScreen(
             onItemSelectionToggle = { itemId -> scrapViewModel.toggleScrapItemSelection(itemId) },
             onSelectAll = { scrapViewModel.selectAllScrapItems() },
             onDeselectAll = { scrapViewModel.deselectAllScrapItems() },
-            onAddScrap = { navController.navigate(AddScrap(categoryId)) },
+            onAddScrap = { navController.navigate(AddScrap) },
             onUpdateCategoryTitle = { categoryId, newTitle ->
-                categoryViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
+                scrapViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
                 GlobalUiState.setCategory(categoryId, newTitle)
             },
             onDeleteCategory = {
-                categoryViewModel.deleteCategory(categoryId)
+                scrapViewModel.deleteCategory(categoryId)
                 GlobalUiState.setCategory(CategoryItem.DEFAULT_ID, CategoryItem.DEFAULT_NAME)
                 navController.navigate(Category)
             },
@@ -687,13 +685,13 @@ fun SearchBar(modifier: Modifier = Modifier) {
 
 @Composable
 fun SortBar(
+        modifier: Modifier = Modifier,
         sortType: SortType = SortType.DATE,
         sortDirection: SortDirection = SortDirection.ASCENDING,
         viewMode: ViewMode = ViewMode.LIST,
         onSortTypeToggle: () -> Unit = {},
         onSortDirectionToggle: () -> Unit = {},
-        onViewModeToggle: () -> Unit = {},
-        modifier: Modifier = Modifier
+        onViewModeToggle: () -> Unit = {}
 ) {
     val sortTypeText =
             when (sortType) {

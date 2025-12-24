@@ -3,11 +3,13 @@ package com.scrap2025.scrap2025.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
+import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -27,7 +30,9 @@ import javax.inject.Inject
 class ScrapViewModel
 @Inject
 constructor(
+    private val categoryRepository: CategoryRepository,
     private val scrapRepository: ScrapRepository,
+    private val tokenManager: TokenManager,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
@@ -244,5 +249,35 @@ constructor(
     // 카테고리 선택
     fun setSelectedCategory(categoryId: String?) {
         _selectedCategoryId.value = categoryId
+    }
+
+    /**
+     * 카테고리명 업데이트
+     * @param id 업데이트할 카테고리 ID
+     * @param newTitle 새로운 카테고리명
+     */
+    fun updateCategoryTitle(id: String, newTitle: String) {
+        viewModelScope.launch {
+            categoryRepository.updateCategory(
+                id = id,
+                name = newTitle,
+                token = tokenManager.accessToken.firstOrNull()
+            )
+        }
+    }
+
+    /**
+     * 카테고리 삭제
+     * @param id 삭제할 카테고리 ID
+     */
+    fun deleteCategory(id: String) {
+        viewModelScope.launch {
+            val token = tokenManager.accessToken.firstOrNull()
+            // Repository 내에서 트랜잭션으로 처리 (스크랩 이동 + 카테고리 삭제)
+            categoryRepository.deleteCategory(
+                id = id,
+                token = token
+            )
+        }
     }
 }

@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.LinkPreview
@@ -59,15 +60,15 @@ import com.scrap2025.scrap2025.viewmodel.AddScrapViewModel
 /** AddScrapScreen - Container Composable ViewModel에서 상태를 추출하여 AddScrapScreenContent에 전달 */
 @Composable
 fun AddScrapScreen(
-    categoryId: String,
     navController: NavHostController,
-    viewModel: AddScrapViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: AddScrapViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val addScrapState by viewModel.addScrapState.collectAsState()
     val linkPreviewState by viewModel.linkPreviewState.collectAsState()
     val sharedUrl by GlobalUiState.sharedUrl.collectAsState()
+    val globalCategoryId by GlobalUiState.selectedCategoryId.collectAsState()
 
     val isLoading = addScrapState is Result.Loading
 
@@ -105,7 +106,7 @@ fun AddScrapScreen(
                 url = url,
                 memo = memo,
                 linkPreview = linkPreview,
-                categoryId = categoryId
+                categoryId = globalCategoryId
             )
         },
         onFetchPreview = { url -> viewModel.fetchLinkPreview(url) },

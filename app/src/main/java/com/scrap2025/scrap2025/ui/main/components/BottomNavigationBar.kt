@@ -39,12 +39,12 @@ data class BottomNavItem(
 @Composable
 fun BottomNavigationBar(
     currentDestination: NavDestination?,
-    onItemClick: (Route) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onItemClick: (Route) -> Unit = {}
 ) {
     val items = listOf(
         BottomNavItem("카테고리", Icons.Outlined.Folder, Category, Category::class),
-        BottomNavItem("스크랩", Icons.Outlined.AttachFile, Scrap(), Scrap::class),
+        BottomNavItem("스크랩", Icons.Outlined.AttachFile, Scrap, Scrap::class),
         BottomNavItem("즐겨찾기", Icons.Outlined.Star, Favorite, Favorite::class),
         BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch, Search, Search::class),
         BottomNavItem("마이페이지", Icons.Outlined.Person, MyPage, MyPage::class)

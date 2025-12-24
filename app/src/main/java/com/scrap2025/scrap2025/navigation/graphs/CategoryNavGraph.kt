@@ -20,9 +20,7 @@ fun NavGraphBuilder.categoryNavGraph(navController: NavHostController) {
             CategoryScreen(
                 onCategoryClick = { category ->
                     GlobalUiState.setCategory(category.id, category.name)
-                    navController.navigate(
-                        Scrap(categoryId = category.id, categoryName = category.name)
-                    ) { popUpTo(0) }
+                    navController.navigate(Scrap) { popUpTo(0) }
                 },
                 onAddClick = { navController.navigate(AddCategory) }
             )
@@ -37,11 +35,9 @@ fun NavGraphBuilder.categoryNavGraph(navController: NavHostController) {
                 onCategoryClick = { category ->
                     GlobalUiState.setCategory(category.id, category.name)
                     // 1. 해당 카테고리의 스크랩 리스트로 백스택 교체
-                    navController.navigate(
-                        Scrap(categoryId = category.id, categoryName = category.name)
-                    ) { popUpTo<CategorySelection> { inclusive = true } }
+                    navController.navigate(Scrap) { popUpTo<CategorySelection> { inclusive = true } }
                     // 2. 스크랩 추가 화면으로 이동 (사용자가 추가 취소 시 스크랩 리스트로 돌아감)
-                    navController.navigate(AddScrap(categoryId = category.id))
+                    navController.navigate(AddScrap)
                 },
                 onAddClick = { navController.navigate(AddCategory) },
                 showFab = false
