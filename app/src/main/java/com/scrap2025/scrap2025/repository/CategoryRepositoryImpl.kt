@@ -27,7 +27,9 @@ constructor(
     private val authService: AuthService
 ) : CategoryRepository {
 
-    override fun getCategories(): Flow<Result<List<CategoryItem>>> {
+    override fun getCategoryCount(): Flow<Int> = categoryDao.getCategoryCount()
+
+    override fun getAllCategories(): Flow<Result<List<CategoryItem>>> {
         return categoryDao.getAllCategories().map { entities ->
             try {
                 Result.Success(entities.map { it.toDomainModel() })
@@ -56,7 +58,7 @@ constructor(
         }
     }
 
-    override suspend fun addCategory(item: CategoryItem, token: String?): Result<Unit> {
+    override suspend fun createCategory(item: CategoryItem, token: String?): Result<Unit> {
         return try {
             // 1. Local Insert (PENDING)
             val entity = CategoryEntity.fromDomainModel(item)
@@ -139,8 +141,6 @@ constructor(
         }
     }
 
-    override fun getCategoryCount(): Flow<Int> = categoryDao.getCategoryCount()
-
     override suspend fun syncCategories(token: String): Result<Unit> {
         return try {
             val response = authService.getCategories(token)
@@ -190,7 +190,7 @@ constructor(
         }
     }
 
-    override suspend fun createCategoryRemote(
+    private suspend fun createCategoryRemote(
         token: String,
         title: String
     ): Result<CategoryCreateResult> {

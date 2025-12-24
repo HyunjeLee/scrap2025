@@ -50,7 +50,7 @@ constructor(
                 )
 
             // Repository를 통해 카테고리 추가
-            val result = categoryRepository.addCategory(newCategory, token)
+            val result = categoryRepository.createCategory(newCategory, token)
             _addCategoryState.value = result
         }
     }

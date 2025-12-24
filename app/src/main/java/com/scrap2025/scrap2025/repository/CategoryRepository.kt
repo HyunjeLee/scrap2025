@@ -1,17 +1,23 @@
 package com.scrap2025.scrap2025.repository
 
-import com.scrap2025.scrap2025.data.model.CategoryCreateResult
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import kotlinx.coroutines.flow.Flow
 
 /** CategoryRepository - 카테고리 데이터 접근 추상화 인터페이스 데이터 소스(로컬/리모트)에 독립적인 비즈니스 로직 제공 */
 interface CategoryRepository {
+
+    /**
+     * 전체 카테고리 개수 조회 (마이페이지)
+     * @return Flow<Int>
+     */
+    fun getCategoryCount(): Flow<Int>
+
     /**
      * 전체 카테고리 목록 조회
      * @return Flow로 감싸진 Result<List<CategoryItem>>
      */
-    fun getCategories(): Flow<Result<List<CategoryItem>>>
+    fun getAllCategories(): Flow<Result<List<CategoryItem>>>
 
     /**
      * 특정 카테고리 조회
@@ -26,7 +32,7 @@ interface CategoryRepository {
      * @param token API Access Token (Optional)
      * @return Result<Unit> (성공/실패)
      */
-    suspend fun addCategory(item: CategoryItem, token: String? = null): Result<Unit>
+    suspend fun createCategory(item: CategoryItem, token: String? = null): Result<Unit>
 
     /**
      * 카테고리 삭제
@@ -44,22 +50,9 @@ interface CategoryRepository {
     suspend fun updateCategory(id: String, name: String): Result<Unit>
 
     /**
-     * 전체 카테고리 개수 조회
-     * @return Flow<Int>
-     */
-    fun getCategoryCount(): Flow<Int>
-
-    /**
      * 카테고리 동기화 (Remote -> Local)
      * @param token API Access Token
      * @return Result<Unit>
      */
     suspend fun syncCategories(token: String): Result<Unit>
-    /**
-     * 카테고리 생성 (Remote)
-     * @param token API Access Token
-     * @param title 생성할 카테고리 제목
-     * @return Result<CategoryCreateResult>
-     */
-    suspend fun createCategoryRemote(token: String, title: String): Result<CategoryCreateResult>
 }

@@ -34,7 +34,7 @@ constructor(
     private fun fetchCategories() {
         viewModelScope.launch {
             _uiState.value = CategoryUiState.Loading
-            categoryRepository.getCategories().collect { result ->
+            categoryRepository.getAllCategories().collect { result ->
                 _uiState.update {
                     when (result) {
                         is Result.Loading -> CategoryUiState.Loading
