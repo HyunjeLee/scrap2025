@@ -1,8 +1,5 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -102,9 +99,9 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
+import com.scrap2025.scrap2025.utils.UrlNavigator
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 import kotlinx.coroutines.launch
-import androidx.core.net.toUri
 
 /** ScrapScreen - Container Composable ViewModel에서 상태를 추출하여 ScrapScreenContent에 전달 */
 @Composable
@@ -165,44 +162,7 @@ fun ScrapScreen(
             onSortTypeToggle = { scrapViewModel.toggleSortType() },
             onSortDirectionToggle = { scrapViewModel.toggleSortDirection() },
             onViewModeToggle = { scrapViewModel.toggleViewMode() },
-            onItemClick = { url ->
-                try {
-                    // URL 유효성 검증
-                    if (url.isBlank()) {
-                        Toast.makeText(context, "URL이 비어있습니다", Toast.LENGTH_SHORT).show()
-                        return@ScrapScreenContent
-                    }
-
-                    // URI 파싱 및 유효성 검증
-                    val uri = url.toUri()
-
-                    // scheme 검증 (http, https만 허용)
-                    if (uri.scheme.isNullOrBlank()) {
-                        Toast.makeText(context, "올바르지 않은 URL 형식입니다", Toast.LENGTH_SHORT).show()
-                        return@ScrapScreenContent
-                    }
-
-                    if (uri.scheme !in listOf("http", "https")) {
-                        Toast.makeText(context, "http 또는 https URL만 지원합니다", Toast.LENGTH_SHORT)
-                                .show()
-                        return@ScrapScreenContent
-                    }
-
-                    // Intent 생성 및 실행
-                    val intent = Intent(Intent.ACTION_VIEW, uri)
-
-                    // 해당 Intent를 처리할 수 있는 앱이 있는지 확인
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
-                    } else {
-                        Toast.makeText(context, "URL을 열 수 있는 앱이 없습니다", Toast.LENGTH_SHORT).show()
-                    }
-                } catch (e: ActivityNotFoundException) {
-                    Toast.makeText(context, "URL을 열 수 있는 앱이 없습니다", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Toast.makeText(context, "URL을 여는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
-                }
-            },
+            onItemClick = { url -> UrlNavigator.openUrl(context, url) },
             onItemLongClick = { itemId -> scrapViewModel.enterSelectionMode(itemId) },
             onItemSelectionToggle = { itemId -> scrapViewModel.toggleScrapItemSelection(itemId) },
             onSelectAll = { scrapViewModel.selectAllScrapItems() },
@@ -464,23 +424,23 @@ fun ScrapScreenContent(
                             modifier = Modifier.size(50.dp)
                     )
                 }
-        }
+            }
 
-        // 삭제 확인 모달
-        if (showDeleteDialog) {
-            CommonDeleteDialog(
-                    title = "정말 카테고리를 삭제하시겠습니까?",
-                    description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
-                    confirmText = "삭제하기",
-                    onDismiss = { showDeleteDialog = false },
-                    onConfirm = {
-                        showDeleteDialog = false
-                        onDeleteCategory()
-                    }
-            )
+            // 삭제 확인 모달
+            if (showDeleteDialog) {
+                CommonDeleteDialog(
+                        title = "정말 카테고리를 삭제하시겠습니까?",
+                        description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
+                        confirmText = "삭제하기",
+                        onDismiss = { showDeleteDialog = false },
+                        onConfirm = {
+                            showDeleteDialog = false
+                            onDeleteCategory()
+                        }
+                )
+            }
         }
     }
-}
 }
 
 /**
