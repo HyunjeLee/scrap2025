@@ -7,13 +7,13 @@ import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /** CategoryViewModel - 카테고리 목록 화면의 상태 관리 CategoryRepository를 통해 카테고리 목록을 조회하고 관리 */
 @HiltViewModel
@@ -55,7 +55,8 @@ constructor(
     }
 
     /**
-     * 카테고리 순서 변경
+     * 카테고리 순서 변경 (UI 반영 전용)
+     * 드래그 중 실시간으로 리스트의 위치를 바꿉니다.
      * @param fromIndex 원래 위치
      * @param toIndex 새로운 위치
      */
@@ -72,9 +73,23 @@ constructor(
 
         // 낙관적 업데이트 (UI 즉시 반영)
         _categoryUiState.update { CategoryUiState.Success(updatedList) }
+    }
 
-        // DB 업데이트
-        viewModelScope.launch { categoryRepository.reorderCategories(updatedList) }
+    /**
+     * 카테고리 순서 확정 및 저장 (DB & Server Sync)
+     * 드래그가 끝난 시점(Drop)에 호출하여 현재 리스트의 순서를 영구적으로 저장합니다.
+     */
+    fun updateCategoryOrder() {
+        val currentState = _categoryUiState.value
+        if (currentState !is CategoryUiState.Success) return
+
+        val updatedList = currentState.categories
+
+        // DB 업데이트 및 서버 동기화
+        viewModelScope.launch {
+            val token = tokenManager.accessToken.firstOrNull()
+            categoryRepository.reorderCategories(updatedList, token)
+        }
     }
 }
 

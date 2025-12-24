@@ -9,14 +9,16 @@ import com.scrap2025.scrap2025.data.model.CategoryCreateRequest
 import com.scrap2025.scrap2025.data.model.CategoryCreateResult
 import com.scrap2025.scrap2025.data.model.CategoryRenameRequest
 import com.scrap2025.scrap2025.data.model.CategoryRenameResult
+import com.scrap2025.scrap2025.data.model.CategorySequenceRequest
+import com.scrap2025.scrap2025.data.model.CategorySequenceResult
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 /** CategoryRepositoryImpl - CategoryRepository 구현체 Room DB(CategoryDao)를 사용하여 데이터 관리 */
 @Singleton
@@ -215,7 +217,10 @@ constructor(
         }
     }
 
-    override suspend fun reorderCategories(categoryItems: List<CategoryItem>): Result<Unit> {
+    override suspend fun reorderCategories(
+        categoryItems: List<CategoryItem>,
+        token: String?
+    ): Result<Unit> {
         return try {
             db.withTransaction {
                 // 각 아이템의 orderIndex를 리스트의 인덱스로 업데이트
@@ -223,12 +228,20 @@ constructor(
                     categoryDao.updateCategoryOrder(id = categoryItem.id, orderIndex = index)
                 }
             }
+
+            // Remote Sync
+            if (token != null) {
+                val categoryRemoteIds = categoryItems.mapNotNull { it.remoteId }
+                if (categoryRemoteIds.isNotEmpty()) {
+                    updateCategorySequenceRemote(token, categoryRemoteIds)
+                }
+            }
+
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 순서 변경 실패")
         }
     }
-
 
     private suspend fun createCategoryRemote(
         token: String,
@@ -285,6 +298,28 @@ constructor(
             }
         } catch (e: Exception) {
             Result.Error(e, "카테고리 삭제 중 오류 발생")
+        }
+    }
+
+    private suspend fun updateCategorySequenceRemote(
+        token: String,
+        categoryRemoteIds: List<Int>
+    ): Result<CategorySequenceResult> {
+        return try {
+            val request = CategorySequenceRequest(categoryIdList = categoryRemoteIds)
+            val response = authService.updateCategorySequence(token, request)
+            if (response.isSuccessful) {
+                val result = response.body()?.result
+                if (result != null) {
+                    Result.Success(result)
+                } else {
+                    Result.Error(Exception("Response body is null"), "카테고리 순서 변경 응답 오류")
+                }
+            } else {
+                Result.Error(Exception("Reorder failed code: ${response.code()}"), "카테고리 순서 변경 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "카테고리 순서 변경 중 오류 발생")
         }
     }
 }

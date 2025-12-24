@@ -59,7 +59,11 @@ interface CategoryRepository {
     /**
      * 카테고리 순서 변경
      * @param categoryItems 순서가 변경된 categoryItem 리스트
+     * @param token API Access Token (Optional)
      * @return Result<Unit>
      */
-    suspend fun reorderCategories(categoryItems: List<CategoryItem>): Result<Unit>
+    suspend fun reorderCategories(
+            categoryItems: List<CategoryItem>,
+            token: String? = null
+    ): Result<Unit>
 }

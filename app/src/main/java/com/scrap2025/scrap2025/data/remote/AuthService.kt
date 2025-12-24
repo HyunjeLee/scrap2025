@@ -6,6 +6,8 @@ import com.scrap2025.scrap2025.data.model.CategoryCreateResult
 import com.scrap2025.scrap2025.data.model.CategoryListResponse
 import com.scrap2025.scrap2025.data.model.CategoryRenameRequest
 import com.scrap2025.scrap2025.data.model.CategoryRenameResult
+import com.scrap2025.scrap2025.data.model.CategorySequenceRequest
+import com.scrap2025.scrap2025.data.model.CategorySequenceResult
 import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import retrofit2.Response
@@ -74,4 +76,11 @@ interface AuthService {
         @Header("Authorization") token: String,
         @Path("category-id") categoryId: Int
     ): Response<BaseResponse<Unit?>>
+
+    @Headers("accept: application/json")
+    @PATCH("/auth/categories/sequence")
+    suspend fun updateCategorySequence(
+        @Header("Authorization") token: String,
+        @Body body: CategorySequenceRequest
+    ): Response<BaseResponse<CategorySequenceResult>>
 }

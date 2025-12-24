@@ -65,7 +65,8 @@ fun CategoryScreen(
         onAddClick = onAddClick,
         modifier = modifier,
         showFab = showFab,
-        onMove = { from, to -> viewModel.moveCategory(from, to) }
+        onMove = { from, to -> viewModel.moveCategory(from, to) },
+        onDragStopped = { viewModel.updateCategoryOrder() }
     )
 }
 
@@ -78,7 +79,8 @@ fun CategoryScreenContent(
     modifier: Modifier = Modifier,
     showFab: Boolean = true,
     onMove: (Int, Int) -> Unit = { _, _ -> },
-    ) {
+    onDragStopped: () -> Unit = {}
+) {
     Box(modifier = modifier
         .fillMaxSize()
         .background(BackgroundColor)) {
@@ -165,8 +167,11 @@ fun CategoryScreenContent(
                                     modifier =
                                         Modifier
                                             .then(
-                                                if (item.id != CategoryItem.DEFAULT_ID) Modifier.draggableHandle()
-                                                else Modifier
+                                                if (item.id != CategoryItem.DEFAULT_ID) {
+                                                    Modifier.draggableHandle(onDragStopped = { onDragStopped() })
+                                                } else {
+                                                    Modifier
+                                                }
                                             )
                                             .shadow(elevation.value)
                                             .background(
