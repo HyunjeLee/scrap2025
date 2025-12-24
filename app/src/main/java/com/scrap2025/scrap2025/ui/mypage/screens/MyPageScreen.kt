@@ -134,7 +134,7 @@ fun MyPageScreenContent(
                     // Category Stat
                     StatItem(
                         icon = Icons.Outlined.Folder,
-                        count = "${uiState.categoryCount}개",
+                        count = "${uiState.categoryCount - 1}개", // default category 제외
                         label = "카테고리"
                     )
                 }
