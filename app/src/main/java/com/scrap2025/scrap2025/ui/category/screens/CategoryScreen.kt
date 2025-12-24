@@ -1,6 +1,7 @@
 package com.scrap2025.scrap2025.ui.category.screens
 
 import android.util.Log
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -24,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +45,8 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 /** CategoryScreen - Container Composable ViewModel에서 상태를 추출하여 CategoryScreenContent에 전달 */
 @Composable
@@ -51,14 +57,15 @@ fun CategoryScreen(
     viewModel: CategoryViewModel = hiltViewModel(),
     showFab: Boolean = true,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.categoryUiState.collectAsState()
 
     CategoryScreenContent(
         uiState = uiState,
         onCategoryClick = onCategoryClick,
         onAddClick = onAddClick,
+        modifier = modifier,
         showFab = showFab,
-        modifier = modifier
+        onMove = { from, to -> viewModel.moveCategory(from, to) }
     )
 }
 
@@ -70,7 +77,8 @@ fun CategoryScreenContent(
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     showFab: Boolean = true,
-) {
+    onMove: (Int, Int) -> Unit = { _, _ -> },
+    ) {
     Box(modifier = modifier
         .fillMaxSize()
         .background(BackgroundColor)) {
@@ -140,18 +148,43 @@ fun CategoryScreenContent(
                         }
                     }
 
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        items(count = uiState.categories.size) { index ->
-                            val category = uiState.categories[index]
-                            CategoryItemCard(
-                                categoryItem = category,
-                                onClick = { onCategoryClick(category) }
-                            )
-                            HorizontalDivider(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = GrayColor,
-                                thickness = 0.5.dp
-                            )
+                    // Creating LazyListState explicitly
+                    val listState = rememberLazyListState()
+                    val state =
+                        rememberReorderableLazyListState(
+                            lazyListState = listState,
+                            onMove = { from, to -> onMove(from.index, to.index) }
+                        )
+
+                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                        items(items = uiState.categories, key = { it.id }) { item ->
+                            ReorderableItem(state, key = item.id) { isDragging ->
+                                val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
+
+                                Column(
+                                    modifier =
+                                        Modifier
+                                            .then(
+                                                if (item.id != CategoryItem.DEFAULT_ID) Modifier.draggableHandle()
+                                                else Modifier
+                                            )
+                                            .shadow(elevation.value)
+                                            .background(
+                                                if (isDragging) Color.White
+                                                else Color.Transparent
+                                            )
+                                ) {
+                                    CategoryItemCard(
+                                        categoryItem = item,
+                                        onClick = { onCategoryClick(item) }
+                                    )
+                                    HorizontalDivider(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        color = GrayColor,
+                                        thickness = 0.5.dp
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -190,14 +223,17 @@ fun CategoryScreenContentPreview() {
             CategoryItem(
                 id = "1",
                 name = "분류되지 않음",
+                orderIndex = 0,
             ),
             CategoryItem(
                 id = "2",
                 name = "코테 자료",
+                orderIndex = 0,
             ),
             CategoryItem(
                 id = "3",
                 name = "IBM Technology",
+                orderIndex = 0,
             ),
         )
 

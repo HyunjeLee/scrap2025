@@ -18,6 +18,7 @@ constructor(private val categoryDao: CategoryDao) {
                     id = CategoryItem.DEFAULT_ID,
                     name = CategoryItem.DEFAULT_NAME,
                     scrapCount = 0,
+                    orderIndex = 0,
                     isDefault = true,
                 )
             )

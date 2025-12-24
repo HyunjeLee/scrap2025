@@ -12,6 +12,7 @@ data class CategoryEntity(
     val name: String,
     val scrapCount: Int,
     val isDefault: Boolean = false,
+    val orderIndex: Int,
     val syncStatus: SyncStatus = SyncStatus.PENDING
 ) {
     fun toDomainModel(): CategoryItem {
@@ -21,6 +22,7 @@ data class CategoryEntity(
             name = name,
             scrapCount = scrapCount,
             isDefault = isDefault,
+            orderIndex = orderIndex,
             syncStatus = syncStatus
         )
     }
@@ -33,6 +35,7 @@ data class CategoryEntity(
                 name = item.name,
                 scrapCount = item.scrapCount,
                 isDefault = item.isDefault,
+                orderIndex = item.orderIndex,
                 syncStatus = item.syncStatus
             )
         }

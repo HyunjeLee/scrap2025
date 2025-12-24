@@ -55,4 +55,11 @@ interface CategoryRepository {
      * @return Result<Unit>
      */
     suspend fun syncCategories(token: String): Result<Unit>
+
+    /**
+     * 카테고리 순서 변경
+     * @param categoryItems 순서가 변경된 categoryItem 리스트
+     * @return Result<Unit>
+     */
+    suspend fun reorderCategories(categoryItems: List<CategoryItem>): Result<Unit>
 }

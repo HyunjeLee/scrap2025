@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CategoryDao {
-    @Query("SELECT * FROM categories")
+    @Query("SELECT * FROM categories ORDER BY orderIndex ASC")
     fun getAllCategories(): Flow<List<CategoryEntity>>
 
     @Query("SELECT COUNT(*) FROM categories")
@@ -44,12 +44,20 @@ interface CategoryDao {
     @Query("SELECT * FROM categories")
     suspend fun getAllCategoriesSnapshot(): List<CategoryEntity>
 
-    @Query("UPDATE categories SET remoteId = :remoteId, syncStatus = :status WHERE id = :id")
-    suspend fun updateCategoryRemoteId(id: String, remoteId: Int, status: SyncStatus)
+    @Query("UPDATE categories SET remoteId = :remoteId, orderIndex = :orderIndex, syncStatus = :status WHERE id = :id")
+    suspend fun updateCategoryRemoteId(id: String, remoteId: Int, orderIndex: Int, status: SyncStatus)
 
     @Query("UPDATE categories SET syncStatus = :status WHERE id = :id")
     suspend fun updateCategoryStatus(id: String, status: SyncStatus)
 
     @Query("SELECT * FROM categories WHERE isDefault = 1 LIMIT 1")
     suspend fun getDefaultCategory(): CategoryEntity?
+
+    // 리스트 전체 업데이트 (순서 변경 시 사용)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCategories(categories: List<CategoryEntity>)
+
+    // 순서 변경을 위한 개별 업데이트
+    @Query("UPDATE categories SET orderIndex = :orderIndex WHERE id = :id")
+    suspend fun updateCategoryOrder(id: String, orderIndex: Int)
 }
