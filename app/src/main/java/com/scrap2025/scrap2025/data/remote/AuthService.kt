@@ -4,6 +4,8 @@ import com.scrap2025.scrap2025.data.model.BaseResponse
 import com.scrap2025.scrap2025.data.model.CategoryCreateRequest
 import com.scrap2025.scrap2025.data.model.CategoryCreateResult
 import com.scrap2025.scrap2025.data.model.CategoryListResponse
+import com.scrap2025.scrap2025.data.model.CategoryRenameRequest
+import com.scrap2025.scrap2025.data.model.CategoryRenameResult
 import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import retrofit2.Response
@@ -57,6 +59,14 @@ interface AuthService {
         @Header("Authorization") token: String,
         @Body body: CategoryCreateRequest
     ): Response<BaseResponse<CategoryCreateResult>>
+
+    @Headers("accept: application/json")
+    @PATCH("/auth/categories/{categoryId}/title")
+    suspend fun renameCategory(
+        @Header("Authorization") token: String,
+        @Path("categoryId") categoryId: Int,
+        @Body body: CategoryRenameRequest
+    ): Response<BaseResponse<CategoryRenameResult>>
 
     @Headers("accept: application/json")
     @DELETE("/auth/categories/{category-id}")

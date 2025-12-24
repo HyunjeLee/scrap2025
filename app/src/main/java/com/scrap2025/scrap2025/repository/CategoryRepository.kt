@@ -47,7 +47,7 @@ interface CategoryRepository {
      * @param name 새로운 카테고리명
      * @return Result<Unit> (성공/실패)
      */
-    suspend fun updateCategory(id: String, name: String): Result<Unit>
+    suspend fun updateCategory(id: String, name: String, token: String? = null): Result<Unit>
 
     /**
      * 카테고리 동기화 (Remote -> Local)
