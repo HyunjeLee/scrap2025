@@ -16,7 +16,7 @@ class MyPageScreenTest {
     @Test
     fun myPageScreen_displaysEffectively() {
         // Given
-        composeTestRule.setContent { Scrap2025Theme { MyPageScreen(onSignOut = {}) } }
+        composeTestRule.setContent { Scrap2025Theme { MyPageScreen() } }
 
         // When & Then - Verify Title
         composeTestRule.onNodeWithText("마이페이지").assertIsDisplayed()
@@ -43,7 +43,7 @@ class MyPageScreenTest {
     fun myPageScreen_menuItems_areClickable() {
         // Given
         composeTestRule.setContent {
-            Scrap2025Theme { MyPageScreen(onSignOut = { }) }
+            Scrap2025Theme { MyPageScreen() }
         }
 
         // When & Then - Verify Menu Items
