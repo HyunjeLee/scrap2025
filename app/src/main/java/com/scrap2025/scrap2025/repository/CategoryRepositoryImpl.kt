@@ -191,6 +191,7 @@ constructor(
                             categoryDao.updateCategoryRemoteId(
                                 existingLocal.id,
                                 remoteCategory.categoryId,
+                                remoteCategory.sequence - 1,
                                 SyncStatus.SYNCED
                             )
                         }
@@ -213,6 +214,21 @@ constructor(
             Result.Error(e, "카테고리 동기화 중 오류 발생")
         }
     }
+
+    override suspend fun reorderCategories(categoryItems: List<CategoryItem>): Result<Unit> {
+        return try {
+            db.withTransaction {
+                // 각 아이템의 orderIndex를 리스트의 인덱스로 업데이트
+                categoryItems.forEachIndexed { index, categoryItem ->
+                    categoryDao.updateCategoryOrder(id = categoryItem.id, orderIndex = index)
+                }
+            }
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e, "카테고리 순서 변경 실패")
+        }
+    }
+
 
     private suspend fun createCategoryRemote(
         token: String,
