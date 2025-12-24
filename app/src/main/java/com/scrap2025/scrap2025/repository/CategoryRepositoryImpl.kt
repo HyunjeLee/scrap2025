@@ -82,7 +82,7 @@ constructor(
         }
     }
 
-    override suspend fun deleteCategory(id: String): Result<Unit> {
+    override suspend fun deleteCategory(id: String, token: String?): Result<Unit> {
         return try {
             val existing =
                 categoryDao.getCategoryById(id)
@@ -111,6 +111,19 @@ constructor(
                 // 2. 카테고리 삭제
                 categoryDao.deleteCategory(id)
             }
+
+            // 3. Remote Delete (if token exists and remoteId exists)
+            val remoteId = existing.remoteId
+            if (token != null && remoteId != null) {
+                // Remote failure shouldn't rollback local deletion (Local First)
+                // But we might want to log it or schedule a retry
+                val remoteResult = deleteCategoryRemote(token, remoteId)
+                if (remoteResult is Result.Error) {
+                    // TODO: Handle sync failure (e.g., job scheduler)
+                    // For now, we consider the operation successful if local part is done
+                }
+            }
+
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 삭제 실패")
@@ -209,6 +222,18 @@ constructor(
             }
         } catch (e: Exception) {
             Result.Error(e, "카테고리 생성 중 오류 발생")
+        }
+    }
+    private suspend fun deleteCategoryRemote(token: String, categoryId: Int): Result<Unit> {
+        return try {
+            val response = authService.deleteCategory(token, categoryId)
+            if (response.isSuccessful) {
+                Result.Success(Unit)
+            } else {
+                Result.Error(Exception("Delete failed code: ${response.code()}"), "카테고리 삭제 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "카테고리 삭제 중 오류 발생")
         }
     }
 }

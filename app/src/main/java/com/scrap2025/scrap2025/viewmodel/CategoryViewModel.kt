@@ -60,8 +60,9 @@ constructor(
      */
     fun deleteCategory(id: String) {
         viewModelScope.launch {
+            val token = tokenManager.accessToken.firstOrNull()
             // Repository 내에서 트랜잭션으로 처리 (스크랩 이동 + 카테고리 삭제)
-            categoryRepository.deleteCategory(id)
+            categoryRepository.deleteCategory(id, token)
         }
     }
 
