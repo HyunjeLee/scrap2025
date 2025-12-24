@@ -7,6 +7,7 @@ import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import com.scrap2025.scrap2025.data.model.CategoryCreateRequest
 import com.scrap2025.scrap2025.data.model.CategoryCreateResult
+import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
@@ -65,14 +66,12 @@ constructor(
             if (token != null) {
                 val remoteResult = createCategoryRemote(token, item.name)
                 if (remoteResult is Result.Success) {
-                    // 3. Update Local Status to SYNCED
-                    // Note: If server returned ID, we would update it here too.
-                    categoryDao.updateCategoryStatus(
-                        item.id,
-                        com.scrap2025.scrap2025.data.model.SyncStatus.SYNCED
-                    )
+                    // 3. Trigger Sync to get the remoteId
+                    // Since the creation API doesn't return the ID, we must fetch the list
+                    // and match by name (handled in syncCategories)
+                    syncCategories(token)
                 }
-                // If remote fails, it stays PENDING (Success for UI)
+                // If remote fails, it stays PENDING
             }
 
             Result.Success(Unit)
@@ -143,10 +142,42 @@ constructor(
         return try {
             val response = authService.getCategories(token)
             if (response.isSuccessful) {
-                response.body()?.result?.let { categoryListResponse ->
-                    val entities = categoryListResponse.categories.map { it.toEntity() }
-                    categoryDao.upsertCategories(entities)
+                val remoteCategories = response.body()?.result?.categories ?: emptyList()
+                val localCategories = categoryDao.getAllCategoriesSnapshot()
+
+                // Map local categories by name for easy lookup
+                // Using Map<String, CategoryEntity>
+                // Note: If multiple local categories have same name, this logic picks one. ideally
+                // names should be unique.
+                val localCategoryMap = localCategories.associateBy { it.name }
+
+                val toInsert = mutableListOf<CategoryEntity>()
+
+                for (remoteCategory in remoteCategories) {
+                    val existingLocal = localCategoryMap[remoteCategory.categoryTitle]
+
+                    if (existingLocal != null) {
+                        // Match found! Update remoteId of existing local category
+                        // Preserve local ID (UUID)
+                        // Update remoteId and syncStatus
+                        if (existingLocal.remoteId != remoteCategory.categoryId) {
+                            categoryDao.updateCategoryRemoteId(
+                                existingLocal.id,
+                                remoteCategory.categoryId,
+                                SyncStatus.SYNCED
+                            )
+                        }
+                    } else {
+                        // No match -> Insert new category (Use server ID based entity from
+                        // toEntity())
+                        toInsert.add(remoteCategory.toEntity())
+                    }
                 }
+
+                if (toInsert.isNotEmpty()) {
+                    categoryDao.upsertCategories(toInsert)
+                }
+
                 Result.Success(Unit)
             } else {
                 Result.Error(Exception("Sync failed code: ${response.code()}"), "카테고리 동기화 실패")

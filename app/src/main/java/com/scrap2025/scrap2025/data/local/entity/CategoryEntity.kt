@@ -8,21 +8,29 @@ import com.scrap2025.scrap2025.model.CategoryItem
 @Entity(tableName = "categories")
 data class CategoryEntity(
     @PrimaryKey val id: String,
+    val remoteId: Int? = null,
     val name: String,
     val scrapCount: Int,
     val syncStatus: SyncStatus = SyncStatus.PENDING
 ) {
     fun toDomainModel(): CategoryItem {
-        return CategoryItem(id = id, name = name, scrapCount = scrapCount, syncStatus = syncStatus)
+        return CategoryItem(
+            id = id,
+            remoteId = remoteId,
+            name = name,
+            scrapCount = scrapCount,
+            syncStatus = syncStatus,
+        )
     }
 
     companion object {
         fun fromDomainModel(item: CategoryItem): CategoryEntity {
             return CategoryEntity(
                 id = item.id,
+                remoteId = item.remoteId,
                 name = item.name,
                 scrapCount = item.scrapCount,
-                syncStatus = item.syncStatus
+                syncStatus = item.syncStatus,
             )
         }
     }

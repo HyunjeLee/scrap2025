@@ -4,23 +4,24 @@ import com.google.gson.annotations.SerializedName
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 
 data class CategoryListResponse(
-        @SerializedName("categories") val categories: List<CategoryResponse>,
-        @SerializedName("total") val total: Int
+    @SerializedName("categories") val categories: List<CategoryResponse>,
+    @SerializedName("total") val total: Int
 )
 
 data class CategoryResponse(
-        @SerializedName("categoryId") val categoryId: Int,
-        @SerializedName("categoryTitle") val categoryTitle: String,
-        @SerializedName("scrapCnt") val scrapCnt: Int,
-        @SerializedName("sequence") val sequence: Int,
-        @SerializedName("isDefault") val isDefault: Boolean
+    @SerializedName("categoryId") val categoryId: Int,
+    @SerializedName("categoryTitle") val categoryTitle: String,
+    @SerializedName("scrapCnt") val scrapCnt: Int,
+    @SerializedName("sequence") val sequence: Int,
+    @SerializedName("isDefault") val isDefault: Boolean
 ) {
     fun toEntity(): CategoryEntity {
         return CategoryEntity(
-                id = categoryId.toString(),
-                name = categoryTitle,
-                scrapCount = scrapCnt,
-                syncStatus = SyncStatus.SYNCED
+            id = categoryId.toString(),
+            remoteId = categoryId,
+            name = categoryTitle,
+            scrapCount = scrapCnt,
+            syncStatus = SyncStatus.SYNCED
         )
     }
 }

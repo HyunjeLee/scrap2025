@@ -41,6 +41,12 @@ interface CategoryDao {
     @Query("UPDATE categories SET scrapCount = scrapCount + :amount WHERE id = :id")
     suspend fun updateScrapCount(id: String, amount: Int)
 
+    @Query("SELECT * FROM categories")
+    suspend fun getAllCategoriesSnapshot(): List<CategoryEntity>
+
+    @Query("UPDATE categories SET remoteId = :remoteId, syncStatus = :status WHERE id = :id")
+    suspend fun updateCategoryRemoteId(id: String, remoteId: Int, status: SyncStatus)
+
     @Query("UPDATE categories SET syncStatus = :status WHERE id = :id")
     suspend fun updateCategoryStatus(id: String, status: SyncStatus)
 }
