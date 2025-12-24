@@ -39,7 +39,7 @@ interface CategoryRepository {
      * @param id 삭제할 카테고리 ID
      * @return Result<Unit> (성공/실패)
      */
-    suspend fun deleteCategory(id: String): Result<Unit>
+    suspend fun deleteCategory(id: String, token: String? = null): Result<Unit>
 
     /**
      * 카테고리 정보 업데이트

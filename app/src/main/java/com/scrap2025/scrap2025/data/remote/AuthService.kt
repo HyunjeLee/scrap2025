@@ -8,11 +8,13 @@ import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AuthService {
@@ -55,4 +57,11 @@ interface AuthService {
         @Header("Authorization") token: String,
         @Body body: CategoryCreateRequest
     ): Response<BaseResponse<CategoryCreateResult>>
+
+    @Headers("accept: application/json")
+    @DELETE("/auth/categories/{category-id}")
+    suspend fun deleteCategory(
+        @Header("Authorization") token: String,
+        @Path("category-id") categoryId: Int
+    ): Response<BaseResponse<Unit?>>
 }
