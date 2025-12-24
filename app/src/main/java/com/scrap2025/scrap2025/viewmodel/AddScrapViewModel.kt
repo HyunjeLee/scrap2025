@@ -11,6 +11,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.UUID
@@ -30,11 +32,48 @@ constructor(
     private val _linkPreviewState = MutableStateFlow<Result<LinkPreview>?>(null)
     val linkPreviewState: StateFlow<Result<LinkPreview>?> = _linkPreviewState.asStateFlow()
 
+    private val _url = MutableStateFlow("")
+    val url: StateFlow<String> = _url.asStateFlow()
+
+    private val _memo = MutableStateFlow("")
+    val memo: StateFlow<String> = _memo.asStateFlow()
+
+    init {
+        // URL이 변경될 때마다 자동으로 미리보기 가져오기 (Flow Operator 사용)
+        viewModelScope.launch {
+            url.debounce(500) // 500ms 동안 변경이 없을 때만 방출
+                .distinctUntilChanged() // 이전 값과 다를 때만
+                .collect { currentUrl ->
+                    // 1. 비어있는 경우 즉시 초기화
+                    if (currentUrl.isBlank()) {
+                        _linkPreviewState.value = null
+                        return@collect
+                    }
+
+                    // 2. 기본적인 URL 형식 검증 (http/https 시작 여부만 간단히 확인)
+                    if (currentUrl.startsWith("http://") || currentUrl.startsWith("https://")) {
+                        fetchLinkPreview(currentUrl)
+                    } else {
+                        // 3. 올바르지 않은 형식인 경우에도 초기화
+                        _linkPreviewState.value = null
+                    }
+                }
+        }
+    }
+
+    fun updateUrl(newUrl: String) {
+        _url.value = newUrl
+    }
+
+    fun updateMemo(newMemo: String) {
+        _memo.value = newMemo
+    }
+
     /**
      * URL로부터 링크 미리보기 데이터 가져오기
      * @param url 미리보기를 가져올 URL
      */
-    fun fetchLinkPreview(url: String) {
+    private fun fetchLinkPreview(url: String) {
         viewModelScope.launch {
             _linkPreviewState.value = Result.Loading
             val result = linkPreviewRepository.fetchLinkPreview(url)
@@ -52,7 +91,7 @@ constructor(
         url: String,
         memo: String?,
         linkPreview: LinkPreview? = null,
-        categoryId: String = "1" // 기본값: 분류되지 않음
+        categoryId: String
     ) {
         viewModelScope.launch {
             // Loading 상태 설정
@@ -76,29 +115,11 @@ constructor(
         }
     }
 
-    /**
-     * URL로부터 자동으로 링크 미리보기를 가져와서 스크랩 추가 (사용자가 직접 url을 기입하는 경우)
-     * @param url 스크랩 URL
-     * @param memo 메모 (선택사항)
-     */
-    fun addScrapItemWithPreview(url: String, memo: String? = null) {
-        viewModelScope.launch {
-            // 링크 미리보기 가져오기
-            val previewResult = linkPreviewRepository.fetchLinkPreview(url)
-
-            val linkPreview =
-                when (previewResult) {
-                    is Result.Success -> previewResult.data
-                    else -> null
-                }
-
-            // 스크랩 추가
-            addScrapItem(url, memo, linkPreview)
-        }
-    }
-
     /** 상태 초기화 (다음 추가를 위해) */
     fun resetState() {
         _addScrapState.value = null
+        _url.value = ""
+        _memo.value = ""
+        _linkPreviewState.value = null
     }
 }

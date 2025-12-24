@@ -28,9 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,15 +63,17 @@ fun AddScrapScreen(
     val context = LocalContext.current
     val addScrapState by viewModel.addScrapState.collectAsState()
     val linkPreviewState by viewModel.linkPreviewState.collectAsState()
+    val url by viewModel.url.collectAsState()
+    val memo by viewModel.memo.collectAsState()
     val sharedUrl by GlobalUiState.sharedUrl.collectAsState()
     val globalCategoryId by GlobalUiState.selectedCategoryId.collectAsState()
 
     val isLoading = addScrapState is Result.Loading
 
-    // 공유된 URL이 있으면 자동으로 링크 미리보기 가져오기
+    // 공유된 URL이 있으면 자동으로 입력 (ViewModel 상태 업데이트)
     LaunchedEffect(sharedUrl) {
-        sharedUrl?.let { url ->
-            viewModel.fetchLinkPreview(url)
+        sharedUrl?.let { shared ->
+            viewModel.updateUrl(shared)
             // 처리 후 초기화
             GlobalUiState.setSharedUrl(null)
         }
@@ -99,16 +98,18 @@ fun AddScrapScreen(
     AddScrapScreenContent(
         isLoading = isLoading,
         linkPreviewState = linkPreviewState,
-        initialUrl = sharedUrl,
-        onAddScrap = { url, memo, linkPreview ->
+        url = url,
+        memo = memo,
+        onUrlChange = { viewModel.updateUrl(it) },
+        onMemoChange = { viewModel.updateMemo(it) },
+        onAddScrap = { currentUrl, currentMemo, linkPreview ->
             viewModel.addScrapItem(
-                url = url,
-                memo = memo,
+                url = currentUrl,
+                memo = currentMemo,
                 linkPreview = linkPreview,
                 categoryId = globalCategoryId
             )
         },
-        onFetchPreview = { url -> viewModel.fetchLinkPreview(url) },
         onBack = { onBack() },
         modifier = modifier
     )
@@ -119,18 +120,15 @@ fun AddScrapScreen(
 fun AddScrapScreenContent(
     isLoading: Boolean,
     linkPreviewState: Result<LinkPreview>?,
-    initialUrl: String?,
+    url: String,
+    memo: String,
+    onUrlChange: (String) -> Unit,
+    onMemoChange: (String) -> Unit,
     onAddScrap: (url: String, memo: String?, linkPreview: LinkPreview?) -> Unit,
-    onFetchPreview: (url: String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    var url by remember { mutableStateOf("") }
-    var memo by remember { mutableStateOf("") }
-
-    // 공유된 URL이 있으면 자동으로 입력
-    LaunchedEffect(initialUrl) { initialUrl?.let { url = it } }
 
     // 링크 미리보기 데이터 추출
     val linkPreview =
@@ -141,9 +139,7 @@ fun AddScrapScreenContent(
     val isLoadingPreview = linkPreviewState is Result.Loading
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)) {
+        Column(modifier = modifier.fillMaxSize().background(BackgroundColor)) {
             // 톱바
             TopBar(onBackClick = onBack)
 
@@ -194,12 +190,10 @@ fun AddScrapScreenContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // 링크 입력 필드
-                Box(modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()) {
+                Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
                     TextField(
                         value = url,
-                        onValueChange = { url = it },
+                        onValueChange = { onUrlChange(it) },
                         placeholder = {
                             Text(
                                 text = "링크를 입력하세요",
@@ -254,7 +248,7 @@ fun AddScrapScreenContent(
                 ) {
                     TextField(
                         value = memo,
-                        onValueChange = { memo = it },
+                        onValueChange = { onMemoChange(it) },
                         placeholder = {
                             Text(
                                 text = "메모를 입력하세요",
@@ -398,9 +392,11 @@ fun AddScrapScreenContentPreview() {
         AddScrapScreenContent(
             isLoading = false,
             linkPreviewState = null,
-            initialUrl = null,
+            url = "",
+            memo = "",
+            onUrlChange = {},
+            onMemoChange = {},
             onAddScrap = { _, _, _ -> },
-            onFetchPreview = {},
             onBack = {}
         )
     }
