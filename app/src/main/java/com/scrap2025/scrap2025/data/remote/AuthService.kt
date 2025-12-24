@@ -4,6 +4,8 @@ import com.scrap2025.scrap2025.data.model.BaseResponse
 import com.scrap2025.scrap2025.data.model.CategoryCreateRequest
 import com.scrap2025.scrap2025.data.model.CategoryCreateResult
 import com.scrap2025.scrap2025.data.model.CategoryListResponse
+import com.scrap2025.scrap2025.data.model.CategoryRenameRequest
+import com.scrap2025.scrap2025.data.model.CategoryRenameResult
 import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import retrofit2.Response
@@ -13,6 +15,7 @@ import retrofit2.http.Header
 import retrofit2.http.Headers
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AuthService {
@@ -55,4 +58,12 @@ interface AuthService {
         @Header("Authorization") token: String,
         @Body body: CategoryCreateRequest
     ): Response<BaseResponse<CategoryCreateResult>>
+
+    @Headers("accept: application/json")
+    @PATCH("/auth/categories/{categoryId}/title")
+    suspend fun renameCategory(
+        @Header("Authorization") token: String,
+        @Path("categoryId") categoryId: Int,
+        @Body body: CategoryRenameRequest
+    ): Response<BaseResponse<CategoryRenameResult>>
 }

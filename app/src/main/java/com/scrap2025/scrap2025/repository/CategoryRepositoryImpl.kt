@@ -7,6 +7,8 @@ import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import com.scrap2025.scrap2025.data.model.CategoryCreateRequest
 import com.scrap2025.scrap2025.data.model.CategoryCreateResult
+import com.scrap2025.scrap2025.data.model.CategoryRenameRequest
+import com.scrap2025.scrap2025.data.model.CategoryRenameResult
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.CategoryItem
@@ -117,7 +119,7 @@ constructor(
         }
     }
 
-    override suspend fun updateCategory(id: String, name: String): Result<Unit> {
+    override suspend fun updateCategory(id: String, name: String, token: String?): Result<Unit> {
         return try {
             val existing =
                 categoryDao.getCategoryById(id)
@@ -134,7 +136,16 @@ constructor(
                 )
             }
 
+            // 1. Local Update
             categoryDao.updateCategoryName(id, name)
+
+            // 2. Remote Sync (if token exists and remoteId is valid)
+            val remoteId = existing.remoteId
+            if (token != null && remoteId != null && remoteId != 0 && remoteId != -1) {
+                // If remoteId is 0 or -1, it means it's not synced yet.
+                updateCategoryRemote(token, remoteId, name)
+                // We ignore remote failure for now, following local-first principle
+            }
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 업데이트 실패")
@@ -209,6 +220,29 @@ constructor(
             }
         } catch (e: Exception) {
             Result.Error(e, "카테고리 생성 중 오류 발생")
+        }
+    }
+
+    private suspend fun updateCategoryRemote(
+        token: String,
+        categoryId: Int,
+        newTitle: String
+    ): Result<CategoryRenameResult> {
+        return try {
+            val request = CategoryRenameRequest(newCategoryTitle = newTitle)
+            val response = authService.renameCategory(token, categoryId, request)
+            if (response.isSuccessful) {
+                val result = response.body()?.result
+                if (result != null) {
+                    Result.Success(result)
+                } else {
+                    Result.Error(Exception("Response body is null"), "카테고리 이름 수정 응답 오류")
+                }
+            } else {
+                Result.Error(Exception("Rename failed code: ${response.code()}"), "카테고리 이름 수정 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "카테고리 이름 수정 중 오류 발생")
         }
     }
 }
