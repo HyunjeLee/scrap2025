@@ -31,7 +31,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.scrap2025.scrap2025.data.local.CategoryDummyData
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
@@ -201,9 +200,27 @@ fun CategoryScreenContent(
 @Preview(showBackground = true)
 @Composable
 fun CategoryScreenContentPreview() {
+
+    val dummyCategories = listOf(
+        CategoryItem(
+            id = "1",
+            name = "분류되지 않음",
+        ),
+        CategoryItem(
+            id = "2",
+            name = "코테 자료",
+        ),
+        CategoryItem(
+            id = "3",
+            name = "IBM Technology",
+        ),
+    )
+
     Scrap2025Theme {
         CategoryScreenContent(
-            uiState = CategoryUiState.Success(CategoryDummyData.dummyCategories),
+            uiState = CategoryUiState.Success(
+                categories = dummyCategories
+            ),
             onCategoryClick = {},
             onAddClick = {}
         )

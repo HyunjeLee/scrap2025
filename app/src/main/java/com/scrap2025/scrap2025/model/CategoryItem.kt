@@ -7,9 +7,6 @@ data class CategoryItem(
         val remoteId: Int? = null,
         val name: String,
         val scrapCount: Int = 0,
+        val isDefault: Boolean = false,
         val syncStatus: SyncStatus = SyncStatus.PENDING
-) {
-    companion object {
-        const val DEFAULT_CATEGORY_ID = "10"
-    }
-}
+)

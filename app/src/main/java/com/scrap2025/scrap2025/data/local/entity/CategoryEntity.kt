@@ -11,6 +11,7 @@ data class CategoryEntity(
     val remoteId: Int? = null,
     val name: String,
     val scrapCount: Int,
+    val isDefault: Boolean = false,
     val syncStatus: SyncStatus = SyncStatus.PENDING
 ) {
     fun toDomainModel(): CategoryItem {
@@ -19,7 +20,8 @@ data class CategoryEntity(
             remoteId = remoteId,
             name = name,
             scrapCount = scrapCount,
-            syncStatus = syncStatus,
+            isDefault = isDefault,
+            syncStatus = syncStatus
         )
     }
 
@@ -30,7 +32,8 @@ data class CategoryEntity(
                 remoteId = item.remoteId,
                 name = item.name,
                 scrapCount = item.scrapCount,
-                syncStatus = item.syncStatus,
+                isDefault = item.isDefault,
+                syncStatus = item.syncStatus
             )
         }
     }

@@ -49,4 +49,7 @@ interface CategoryDao {
 
     @Query("UPDATE categories SET syncStatus = :status WHERE id = :id")
     suspend fun updateCategoryStatus(id: String, status: SyncStatus)
+
+    @Query("SELECT * FROM categories WHERE isDefault = 1 LIMIT 1")
+    suspend fun getDefaultCategory(): CategoryEntity?
 }

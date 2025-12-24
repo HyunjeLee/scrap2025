@@ -82,30 +82,34 @@ constructor(
 
     override suspend fun deleteCategory(id: String): Result<Unit> {
         return try {
-            // "분류되지 않음" 카테고리는 삭제 불가
-            if (id == CategoryItem.DEFAULT_CATEGORY_ID) {
+            val existing =
+                categoryDao.getCategoryById(id)
+                    ?: return Result.Error(
+                        NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."),
+                        "카테고리를 찾을 수 없습니다"
+                    )
+
+            // "분류되지 않음" (기본) 카테고리는 삭제 불가
+            if (existing.isDefault) {
                 return Result.Error(
                     IllegalArgumentException("기본 카테고리는 삭제할 수 없습니다."),
                     "기본 카테고리는 삭제할 수 없습니다"
                 )
             }
 
-            // 존재하는지 확인 후 삭제
-            val existing = categoryDao.getCategoryById(id)
-            if (existing != null) {
-                db.withTransaction {
-                    // 1. 해당 카테고리의 모든 스크랩을 기본 카테고리로 이동
-                    scrapDao.moveScraps(id, CategoryItem.DEFAULT_CATEGORY_ID)
-                    // 2. 카테고리 삭제
-                    categoryDao.deleteCategory(id)
-                }
-                Result.Success(Unit)
-            } else {
-                Result.Error(
-                    NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."),
-                    "카테고리를 찾을 수 없습니다"
-                )
+            // 기본 카테고리 찾기
+            val defaultCategory = categoryDao.getDefaultCategory()
+            if (defaultCategory == null) {
+                return Result.Error(IllegalStateException("기본 카테고리를 찾을 수 없습니다."), "기본 카테고리 오류")
             }
+
+            db.withTransaction {
+                // 1. 해당 카테고리의 모든 스크랩을 기본 카테고리로 이동
+                scrapDao.moveScraps(id, defaultCategory.id)
+                // 2. 카테고리 삭제
+                categoryDao.deleteCategory(id)
+            }
+            Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 삭제 실패")
         }
@@ -113,24 +117,23 @@ constructor(
 
     override suspend fun updateCategory(id: String, name: String): Result<Unit> {
         return try {
-            // "분류되지 않음" 카테고리는 이름 변경 불가
-            if (id == CategoryItem.DEFAULT_CATEGORY_ID) {
+            val existing =
+                categoryDao.getCategoryById(id)
+                    ?: return Result.Error(
+                        NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."),
+                        "카테고리를 찾을 수 없습니다"
+                    )
+
+            // "분류되지 않음" (기본) 카테고리는 수정 불가
+            if (existing.isDefault) {
                 return Result.Error(
                     IllegalArgumentException("기본 카테고리는 수정할 수 없습니다."),
                     "기본 카테고리는 수정할 수 없습니다"
                 )
             }
 
-            val existing = categoryDao.getCategoryById(id)
-            if (existing != null) {
-                categoryDao.updateCategoryName(id, name)
-                Result.Success(Unit)
-            } else {
-                Result.Error(
-                    NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."),
-                    "카테고리를 찾을 수 없습니다"
-                )
-            }
+            categoryDao.updateCategoryName(id, name)
+            Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 업데이트 실패")
         }

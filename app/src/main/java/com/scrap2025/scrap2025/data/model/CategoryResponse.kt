@@ -2,6 +2,7 @@ package com.scrap2025.scrap2025.data.model
 
 import com.google.gson.annotations.SerializedName
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
+import java.util.UUID
 
 data class CategoryListResponse(
     @SerializedName("categories") val categories: List<CategoryResponse>,
@@ -17,10 +18,11 @@ data class CategoryResponse(
 ) {
     fun toEntity(): CategoryEntity {
         return CategoryEntity(
-            id = categoryId.toString(),
+            id = UUID.randomUUID().toString(),
             remoteId = categoryId,
             name = categoryTitle,
             scrapCount = scrapCnt,
+            isDefault = isDefault,
             syncStatus = SyncStatus.SYNCED
         )
     }
