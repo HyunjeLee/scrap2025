@@ -21,7 +21,7 @@ fun TabNavHost(
 ) {
     NavHost(
         navController = tabNavController,
-        startDestination = Category,
+        startDestination = CategoryGraph,
         modifier = modifier.fillMaxSize()
     ) {
         categoryNavGraph(navController = tabNavController)

@@ -30,12 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.model.CategoryItem
-import com.scrap2025.scrap2025.model.GlobalUiState
-import com.scrap2025.scrap2025.navigation.AddCategory
-import com.scrap2025.scrap2025.navigation.Scrap
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
@@ -48,28 +45,18 @@ import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 /** CategoryScreen - Container Composable ViewModel에서 상태를 추출하여 CategoryScreenContent에 전달 */
 @Composable
 fun CategoryScreen(
+    onCategoryClick: (CategoryItem) -> Unit,
+    onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
-    navController: NavHostController? = null,
-    viewModel: CategoryViewModel,
-    onCategoryClick: ((CategoryItem) -> Unit)? = null,
+    viewModel: CategoryViewModel = hiltViewModel(),
     showFab: Boolean = true,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     CategoryScreenContent(
         uiState = uiState,
-        onCategoryClick = { category ->
-            GlobalUiState.setCategory(category.id, category.name)
-
-            if (onCategoryClick != null) {
-                onCategoryClick(category)
-            } else {
-                navController?.navigate(
-                    Scrap(categoryId = category.id, categoryName = category.name)
-                ) { popUpTo(0) }
-            }
-        },
-        onAddClick = { navController?.navigate(AddCategory) },
+        onCategoryClick = onCategoryClick,
+        onAddClick = onAddClick,
         showFab = showFab,
         modifier = modifier
     )
@@ -116,7 +103,6 @@ fun CategoryScreenContent(
                         CircularProgressIndicator(color = MainColorDeep)
                     }
                 }
-
                 is CategoryUiState.Error -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -140,14 +126,12 @@ fun CategoryScreenContent(
                         }
                     }
                 }
-
                 is CategoryUiState.Success -> {
                     // TODO: 전체 동기화 상태 표시 UI 추가 필요
                     // 동기화 상태 로깅
                     LaunchedEffect(uiState.categories) {
-                        val hasPending = uiState.categories.any {
-                            it.syncStatus == SyncStatus.PENDING
-                        }
+                        val hasPending =
+                            uiState.categories.any { it.syncStatus == SyncStatus.PENDING }
 
                         if (hasPending) {
                             Log.d("CategorySync", "전체 카테고리 동기화 중... (Pending items detected)")
@@ -201,26 +185,25 @@ fun CategoryScreenContent(
 @Composable
 fun CategoryScreenContentPreview() {
 
-    val dummyCategories = listOf(
-        CategoryItem(
-            id = "1",
-            name = "분류되지 않음",
-        ),
-        CategoryItem(
-            id = "2",
-            name = "코테 자료",
-        ),
-        CategoryItem(
-            id = "3",
-            name = "IBM Technology",
-        ),
-    )
+    val dummyCategories =
+        listOf(
+            CategoryItem(
+                id = "1",
+                name = "분류되지 않음",
+            ),
+            CategoryItem(
+                id = "2",
+                name = "코테 자료",
+            ),
+            CategoryItem(
+                id = "3",
+                name = "IBM Technology",
+            ),
+        )
 
     Scrap2025Theme {
         CategoryScreenContent(
-            uiState = CategoryUiState.Success(
-                categories = dummyCategories
-            ),
+            uiState = CategoryUiState.Success(categories = dummyCategories),
             onCategoryClick = {},
             onAddClick = {}
         )

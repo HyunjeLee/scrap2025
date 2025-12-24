@@ -26,11 +26,19 @@ constructor(
     private val _addCategoryState = MutableStateFlow<Result<Unit>?>(null)
     val addCategoryState: StateFlow<Result<Unit>?> = _addCategoryState.asStateFlow()
 
+    private val _categoryTitle = MutableStateFlow("")
+    val categoryTitle: StateFlow<String> = _categoryTitle.asStateFlow()
+
+    fun updateCategoryTitle(newTitle: String) {
+        _categoryTitle.value = newTitle
+    }
+
     /** 카테고리 추가 유효성 검사 후 Repository를 통해 카테고리 추가 */
-    fun addCategory(categoryTitle: String) {
+    fun addCategory() {
+        val currentTitle = _categoryTitle.value
 
         // 유효성 검사: 빈 문자열 체크
-        if (categoryTitle.isEmpty()) {
+        if (currentTitle.isEmpty()) {
             _addCategoryState.value =
                 Result.Error(IllegalArgumentException("카테고리명이 비어있습니다"), "카테고리명을 입력해주세요")
             return
@@ -45,7 +53,7 @@ constructor(
             val newCategory =
                 CategoryItem(
                     id = UUID.randomUUID().toString(),
-                    name = categoryTitle,
+                    name = currentTitle,
                     scrapCount = 0
                 )
 
@@ -58,5 +66,6 @@ constructor(
     /** 상태 초기화 (다음 추가를 위해) */
     fun resetState() {
         _addCategoryState.value = null
+        _categoryTitle.value = ""
     }
 }

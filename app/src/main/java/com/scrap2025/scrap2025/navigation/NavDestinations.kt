@@ -32,3 +32,6 @@ data class AddScrap(val categoryId: String = "1") : Route
 
 // Graph Routes
 @Serializable object ScrapGraph : Route
+
+@Serializable
+object CategoryGraph : Route

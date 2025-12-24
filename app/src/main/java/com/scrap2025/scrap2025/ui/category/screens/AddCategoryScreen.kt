@@ -24,9 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
@@ -48,38 +45,33 @@ import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.AddCategoryViewModel
 
-/**
- * AddCategoryScreen - 카테고리 추가 화면
- * ViewModel을 통해 카테고리를 추가하고, Result 상태를 처리
- */
+/** AddCategoryScreen - 카테고리 추가 화면 ViewModel을 통해 카테고리를 추가하고, Result 상태를 처리 */
 @Composable
 fun AddCategoryScreen(
-    navController: NavHostController, viewModel: AddCategoryViewModel,
-    modifier: Modifier = Modifier
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: AddCategoryViewModel = hiltViewModel()
 ) {
     val addCategoryState by viewModel.addCategoryState.collectAsState()
     val context = LocalContext.current
 
-    var categoryTitleInput by remember { mutableStateOf("") }
+    val categoryTitleInput by viewModel.categoryTitle.collectAsState()
 
     // Result 상태 처리
     LaunchedEffect(addCategoryState) {
         when (val state = addCategoryState) {
             is Result.Success -> {
                 Toast.makeText(context, "카테고리가 추가되었습니다", Toast.LENGTH_SHORT).show()
-                navController.popBackStack()
+                onBack()
                 viewModel.resetState()
             }
-
             is Result.Error -> {
                 Toast.makeText(context, state.message ?: "카테고리 추가 실패", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
             }
-
             is Result.Loading -> {
                 // Loading 상태는 버튼 비활성화로 처리
             }
-
             null -> {
                 // 초기 상태
             }
@@ -88,12 +80,12 @@ fun AddCategoryScreen(
 
     AddCategoryScreenContent(
         modifier = modifier,
-        onBack = { navController.popBackStack() },
+        onBack = onBack,
         categoryTitleInput = categoryTitleInput,
-        onValueChange = { newName -> categoryTitleInput = newName },
+        onValueChange = { newName -> viewModel.updateCategoryTitle(newName) },
         addCategoryState = addCategoryState,
-        onAddCategory = { categoryTitle -> viewModel.addCategory(categoryTitle) })
-
+        onAddCategory = { viewModel.addCategory() }
+    )
 }
 
 @Composable
@@ -103,16 +95,12 @@ fun AddCategoryScreenContent(
     categoryTitleInput: String,
     onValueChange: (String) -> Unit,
     addCategoryState: Result<Unit>?,
-    onAddCategory: (String) -> Unit,
+    onAddCategory: () -> Unit,
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(BackgroundColor)) {
+        Column(modifier = Modifier.fillMaxSize()) {
             // 헤더 (높이 68dp)
             Box(
                 modifier = Modifier
@@ -128,10 +116,7 @@ fun AddCategoryScreenContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    IconButton(
-                        onClick = { onBack() },
-                        modifier = Modifier.padding(0.dp)
-                    ) {
+                    IconButton(onClick = { onBack() }, modifier = Modifier.padding(0.dp)) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                             contentDescription = "뒤로가기",
@@ -141,10 +126,7 @@ fun AddCategoryScreenContent(
 
                     Text(
                         text = "카테고리 추가하기",
-                        style = TextStyle(
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold
-                        ),
+                        style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
                         color = Color.Black,
                         modifier = Modifier
                             .weight(1f)
@@ -158,17 +140,19 @@ fun AddCategoryScreenContent(
 
             // 입력 필드
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 21.dp, vertical = 20.dp)
-                    .background(MainColorLight, shape = RoundedCornerShape(8.dp))
-                    .padding(12.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 21.dp, vertical = 20.dp)
+                        .background(MainColorLight, shape = RoundedCornerShape(8.dp))
+                        .padding(12.dp)
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .background(MainColor, shape = RoundedCornerShape(10.dp))
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .background(MainColor, shape = RoundedCornerShape(10.dp))
                 ) {
                     TextField(
                         value = categoryTitleInput,
@@ -183,18 +167,20 @@ fun AddCategoryScreenContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp),
-                        textStyle = TextStyle(
-                            fontSize = 15.sp,
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            focusedTextColor = Color.Black,
-                            unfocusedTextColor = Color.Black,
-                            cursorColor = Color.Black
-                        ),
+                        textStyle =
+                            TextStyle(
+                                fontSize = 15.sp,
+                            ),
+                        colors =
+                            TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                cursorColor = Color.Black
+                            ),
                         singleLine = true
                     )
                 }
@@ -203,10 +189,11 @@ fun AddCategoryScreenContent(
 
         // 하단 버튼
         Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 21.dp, vertical = 21.dp),
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 21.dp, vertical = 21.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // 취소 버튼
@@ -220,17 +207,14 @@ fun AddCategoryScreenContent(
             ) {
                 Text(
                     text = "취소",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    ),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
                     color = DarkGrayColor
                 )
             }
 
             // 추가하기 버튼
             Button(
-                onClick = { onAddCategory(categoryTitleInput) },
+                onClick = { onAddCategory() },
                 enabled = addCategoryState !is Result.Loading,
                 modifier = Modifier
                     .weight(1f)
@@ -240,17 +224,13 @@ fun AddCategoryScreenContent(
             ) {
                 Text(
                     text = if (addCategoryState is Result.Loading) "추가 중..." else "추가하기",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    ),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
                     color = MainColor
                 )
             }
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
