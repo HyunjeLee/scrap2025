@@ -23,6 +23,7 @@ data class CategoryResponse(
             name = categoryTitle,
             scrapCount = scrapCnt,
             isDefault = isDefault,
+            orderIndex = sequence - 1,  // 서버에서 1부터 count  // 로컬은 0부터 count
             syncStatus = SyncStatus.SYNCED
         )
     }

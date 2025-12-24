@@ -16,7 +16,7 @@ import kotlinx.coroutines.withContext
 
 @Database(
         entities = [CategoryEntity::class, ScrapEntity::class, MyPageEntity::class],
-        version = 10,
+        version = 11,
         exportSchema = false
 )
 @TypeConverters(Converters::class)

@@ -190,14 +190,17 @@ fun CategoryScreenContentPreview() {
             CategoryItem(
                 id = "1",
                 name = "분류되지 않음",
+                orderIndex = 0,
             ),
             CategoryItem(
                 id = "2",
                 name = "코테 자료",
+                orderIndex = 0,
             ),
             CategoryItem(
                 id = "3",
                 name = "IBM Technology",
+                orderIndex = 0,
             ),
         )
 

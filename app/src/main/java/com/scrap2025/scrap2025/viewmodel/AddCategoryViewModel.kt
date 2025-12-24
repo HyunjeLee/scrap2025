@@ -23,6 +23,8 @@ constructor(
     private val tokenManager: com.scrap2025.scrap2025.data.local.TokenManager
 ) : ViewModel() {
 
+    private val _categoryCount = categoryRepository.getCategoryCount()
+
     private val _addCategoryState = MutableStateFlow<Result<Unit>?>(null)
     val addCategoryState: StateFlow<Result<Unit>?> = _addCategoryState.asStateFlow()
 
@@ -49,12 +51,15 @@ constructor(
             _addCategoryState.value = Result.Loading
 
             val token = tokenManager.accessToken.firstOrNull()
+            val currentCategoryCount = _categoryCount.firstOrNull() ?: 0
 
+            // 새로운 카테고리 생성
             val newCategory =
                 CategoryItem(
                     id = UUID.randomUUID().toString(),
                     name = currentTitle,
-                    scrapCount = 0
+                    scrapCount = 0,
+                    orderIndex = currentCategoryCount  // 기본 카테고리가 0번 index로 존재하므로 그대로 사용
                 )
 
             // Repository를 통해 카테고리 추가

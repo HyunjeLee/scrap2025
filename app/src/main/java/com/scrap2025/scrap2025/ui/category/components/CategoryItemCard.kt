@@ -88,14 +88,16 @@ fun CategoryItemCardPreview() {
                 categoryItem = CategoryItem(
                     id = "1",
                     name = "분류되지 않음",
-                    scrapCount = 322
+                    scrapCount = 322,
+                    orderIndex = 0
                 )
             )
             CategoryItemCard(
                 categoryItem = CategoryItem(
                     id = "2",
                     name = "데이트",
-                    scrapCount = 32
+                    scrapCount = 32,
+                    orderIndex = 0
                 )
             )
         }
