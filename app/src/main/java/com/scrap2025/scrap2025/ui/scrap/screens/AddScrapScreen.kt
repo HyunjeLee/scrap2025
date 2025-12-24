@@ -41,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.LinkPreview
 import com.scrap2025.scrap2025.model.Result
@@ -60,7 +59,7 @@ import com.scrap2025.scrap2025.viewmodel.AddScrapViewModel
 /** AddScrapScreen - Container Composable ViewModel에서 상태를 추출하여 AddScrapScreenContent에 전달 */
 @Composable
 fun AddScrapScreen(
-    navController: NavHostController,
+    onBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AddScrapViewModel = hiltViewModel()
 ) {
@@ -87,7 +86,7 @@ fun AddScrapScreen(
             is Result.Success -> {
                 Toast.makeText(context, "스크랩이 추가되었습니다", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
-                navController.popBackStack()
+                onBack()
             }
             is Result.Error -> {
                 Toast.makeText(context, state.message ?: "스크랩 추가 실패", Toast.LENGTH_SHORT).show()
@@ -110,7 +109,7 @@ fun AddScrapScreen(
             )
         },
         onFetchPreview = { url -> viewModel.fetchLinkPreview(url) },
-        onBack = { navController.popBackStack() },
+        onBack = { onBack() },
         modifier = modifier
     )
 }

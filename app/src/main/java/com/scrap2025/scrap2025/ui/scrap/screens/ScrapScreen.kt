@@ -84,7 +84,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
 import com.scrap2025.scrap2025.data.local.ScrapDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
@@ -93,8 +92,6 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
-import com.scrap2025.scrap2025.navigation.AddScrap
-import com.scrap2025.scrap2025.navigation.Category
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardGrid
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
@@ -112,7 +109,8 @@ import androidx.core.net.toUri
 /** ScrapScreen - Container Composable ViewModel에서 상태를 추출하여 ScrapScreenContent에 전달 */
 @Composable
 fun ScrapScreen(
-    navController: NavHostController,
+    navigateToAddScrap: () -> Unit,
+    navigateToCategory: () -> Unit,
     modifier: Modifier = Modifier,
     categoryId: String = CategoryItem.DEFAULT_ID,
     scrapViewModel: ScrapViewModel = hiltViewModel()
@@ -209,7 +207,7 @@ fun ScrapScreen(
             onItemSelectionToggle = { itemId -> scrapViewModel.toggleScrapItemSelection(itemId) },
             onSelectAll = { scrapViewModel.selectAllScrapItems() },
             onDeselectAll = { scrapViewModel.deselectAllScrapItems() },
-            onAddScrap = { navController.navigate(AddScrap) },
+            onAddScrap = { navigateToAddScrap() },
             onUpdateCategoryTitle = { categoryId, newTitle ->
                 scrapViewModel.updateCategoryTitle(id = categoryId, newTitle = newTitle)
                 GlobalUiState.setCategory(categoryId, newTitle)
@@ -217,7 +215,7 @@ fun ScrapScreen(
             onDeleteCategory = {
                 scrapViewModel.deleteCategory(categoryId)
                 GlobalUiState.setCategory(CategoryItem.DEFAULT_ID, CategoryItem.DEFAULT_NAME)
-                navController.navigate(Category)
+                navigateToCategory()
             },
             modifier = modifier
     )
