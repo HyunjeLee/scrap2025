@@ -1,8 +1,8 @@
 package com.scrap2025.scrap2025.utils
 
-import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.Toast
 import androidx.core.net.toUri
 
@@ -37,16 +37,11 @@ object UrlNavigator {
             // Intent 생성 및 실행
             val intent = Intent(Intent.ACTION_VIEW, uri)
 
-            // 해당 Intent를 처리할 수 있는 앱이 있는지 확인
-            if (intent.resolveActivity(context.packageManager) != null) {
-                context.startActivity(intent)
-            } else {
-                Toast.makeText(context, "URL을 열 수 있는 앱이 없습니다", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, "URL을 열 수 있는 앱이 없습니다", Toast.LENGTH_SHORT).show()
+            context.startActivity(intent)
         } catch (e: Exception) {
-            Toast.makeText(context, "URL을 여는 중 오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "URL을 여는 중 오류가 발생했습니다", Toast.LENGTH_SHORT)
+                .show()
+            Log.e("UrlNavigator", "Error opening URL", e)
         }
     }
 }
