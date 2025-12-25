@@ -289,4 +289,17 @@ constructor(
             _categoryDeleteEvent.emit(result)
         }
     }
+
+    fun fetchScraps(categoryId: String) {
+        viewModelScope.launch {
+            val categoryResult = categoryRepository.getCategoryById(categoryId)
+
+            if (categoryResult is Result.Success) {
+                val remoteId = categoryResult.data.remoteId ?: return@launch
+                val token = tokenManager.accessToken.firstOrNull() ?: return@launch
+
+                scrapRepository.syncScrapsByCategoryId(token, categoryId, remoteId)
+            }
+        }
+    }
 }

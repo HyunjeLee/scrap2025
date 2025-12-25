@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.model.ScrapItem
 import java.time.LocalDateTime
 
@@ -21,24 +22,28 @@ import java.time.LocalDateTime
 )
 data class ScrapEntity(
     @PrimaryKey val id: String,
+    val remoteId: Int? = null,
     val title: String,
     val url: String,
     val imageUrl: String? = null,
     val createdDate: LocalDateTime,
     val isFavorite: Boolean = false,
     val categoryId: String? = null,
-    val memo: String? = null
+    val memo: String? = null,
+    val syncStatus: SyncStatus = SyncStatus.PENDING
 ) {
     fun toDomainModel(): ScrapItem {
         return ScrapItem(
             id = id,
+            remoteId = remoteId,
             title = title,
             url = url,
             imageUrl = imageUrl,
             createdDate = createdDate,
             isFavorite = isFavorite,
             categoryId = categoryId,
-            memo = memo
+            memo = memo,
+            syncStatus = syncStatus
         )
     }
 
@@ -46,13 +51,15 @@ data class ScrapEntity(
         fun fromDomainModel(item: ScrapItem): ScrapEntity {
             return ScrapEntity(
                 id = item.id,
+                remoteId = item.remoteId,
                 title = item.title,
                 url = item.url,
                 imageUrl = item.imageUrl,
                 createdDate = item.createdDate,
                 isFavorite = item.isFavorite,
                 categoryId = item.categoryId,
-                memo = item.memo
+                memo = item.memo,
+                syncStatus = item.syncStatus
             )
         }
     }

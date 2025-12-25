@@ -3,7 +3,9 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
+import com.scrap2025.scrap2025.data.model.SyncStatus
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -12,7 +14,7 @@ interface ScrapDao {
     fun getAllScraps(): Flow<List<ScrapEntity>>
 
     @Query("SELECT * FROM scraps WHERE categoryId = :categoryId")
-    fun getScrapsByCategoryId(categoryId: String): Flow<List<ScrapEntity>>
+    fun getAllScrapsByCategoryId(categoryId: String): Flow<List<ScrapEntity>>
 
     @Query("SELECT * FROM scraps WHERE id = :id")
     suspend fun getScrapById(id: String): ScrapEntity?  // 추후 대규모 리팩토링 시 해당 함수 삭제 후 아래 함수로 변경할 것
@@ -40,4 +42,10 @@ interface ScrapDao {
 
     @Query("SELECT COUNT(*) FROM scraps")
     fun getScrapCount(): Flow<Int>
+
+    @Upsert
+    suspend fun upsertScraps(scraps: List<ScrapEntity>)
+
+    @Query("UPDATE scraps SET remoteId = :remoteId, syncStatus = :status WHERE id = :id")
+    suspend fun updateScrapRemoteId(id: String, remoteId: Int, status: SyncStatus)
 }

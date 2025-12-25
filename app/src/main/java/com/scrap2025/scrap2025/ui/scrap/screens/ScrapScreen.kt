@@ -128,7 +128,10 @@ fun ScrapScreen(
     val isPreferencesLoaded by scrapViewModel.isPreferencesLoaded.collectAsState()
 
     // 뷰모델에 현재 카테고리 설정 (DB 필터링용)
-    LaunchedEffect(globalCategoryId) { scrapViewModel.setSelectedCategory(globalCategoryId) }
+    LaunchedEffect(globalCategoryId) {
+        scrapViewModel.setSelectedCategory(globalCategoryId)
+        scrapViewModel.fetchScraps(globalCategoryId)
+    }
 
     val selectionBottomBar: @Composable () -> Unit = {
         // 이전에 정의된 SelectionActionBar 컴포저블을 호출합니다.

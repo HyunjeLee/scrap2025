@@ -10,6 +10,7 @@ import com.scrap2025.scrap2025.data.model.CategorySequenceRequest
 import com.scrap2025.scrap2025.data.model.CategorySequenceResult
 import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
+import com.scrap2025.scrap2025.data.model.ScrapListResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -83,4 +84,13 @@ interface AuthService {
         @Header("Authorization") token: String,
         @Body body: CategorySequenceRequest
     ): Response<BaseResponse<CategorySequenceResult>>
+
+    @Headers("accept: application/json")
+    @GET("/auth/scraps")
+    suspend fun getAllScrapsByCategoryId(
+        @Header("Authorization") token: String,
+        @Query("category") categoryId: Int
+    ): Response<BaseResponse<ScrapListResponse>>
+
+
 }

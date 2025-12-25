@@ -3,10 +3,13 @@ package com.scrap2025.scrap2025.repository
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
+import com.scrap2025.scrap2025.data.model.SyncStatus
+import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,13 +17,16 @@ import javax.inject.Singleton
 @Singleton
 class ScrapRepositoryImpl
 @Inject
-constructor(private val scrapDao: ScrapDao, private val categoryDao: CategoryDao) :
-    ScrapRepository {
+constructor(
+    private val scrapDao: ScrapDao,
+    private val categoryDao: CategoryDao,
+    private val authService: AuthService
+) : ScrapRepository {
 
     override fun getScrapItems(categoryId: String?): Flow<Result<List<ScrapItem>>> {
         val flow =
             if (categoryId != null) {
-                scrapDao.getScrapsByCategoryId(categoryId)
+                scrapDao.getAllScrapsByCategoryId(categoryId)
             } else {
                 scrapDao.getAllScraps()
             }
@@ -150,4 +156,49 @@ constructor(private val scrapDao: ScrapDao, private val categoryDao: CategoryDao
     }
 
     override fun getScrapCount(): Flow<Int> = scrapDao.getScrapCount()
+
+    override suspend fun syncScrapsByCategoryId(token: String, categoryId: String, categoryRemoteId: Int): Result<Unit> {
+        return try {
+            val response = authService.getAllScrapsByCategoryId(token, categoryRemoteId)
+            if (response.isSuccessful) {
+                val remoteScraps = response.body()?.result?.scraps ?: emptyList()
+                val localScraps = scrapDao.getAllScrapsByCategoryId(categoryId).first()
+
+                val localScrapMap = localScraps.associateBy { it.title }
+
+                val toInsert = mutableListOf<ScrapEntity>()
+
+                for (remoteScrap in remoteScraps) {
+                    val existingLocal = localScrapMap[remoteScrap.title]
+
+                    if (existingLocal != null) {
+                        // Match found! Update remoteId of existing local scrap
+                        // Preserve local ID (UUID)
+                        // Update remoteId and syncStatus
+                        if (existingLocal.remoteId != remoteScrap.id) {
+                            scrapDao.updateScrapRemoteId(
+                                existingLocal.id,
+                                remoteScrap.id,
+                                SyncStatus.SYNCED
+                            )
+                        }
+                    } else {
+                        // No match -> Insert new category (Use server ID based entity from
+                        // toEntity())
+                        toInsert.add(remoteScrap.toEntity(categoryId))
+                    }
+                }
+
+                if (toInsert.isNotEmpty()) {
+                    scrapDao.upsertScraps(toInsert)
+                }
+
+                Result.Success(Unit)
+            } else {
+                Result.Error(Exception("Sync failed code: ${response.code()}"), "스크랩 동기화 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "스크랩 동기화 중 오류 발생")
+        }
+    }
 }

@@ -33,4 +33,11 @@ interface ScrapRepository {
 
     /** 전체 스크랩 개수 조회 */
     fun getScrapCount(): Flow<Int>
+
+    /**
+     * 스크랩 동기화 (Remote -> Local)
+     * @param token API Access Token
+     * @return Result<Unit>
+     */
+    suspend fun syncScrapsByCategoryId(token: String, categoryId: String, categoryRemoteId: Int): Result<Unit>
 }
