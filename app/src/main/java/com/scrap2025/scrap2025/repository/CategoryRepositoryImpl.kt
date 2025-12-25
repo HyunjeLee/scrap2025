@@ -111,8 +111,12 @@ constructor(
 
             db.withTransaction {
                 // 1. 해당 카테고리의 모든 스크랩을 기본 카테고리로 이동
-                scrapDao.moveScraps(id, defaultCategory.id)
-                // 2. 카테고리 삭제
+                val count = scrapDao.moveScraps(id, defaultCategory.id)
+                // 2. 기본 카테고리의 스크랩 count 업데이트
+                if (count != 0) {
+                    categoryDao.updateScrapCount(CategoryItem.DEFAULT_ID, count)
+                }
+                // 3. 카테고리 삭제
                 categoryDao.deleteCategory(id)
             }
 
