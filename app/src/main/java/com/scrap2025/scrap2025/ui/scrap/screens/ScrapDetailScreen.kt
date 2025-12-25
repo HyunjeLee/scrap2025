@@ -54,6 +54,7 @@ import coil.compose.AsyncImage
 import com.gigamole.composeshadowsplus.common.shadowsPlus
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
+import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
@@ -91,13 +92,27 @@ fun ScrapDetailScreen(
 
         is Result.Success<ScrapItem> -> {
             val scrapItem = (scrapDetailState as Result.Success<ScrapItem>).data
+            val isDeleteDialogVisible by viewModel.isDeleteDialogVisible.collectAsStateWithLifecycle()
+
+            if (isDeleteDialogVisible) {
+                CommonDeleteDialog(
+                    title = "정말 스크랩을 삭제하시겠습니까?",
+                    confirmText = "삭제하기",
+                    onDismiss = { viewModel.hideDeleteDialog() },
+                    onConfirm = {
+                        viewModel.deleteScrap()
+                        onBack()
+                    }
+                )
+            }
 
             ScrapDetailContent(
                 scrapItem = scrapItem,
                 onBack = onBack,
                 onClipboardCopy = { url -> context.copyToClipboard(url) },
-                onImageClick = { url -> UrlNavigator.openUrl(context, url)},
-                modifier = modifier
+                onImageClick = { url -> UrlNavigator.openUrl(context, url) },
+                modifier = modifier,
+                onDelete = { viewModel.showDeleteDialog() }
             )
         }
 

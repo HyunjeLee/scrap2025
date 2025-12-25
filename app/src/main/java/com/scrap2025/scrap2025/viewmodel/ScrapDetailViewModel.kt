@@ -9,19 +9,25 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.navigation.ScrapDetail
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ScrapDetailViewModel
 @Inject
 constructor(
-    scrapRepository: ScrapRepository,
+    private val scrapRepository: ScrapRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
     private val scrapId: String = savedStateHandle.toRoute<ScrapDetail>().scrapId
+
+    private val _isDeleteDialogVisible = MutableStateFlow(false)
+    val isDeleteDialogVisible: StateFlow<Boolean> = _isDeleteDialogVisible.asStateFlow()
 
     val scrapDetailState: StateFlow<Result<ScrapItem>> = scrapRepository
         .getScrapItemByIdAsFlow(scrapId)
@@ -31,4 +37,18 @@ constructor(
             initialValue = Result.Loading
         )
 
+    fun showDeleteDialog() {
+        _isDeleteDialogVisible.value = true
+    }
+
+    fun hideDeleteDialog() {
+        _isDeleteDialogVisible.value = false
+    }
+
+    fun deleteScrap() {
+        viewModelScope.launch {
+            scrapRepository.deleteScrapItem(scrapId)
+            hideDeleteDialog()
+        }
+    }
 }
