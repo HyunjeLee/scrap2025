@@ -55,11 +55,12 @@ import com.gigamole.composeshadowsplus.common.shadowsPlus
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
-import com.scrap2025.scrap2025.ui.theme.GrayColor
+import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
+import com.scrap2025.scrap2025.utils.UrlNavigator
 import com.scrap2025.scrap2025.utils.copyToClipboard
 import com.scrap2025.scrap2025.viewmodel.ScrapDetailViewModel
 import java.time.LocalDateTime
@@ -95,6 +96,7 @@ fun ScrapDetailScreen(
                 scrapItem = scrapItem,
                 onBack = onBack,
                 onClipboardCopy = { url -> context.copyToClipboard(url) },
+                onImageClick = { url -> UrlNavigator.openUrl(context, url)},
                 modifier = modifier
             )
         }
@@ -107,6 +109,7 @@ fun ScrapDetailContent(
     scrapItem: ScrapItem,
     onBack: () -> Unit,
     onClipboardCopy: (String) -> Unit,
+    onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     onDelete: () -> Unit = {},
     onEditMemo: () -> Unit = {},
@@ -152,23 +155,17 @@ fun ScrapDetailContent(
                         .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                if (scrapItem.imageUrl != null) {
+                scrapItem.imageUrl?.let { imageUrl ->
                     AsyncImage(
-                        model = scrapItem.imageUrl,
+                        model = imageUrl,
                         contentDescription = "스크랩 이미지",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { onImageClick(scrapItem.url) },
                         contentScale = ContentScale.Crop
                     )
-                } else {
-                    Text(
-                        text = "링크 대표 이미지",
-                        style =
-                            TextStyle(
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = GrayColor
-                            )
-                    )
+                } ?: run {
+                    Box(modifier.fillMaxSize().background(LightGrayColor))
                 }
             }
 
@@ -463,7 +460,8 @@ fun FullDataPreview() {
         ScrapDetailContent(
             scrapItem = scrapItem,
             onBack = {},
-            onClipboardCopy = {}
+            onClipboardCopy = {},
+            onImageClick = {}
         )
     }
 }
@@ -482,8 +480,8 @@ fun NoImageAndMemoPreview() {
         ScrapDetailContent(
             scrapItem,
             onBack = {},
-            onClipboardCopy = {}
-
+            onClipboardCopy = {},
+            onImageClick = {}
         )
     }
 }
@@ -507,7 +505,8 @@ fun DarkModePreview() {
         ScrapDetailContent(
             scrapItem = scrapItem,
             onBack = {},
-            onClipboardCopy = {}
+            onClipboardCopy = {},
+            onImageClick = {}
         )
     }
 }
