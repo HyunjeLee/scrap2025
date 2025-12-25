@@ -49,9 +49,11 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.gigamole.composeshadowsplus.common.shadowsPlus
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
@@ -381,6 +383,11 @@ fun DetailBottomBar(
             .fillMaxWidth()
             .background(MainColor)
             .navigationBarsPadding()
+            .shadowsPlus(
+                color = Color.Black.copy(alpha = 0.1f),
+                offset = DpOffset(0.dp, (-3).dp),
+                radius = 15.dp,
+            )
             .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)),
     )
     {
