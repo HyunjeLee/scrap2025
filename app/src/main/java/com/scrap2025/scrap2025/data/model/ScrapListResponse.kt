@@ -32,6 +32,7 @@ data class ScrapResponse(
             id = UUID.randomUUID().toString(),
             remoteId = id,
             title = title,
+            description = "",  // todo: 서버에서 해당 값 받아와야함 !!
             url = url,
             imageUrl = imageUrl,
             createdDate = parsedDate,

@@ -1,8 +1,12 @@
 package com.scrap2025.scrap2025.repository
 
+import androidx.room.withTransaction
+import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
+import com.scrap2025.scrap2025.data.model.ScrapCreateRequest
+import com.scrap2025.scrap2025.data.model.ScrapCreateResult
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.Result
@@ -18,6 +22,7 @@ import javax.inject.Singleton
 class ScrapRepositoryImpl
 @Inject
 constructor(
+    private val appDatabase: AppDatabase,
     private val scrapDao: ScrapDao,
     private val categoryDao: CategoryDao,
     private val authService: AuthService
@@ -65,11 +70,36 @@ constructor(
         }
     }
 
-    override suspend fun addScrapItem(item: ScrapItem): Result<Unit> {
+    override suspend fun createScrap(item: ScrapItem, token: String?): Result<Unit> {
         return try {
-            scrapDao.insertScrap(ScrapEntity.fromDomainModel(item))
-            // 카테고리 카운트 증가
-            categoryDao.incrementScrapCount(item.categoryId!!)
+            appDatabase.withTransaction {
+                // 1. Local Insert (PENDING)
+                scrapDao.insertScrap(ScrapEntity.fromDomainModel(item))
+                // 카테고리 카운트 증가
+                categoryDao.incrementScrapCount(item.categoryId)
+            }
+
+            // 2. Remote Sync (if token exists)
+            if (token != null) {
+                val remoteResult = createScrapRemote(token, item)
+                if (remoteResult is Result.Success) {
+                    val category = categoryDao.getCategoryById(item.categoryId)
+                    val categoryRemoteId = category?.remoteId
+
+                    // 3. Trigger Sync to get the remoteId
+                    // Since the creation API doesn't return the ID, we must fetch the list
+                    // and match by name (handled in syncScrapsByCategoryId)
+                    if (categoryRemoteId != null) {
+                        syncScrapsByCategoryId(
+                            token = token,
+                            categoryId = item.categoryId,
+                            categoryRemoteId = categoryRemoteId
+                        )
+                    }
+
+                }
+                // If remote fails, it stays PENDING
+            }
 
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -83,7 +113,7 @@ constructor(
             if (existing != null) {
                 scrapDao.deleteScrap(id)
                 // 카테고리 카운트 감소
-                categoryDao.decrementScrapCount(existing.categoryId!!)
+                categoryDao.decrementScrapCount(existing.categoryId)
 
                 Result.Success(Unit)
             } else {
@@ -183,7 +213,7 @@ constructor(
                             )
                         }
                     } else {
-                        // No match -> Insert new category (Use server ID based entity from
+                        // No match -> Insert new Scrap (Use server ID based entity from
                         // toEntity())
                         toInsert.add(remoteScrap.toEntity(categoryId))
                     }
@@ -199,6 +229,45 @@ constructor(
             }
         } catch (e: Exception) {
             Result.Error(e, "스크랩 동기화 중 오류 발생")
+        }
+    }
+
+    private suspend fun createScrapRemote(
+        token: String,
+        item: ScrapItem
+    ): Result<ScrapCreateResult> {
+        return try {
+            // 1. 카테고리 정보 가져오기
+            val category = categoryDao.getCategoryById(item.categoryId)
+            val categoryRemoteId = category?.remoteId
+            // 2. 서버 연동에 필수인 remoteId가 없다면 실패 처리 -> 상위에서 PENDING 처리
+            if (categoryRemoteId == null) {
+                return Result.Error(Exception("Remote Category ID missing"), "해당 카테고리의 서버 정보를 찾을 수 없습니다.")
+            }
+
+            val request = ScrapCreateRequest(
+                scrapURL = item.url,
+                imageURL = item.imageUrl,
+                title = item.title,
+                description = item.description,
+                memo = item.memo,
+                isFavorite = item.isFavorite
+            )
+
+            // 3. remoteId가 확실히 있을 때만 호출
+            val response = authService.createScrap(token, categoryRemoteId, request)
+            if (response.isSuccessful) {
+                val result = response.body()?.result
+                if (result != null) {
+                    Result.Success(result)
+                } else {
+                    Result.Error(Exception("Response body is null"), "스크랩 생성 응답 오류")
+                }
+            } else {
+                Result.Error(Exception("Create failed code: ${response.code()}"), "스크랩 생성 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "스크랩 생성 중 오류 발생")
         }
     }
 }

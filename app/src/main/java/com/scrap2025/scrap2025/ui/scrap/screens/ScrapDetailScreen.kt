@@ -455,6 +455,7 @@ fun FullDataPreview() {
     val scrapItem = ScrapItem(
         id = "preview1",
         title = "구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n",
+        description = "description",
         url = "https://deepmind.google/technologies/antigravity",
         memo =
             "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
@@ -468,6 +469,7 @@ fun FullDataPreview() {
                     "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
                     "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.",
         imageUrl = "https://picsum.photos/seed/picsum/800/400",
+        categoryId = "",
         createdDate = LocalDateTime.now()
     )
 
@@ -487,7 +489,9 @@ fun NoImageAndMemoPreview() {
     val scrapItem = ScrapItem(
         id = "preview2",
         title = "짧은 제목",
+        description = "description",
         url = "exmaple url",
+        categoryId = "",
         createdDate = LocalDateTime.now()
     )
 
@@ -511,8 +515,10 @@ fun DarkModePreview() {
     val scrapItem = ScrapItem(
         id = "preview3",
         title = "다크모드에서도 잘 보이는지 확인",
+        description = "description",
         url = "https://example.com/darkmode",
         memo = "배경색과 텍스트 대비 확인용",
+        categoryId = "",
         createdDate = LocalDateTime.now()
     )
 

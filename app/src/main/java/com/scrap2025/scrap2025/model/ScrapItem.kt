@@ -7,11 +7,12 @@ data class ScrapItem(
     val id: String,
     val remoteId: Int? = null,
     val title: String,
+    val description: String,
     val url: String,
     val imageUrl: String? = null,
     val createdDate: LocalDateTime,
     val isFavorite: Boolean = false,
-    val categoryId: String? = null,
+    val categoryId: String,
     val memo: String? = null,
     val syncStatus: SyncStatus = SyncStatus.PENDING
 )

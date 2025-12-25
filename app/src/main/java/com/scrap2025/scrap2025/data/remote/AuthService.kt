@@ -10,6 +10,8 @@ import com.scrap2025.scrap2025.data.model.CategorySequenceRequest
 import com.scrap2025.scrap2025.data.model.CategorySequenceResult
 import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
+import com.scrap2025.scrap2025.data.model.ScrapCreateRequest
+import com.scrap2025.scrap2025.data.model.ScrapCreateResult
 import com.scrap2025.scrap2025.data.model.ScrapListResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -92,5 +94,12 @@ interface AuthService {
         @Query("category") categoryId: Int
     ): Response<BaseResponse<ScrapListResponse>>
 
+    @Headers("accept: application/json")
+    @POST("/auth/scraps/{category-id}")
+    suspend fun createScrap(
+        @Header("Authorization") token: String,
+        @Path("category-id") categoryId: Int,
+        @Body body: ScrapCreateRequest
+    ): Response<BaseResponse<ScrapCreateResult>>
 
 }

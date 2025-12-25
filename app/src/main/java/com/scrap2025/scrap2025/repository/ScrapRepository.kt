@@ -14,7 +14,7 @@ interface ScrapRepository {
     fun getScrapItemByIdAsFlow(id: String): Flow<Result<ScrapItem>> // Flow 반환으로 변경
 
     /** 새로운 스크랩 아이템 추가 */
-    suspend fun addScrapItem(item: ScrapItem): Result<Unit>
+    suspend fun createScrap(item: ScrapItem, token: String?): Result<Unit>
 
     /** 스크랩 아이템 삭제 */
     suspend fun deleteScrapItem(id: String): Result<Unit>

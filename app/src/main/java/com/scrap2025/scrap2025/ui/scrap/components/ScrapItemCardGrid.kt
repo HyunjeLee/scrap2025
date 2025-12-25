@@ -214,8 +214,10 @@ fun ScrapItemCardGridPreview() {
                 scrapItem = ScrapItem(
                     id = "1",
                     title = "제목제목",
+                    description = "description",
                     url = "주소주소주소주소",
                     imageUrl = null,
+                    categoryId = "",
                     createdDate = LocalDateTime.of(2024, 2, 26, 10, 0),
                     isFavorite = true
                 )
@@ -224,8 +226,10 @@ fun ScrapItemCardGridPreview() {
                 scrapItem = ScrapItem(
                     id = "2",
                     title = "제목제목제목제목제목제목제목제목제...",
+                    description = "description",
                     url = "주소주소주소주소",
                     imageUrl = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
+                    categoryId = "",
                     createdDate = LocalDateTime.of(2024, 2, 26, 14, 30),
                     isFavorite = false
                 )
