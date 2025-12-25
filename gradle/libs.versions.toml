@@ -24,6 +24,8 @@ room = "2.6.1"
 mockk = "1.13.13"
 work = "2.9.0"
 hiltWork = "1.2.0"
+reorderable = "3.0.0"
+composeShadowsPlus = "1.0.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -61,7 +63,8 @@ mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
 androidx-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltWork" }
 androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltWork" }
-reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version = "3.0.0" }
+reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.ref = "reorderable" }
+compose-shadows-plus = { group = "com.github.GIGAMOLE", name = "ComposeShadowsPlus", version.ref = "composeShadowsPlus" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

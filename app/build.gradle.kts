@@ -110,6 +110,13 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
 
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.reorderable)
+
+    implementation(libs.compose.shadows.plus)
+
+    // for test
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.junit)
@@ -118,6 +125,4 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.reorderable)
 }
