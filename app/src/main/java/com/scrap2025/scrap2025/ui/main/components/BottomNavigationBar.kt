@@ -6,7 +6,7 @@ import androidx.compose.material.icons.automirrored.outlined.ManageSearch
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -45,7 +45,7 @@ fun BottomNavigationBar(
     val items = listOf(
         BottomNavItem("카테고리", Icons.Outlined.Folder, Category, Category::class),
         BottomNavItem("스크랩", Icons.Outlined.AttachFile, Scrap, Scrap::class),
-        BottomNavItem("즐겨찾기", Icons.Outlined.Star, Favorite, Favorite::class),
+        BottomNavItem("즐겨찾기", Icons.Outlined.StarBorder, Favorite, Favorite::class),
         BottomNavItem("검색", Icons.AutoMirrored.Outlined.ManageSearch, Search, Search::class),
         BottomNavItem("마이페이지", Icons.Outlined.Person, MyPage, MyPage::class)
     )
