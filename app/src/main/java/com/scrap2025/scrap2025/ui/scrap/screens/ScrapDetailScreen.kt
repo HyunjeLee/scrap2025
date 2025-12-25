@@ -1,8 +1,6 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
-import android.content.ClipData
 import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,12 +26,14 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,8 +41,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -51,58 +49,62 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.gigamole.composeshadowsplus.common.shadowsPlus
+import com.scrap2025.scrap2025.model.Result
+import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
-import kotlinx.coroutines.launch
+import com.scrap2025.scrap2025.utils.copyToClipboard
+import com.scrap2025.scrap2025.viewmodel.ScrapDetailViewModel
+import java.time.LocalDateTime
 
 @Composable
 fun ScrapDetailScreen(
-    scrapId: String,
     onBack: () -> Unit,
-    modifier: Modifier = Modifier
-    // TODO: Add ViewModel and states here
+    modifier: Modifier = Modifier,
+    viewModel: ScrapDetailViewModel = hiltViewModel()
 ) {
-    val scope = rememberCoroutineScope()
-    val clipboard = LocalClipboard.current
     val context = LocalContext.current
 
-    // Temporary hardcoded data for structure  //todo: room 조회해서 가져오기
-    ScrapDetailContent(
-        title = "제목",
-        url = "url",
-        memo = "memo",
-        imageUrl = null,
-        onBack = onBack,
-        onClipboardCopy = { url ->
-            val clipData = ClipData.newPlainText("URL", url)
-            val clipEntry = ClipEntry(clipData)
+    val scrapDetailState by viewModel.scrapDetailState.collectAsState()
 
-            scope.launch {
-                clipboard.setClipEntry(clipEntry)
-
-                Toast.makeText(
-                    context,
-                    "클립보드에 복사되었습니다.",
-                    Toast.LENGTH_SHORT
-                ).show()
+    when (scrapDetailState) {
+        Result.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-        },
-        modifier = modifier
-    )
+        }
+
+        is Result.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("스크랩을 불러오는데 실패했습니다.")
+                // todo: 재시도 로직  // pull to refresh
+            }
+        }
+
+        is Result.Success<ScrapItem> -> {
+            val scrapItem = (scrapDetailState as Result.Success<ScrapItem>).data
+
+            ScrapDetailContent(
+                scrapItem = scrapItem,
+                onBack = onBack,
+                onClipboardCopy = { url -> context.copyToClipboard(url) },
+                modifier = modifier
+            )
+        }
+
+    }
 }
 
 @Composable
 fun ScrapDetailContent(
-    title: String,
-    url: String,
-    memo: String?,
-    imageUrl: String?,
+    scrapItem: ScrapItem,
     onBack: () -> Unit,
     onClipboardCopy: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -113,7 +115,7 @@ fun ScrapDetailContent(
     onToggleFavorite: () -> Unit = {},
 ) {
     Scaffold(
-        topBar = { DetailTopBar(title = title, onBackClick = onBack) },
+        topBar = { DetailTopBar(title = scrapItem.title, onBackClick = onBack) },
         bottomBar = {
             DetailBottomBar(
                 onDelete = onDelete,
@@ -150,9 +152,9 @@ fun ScrapDetailContent(
                         .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageUrl != null) {
+                if (scrapItem.imageUrl != null) {
                     AsyncImage(
-                        model = imageUrl,
+                        model = scrapItem.imageUrl,
                         contentDescription = "스크랩 이미지",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -196,7 +198,7 @@ fun ScrapDetailContent(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = url,
+                                text = scrapItem.url,
                                 style = TextStyle(fontSize = 14.sp),
                                 color = Color.Black,
                                 maxLines = 1,
@@ -212,7 +214,7 @@ fun ScrapDetailContent(
                                 modifier =
                                     Modifier
                                         .size(24.dp)
-                                        .clickable { onClipboardCopy(url) }
+                                        .clickable { onClipboardCopy(scrapItem.url) }
                             )
                         }
                     }
@@ -244,7 +246,7 @@ fun ScrapDetailContent(
                                 .padding(16.dp)
                     ) {
                         Text(
-                            text = title,
+                            text = scrapItem.title,
                             style =
                                 TextStyle(
                                     fontSize = 14.sp,
@@ -289,7 +291,7 @@ fun ScrapDetailContent(
                                 .padding(16.dp)
                     ) {
                         Text(
-                            text = memo ?: "",
+                            text = scrapItem.memo ?: "",
                             style =
                                 TextStyle(
                                     fontSize = 14.sp,
@@ -311,7 +313,6 @@ fun DetailSection(
     containerColor: Color,
     content: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    label: String? = null,
 ) {
     Column(
         modifier =
@@ -319,17 +320,7 @@ fun DetailSection(
                 .fillMaxWidth()
                 .background(containerColor, RoundedCornerShape(8.dp))
                 .padding(16.dp)
-    ) {
-        if (label != null) {
-            Text(
-                text = label,
-                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold),
-                color = Color.Black,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-        }
-        content()
-    }
+    ) { content() }
 }
 
 @Composable
@@ -449,21 +440,28 @@ fun BottomNavItem(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun FullDataPreview() {
+    val scrapItem = ScrapItem(
+        id = "preview1",
+        title = "구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n",
+        url = "https://deepmind.google/technologies/antigravity",
+        memo =
+            "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.",
+        imageUrl = "https://picsum.photos/seed/picsum/800/400",
+        createdDate = LocalDateTime.now()
+    )
+
     Scrap2025Theme {
         ScrapDetailContent(
-            title = "구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개",
-            url = "https://deepmind.google/technologies/antigravity",
-            memo =
-                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.",
-            imageUrl = "https://picsum.photos/seed/picsum/800/400",
+            scrapItem = scrapItem,
             onBack = {},
             onClipboardCopy = {}
         )
@@ -473,12 +471,16 @@ fun FullDataPreview() {
 @Preview(showBackground = true)
 @Composable
 fun NoImageAndMemoPreview() {
+    val scrapItem = ScrapItem(
+        id = "preview2",
+        title = "짧은 제목",
+        url = "exmaple url",
+        createdDate = LocalDateTime.now()
+    )
+
     Scrap2025Theme {
         ScrapDetailContent(
-            title = "짧은 제목",
-            url = "https://example.com",
-            memo = null,
-            imageUrl = null,
+            scrapItem,
             onBack = {},
             onClipboardCopy = {}
 
@@ -493,12 +495,17 @@ fun NoImageAndMemoPreview() {
 )
 @Composable
 fun DarkModePreview() {
+    val scrapItem = ScrapItem(
+        id = "preview3",
+        title = "다크모드에서도 잘 보이는지 확인",
+        url = "https://example.com/darkmode",
+        memo = "배경색과 텍스트 대비 확인용",
+        createdDate = LocalDateTime.now()
+    )
+
     Scrap2025Theme {
         ScrapDetailContent(
-            title = "다크모드에서도 잘 보이는지 확인",
-            url = "https://example.com/darkmode",
-            memo = "배경색과 텍스트 대비 확인용",
-            imageUrl = null,
+            scrapItem = scrapItem,
             onBack = {},
             onClipboardCopy = {}
         )

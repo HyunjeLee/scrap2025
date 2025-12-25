@@ -4,7 +4,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import androidx.navigation.toRoute
 import com.scrap2025.scrap2025.navigation.AddScrap
 import com.scrap2025.scrap2025.navigation.Category
 import com.scrap2025.scrap2025.navigation.Scrap
@@ -28,13 +27,6 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
 
         composable<AddScrap> { AddScrapScreen(onBack = { navController.popBackStack() }) }
 
-        composable<ScrapDetail> { backStackEntry ->
-            val scrapId: String = backStackEntry.toRoute<ScrapDetail>().scrapId
-
-            ScrapDetailScreen(
-                scrapId = scrapId,
-                onBack = { navController.popBackStack() }
-            )
-        }
+        composable<ScrapDetail> { ScrapDetailScreen(onBack = { navController.popBackStack() }) }
     }
 }
