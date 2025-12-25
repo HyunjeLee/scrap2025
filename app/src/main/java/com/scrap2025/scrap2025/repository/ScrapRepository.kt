@@ -11,6 +11,7 @@ interface ScrapRepository {
 
     /** 특정 ID의 스크랩 아이템 조회 */
     suspend fun getScrapItemById(id: String): Result<ScrapItem>
+    fun getScrapItemByIdAsFlow(id: String): Flow<Result<ScrapItem>> // Flow 반환으로 변경
 
     /** 새로운 스크랩 아이템 추가 */
     suspend fun addScrapItem(item: ScrapItem): Result<Unit>

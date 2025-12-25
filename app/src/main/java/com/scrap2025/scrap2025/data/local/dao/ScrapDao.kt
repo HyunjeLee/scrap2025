@@ -15,7 +15,10 @@ interface ScrapDao {
     fun getScrapsByCategoryId(categoryId: String): Flow<List<ScrapEntity>>
 
     @Query("SELECT * FROM scraps WHERE id = :id")
-    suspend fun getScrapById(id: String): ScrapEntity?
+    suspend fun getScrapById(id: String): ScrapEntity?  // 추후 대규모 리팩토링 시 해당 함수 삭제 후 아래 함수로 변경할 것
+
+    @Query("SELECT * FROM scraps WHERE id = :id")
+    fun getScrapByIdFlow(id: String): Flow<ScrapEntity?> // Flow로 변경 (suspend 제거)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertScrap(scrap: ScrapEntity)

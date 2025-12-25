@@ -6,6 +6,7 @@ import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -43,6 +44,18 @@ constructor(private val scrapDao: ScrapDao, private val categoryDao: CategoryDao
             }
         } catch (e: Exception) {
             Result.Error(e, "스크랩 조회 실패")
+        }
+    }
+
+    override fun getScrapItemByIdAsFlow(id: String): Flow<Result<ScrapItem>> {
+        return scrapDao.getScrapByIdFlow(id).map { entity ->
+            if (entity != null) {
+                Result.Success(entity.toDomainModel())
+            } else {
+                Result.Error(NoSuchElementException(), "스크랩을 찾을 수 없습니다")
+            }
+        }.catch { e -> // 예외 처리도 Flow 흐름 안에서 처리
+            emit(Result.Error(e, "스크랩 연동 오류"))
         }
     }
 

@@ -32,7 +32,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,6 +49,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gigamole.composeshadowsplus.common.shadowsPlus
 import com.scrap2025.scrap2025.model.Result
@@ -72,7 +72,7 @@ fun ScrapDetailScreen(
 ) {
     val context = LocalContext.current
 
-    val scrapDetailState by viewModel.scrapDetailState.collectAsState()
+    val scrapDetailState by viewModel.scrapDetailState.collectAsStateWithLifecycle()
 
     when (scrapDetailState) {
         Result.Loading -> {

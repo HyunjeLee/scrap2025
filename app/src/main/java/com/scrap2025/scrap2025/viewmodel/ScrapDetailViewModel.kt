@@ -9,34 +9,26 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.navigation.ScrapDetail
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
 class ScrapDetailViewModel
 @Inject
 constructor(
-    private val scrapRepository: ScrapRepository,
+    scrapRepository: ScrapRepository,
     savedStateHandle: SavedStateHandle
 ): ViewModel() {
     private val scrapId: String = savedStateHandle.toRoute<ScrapDetail>().scrapId
 
-    private val _scrapDetailState = MutableStateFlow<Result<ScrapItem>>(Result.Loading)
-    val scrapDetailState: StateFlow<Result<ScrapItem>> = _scrapDetailState.asStateFlow()
-
-    init {
-        fetchScrapDetail(scrapId)
-    }
-
-    private fun fetchScrapDetail(scrapId: String) {
-        viewModelScope.launch {
-            val result = scrapRepository.getScrapItemById(scrapId)
-
-            _scrapDetailState.value = result
-        }
-    }
+    val scrapDetailState: StateFlow<Result<ScrapItem>> = scrapRepository
+        .getScrapItemByIdAsFlow(scrapId)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = Result.Loading
+        )
 
 }
