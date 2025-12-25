@@ -100,7 +100,6 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
-import com.scrap2025.scrap2025.utils.UrlNavigator
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 import kotlinx.coroutines.launch
 
@@ -109,6 +108,7 @@ import kotlinx.coroutines.launch
 fun ScrapScreen(
     navigateToAddScrap: () -> Unit,
     navigateToCategory: () -> Unit,
+    navigateToScrapDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
     scrapViewModel: ScrapViewModel = hiltViewModel()
 ) {
@@ -184,7 +184,7 @@ fun ScrapScreen(
             onSortTypeToggle = { scrapViewModel.toggleSortType() },
             onSortDirectionToggle = { scrapViewModel.toggleSortDirection() },
             onViewModeToggle = { scrapViewModel.toggleViewMode() },
-            onItemClick = { url -> UrlNavigator.openUrl(context, url) },
+            onItemClick = { scrapId -> navigateToScrapDetail(scrapId) },
             onItemLongClick = { itemId -> scrapViewModel.enterSelectionMode(itemId) },
             onItemSelectionToggle = { itemId -> scrapViewModel.toggleScrapItemSelection(itemId) },
             onSelectAll = { scrapViewModel.selectAllScrapItems() },
@@ -366,7 +366,7 @@ fun ScrapScreenContent(
                                                 isSelectionMode = isSelectionMode,
                                                 isSelected =
                                                     selectedScrapIds.contains(scrapItem.id),
-                                                onClick = { onItemClick(scrapItem.url) },
+                                                onClick = { onItemClick(scrapItem.id) },
                                                 onLongClick = { onItemLongClick(scrapItem.id) },
                                                 onSelectionToggle = {
                                                     onItemSelectionToggle(scrapItem.id)
@@ -394,7 +394,7 @@ fun ScrapScreenContent(
                                                 isSelectionMode = isSelectionMode,
                                                 isSelected =
                                                     selectedScrapIds.contains(scrapItem.id),
-                                                onClick = { onItemClick(scrapItem.url) },
+                                                onClick = { onItemClick(scrapItem.id) },
                                                 onLongClick = { onItemLongClick(scrapItem.id) },
                                                 onSelectionToggle = {
                                                     onItemSelectionToggle(scrapItem.id)
