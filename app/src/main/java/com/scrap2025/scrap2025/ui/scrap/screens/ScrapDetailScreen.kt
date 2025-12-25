@@ -1,6 +1,8 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
+import android.content.ClipData
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +42,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,6 +58,7 @@ import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
+import kotlinx.coroutines.launch
 
 @Composable
 fun ScrapDetailScreen(
@@ -60,14 +67,31 @@ fun ScrapDetailScreen(
     modifier: Modifier = Modifier
     // TODO: Add ViewModel and states here
 ) {
-    // Temporary hardcoded data for structure  //todo: room 조회해서 가져오기
+    val scope = rememberCoroutineScope()
+    val clipboard = LocalClipboard.current
+    val context = LocalContext.current
 
+    // Temporary hardcoded data for structure  //todo: room 조회해서 가져오기
     ScrapDetailContent(
         title = "제목",
         url = "url",
         memo = "memo",
         imageUrl = null,
         onBack = onBack,
+        onClipboardCopy = { url ->
+            val clipData = ClipData.newPlainText("URL", url)
+            val clipEntry = ClipEntry(clipData)
+
+            scope.launch {
+                clipboard.setClipEntry(clipEntry)
+
+                Toast.makeText(
+                    context,
+                    "클립보드에 복사되었습니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        },
         modifier = modifier
     )
 }
@@ -79,6 +103,7 @@ fun ScrapDetailContent(
     memo: String?,
     imageUrl: String?,
     onBack: () -> Unit,
+    onClipboardCopy: (String) -> Unit,
     modifier: Modifier = Modifier,
     onDelete: () -> Unit = {},
     onEditMemo: () -> Unit = {},
@@ -186,7 +211,7 @@ fun ScrapDetailContent(
                                 modifier =
                                     Modifier
                                         .size(24.dp)
-                                        .clickable {}
+                                        .clickable { onClipboardCopy(url) }
                             )
                         }
                     }
@@ -434,7 +459,8 @@ fun FullDataPreview() {
                         "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
                         "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.",
             imageUrl = "https://picsum.photos/seed/picsum/800/400",
-            onBack = {}
+            onBack = {},
+            onClipboardCopy = {}
         )
     }
 }
@@ -448,7 +474,9 @@ fun NoImageAndMemoPreview() {
             url = "https://example.com",
             memo = null,
             imageUrl = null,
-            onBack = {}
+            onBack = {},
+            onClipboardCopy = {}
+
         )
     }
 }
@@ -466,7 +494,8 @@ fun DarkModePreview() {
             url = "https://example.com/darkmode",
             memo = "배경색과 텍스트 대비 확인용",
             imageUrl = null,
-            onBack = {}
+            onBack = {},
+            onClipboardCopy = {}
         )
     }
 }
