@@ -8,6 +8,7 @@ import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
 import com.scrap2025.scrap2025.data.model.ScrapCreateRequest
 import com.scrap2025.scrap2025.data.model.ScrapCreateResult
+import com.scrap2025.scrap2025.data.model.ScrapMemoDto
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.Result
@@ -119,7 +120,11 @@ constructor(
         return try {
             val existing = scrapDao.getScrapById(id)
             if (existing != null) {
+                val remoteId = existing.remoteId
+
                 scrapDao.updateScrapMemo(id, memo)
+                editMemo(remoteId!!, memo!!)
+
                 Result.Success(Unit)
             } else {
                 Result.Error(NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."), "스크랩을 찾을 수 없습니다")
@@ -297,6 +302,29 @@ constructor(
             }
         } catch (e: Exception) {
             Result.Error(e, "스크랩 생성 중 오류 발생")
+        }
+    }
+
+    private suspend fun editMemo(
+        remoteId: Int,
+        memo: String
+    ): Result<ScrapMemoDto> {
+        return try {
+            val request = ScrapMemoDto(memo = memo)
+
+            val response = authService.updateScrapMemo(tokenManager.accessToken.firstOrNull()!!, remoteId, request)
+            if (response.isSuccessful) {
+                val result = response.body()?.result
+                if (result != null) {
+                    Result.Success(result)
+                } else {
+                    Result.Error(Exception("Response body is null"), "메모 수정 응답 오류")
+                }
+            } else {
+                Result.Error(Exception("Edit Memo failed code: ${response.code()}"), "메모 수정 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "메모 수정 중 오류 발생")
         }
     }
 }

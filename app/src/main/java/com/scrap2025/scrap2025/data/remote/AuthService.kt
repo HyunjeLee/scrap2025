@@ -13,6 +13,7 @@ import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.data.model.ScrapCreateRequest
 import com.scrap2025.scrap2025.data.model.ScrapCreateResult
 import com.scrap2025.scrap2025.data.model.ScrapListResponse
+import com.scrap2025.scrap2025.data.model.ScrapMemoDto
 import com.scrap2025.scrap2025.data.model.ScrapResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -109,4 +110,11 @@ interface AuthService {
         @Body body: ScrapCreateRequest
     ): Response<BaseResponse<ScrapCreateResult>>
 
+    @Headers("accept: application/json")
+    @PATCH("/auth/scraps/{scrap-id}/memo")
+    suspend fun updateScrapMemo(
+        @Header("Authorization") token: String,
+        @Path("scrap-id") scrapId: Int,
+        @Body body: ScrapMemoDto
+    ): Response<BaseResponse<ScrapMemoDto>>
 }

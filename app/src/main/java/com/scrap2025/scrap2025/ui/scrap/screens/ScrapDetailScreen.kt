@@ -58,6 +58,7 @@ import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
+import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
@@ -69,6 +70,7 @@ import java.time.LocalDateTime
 @Composable
 fun ScrapDetailScreen(
     onBack: () -> Unit,
+    onEditMemo: (String, String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ScrapDetailViewModel = hiltViewModel()
 ) {
@@ -78,8 +80,8 @@ fun ScrapDetailScreen(
 
     when (scrapDetailState) {
         Result.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            Box(modifier = Modifier.fillMaxSize().background(MainColor), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MainColorDeep)
             }
         }
         is Result.Error -> {
@@ -105,15 +107,21 @@ fun ScrapDetailScreen(
                 )
             }
 
-            ScrapDetailContent(
-                scrapItem = scrapItem,
-                isSyncing = isSyncing,
-                onBack = onBack,
-                onClipboardCopy = { url -> context.copyToClipboard(url) },
-                onImageClick = { url -> UrlNavigator.openUrl(context, url) },
-                modifier = modifier,
-                onDelete = { viewModel.showDeleteDialog() }
-            )
+            if (isSyncing) {
+                Box(modifier = Modifier.fillMaxSize().background(MainColor), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MainColorDeep)
+                }
+            } else {
+                ScrapDetailContent(
+                    scrapItem = scrapItem,
+                    onBack = onBack,
+                    onEditMemo = onEditMemo,
+                    onClipboardCopy = { url -> context.copyToClipboard(url) },
+                    onImageClick = { url -> UrlNavigator.openUrl(context, url) },
+                    modifier = modifier,
+                    onDelete = { viewModel.showDeleteDialog() }
+                )
+            }
         }
     }
 }
@@ -122,12 +130,11 @@ fun ScrapDetailScreen(
 fun ScrapDetailContent(
     scrapItem: ScrapItem,
     onBack: () -> Unit,
+    onEditMemo: (String, String) -> Unit,
     onClipboardCopy: (String) -> Unit,
     onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    isSyncing: Boolean = false,
     onDelete: () -> Unit = {},
-    onEditMemo: () -> Unit = {},
     onShare: () -> Unit = {},
     onMove: () -> Unit = {},
     onToggleFavorite: () -> Unit = {},
@@ -137,6 +144,8 @@ fun ScrapDetailContent(
         bottomBar = {
             DetailBottomBar(
                 onDelete = onDelete,
+                scrapId = scrapItem.id,
+                initialMemo = scrapItem.memo,
                 onEditMemo = onEditMemo,
                 onShare = onShare,
                 onMove = onMove,
@@ -249,18 +258,14 @@ fun ScrapDetailContent(
                                 .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (isSyncing) {
-                            CircularProgressIndicator()
-                        } else {
-                            Text(
-                                text = scrapItem.description,
-                                style = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
-                                color = Color.Black,
-                                maxLines = 10,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+                        Text(
+                            text = scrapItem.description,
+                            style = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
+                            color = Color.Black,
+                            maxLines = 10,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             )
@@ -292,20 +297,16 @@ fun ScrapDetailContent(
                                 .verticalScroll(rememberScrollState())
                                 .padding(16.dp)
                     ) {
-                        if (isSyncing) {
-                            CircularProgressIndicator()
-                        } else {
-                            Text(
-                                text = scrapItem.memo,
-                                style =
-                                    TextStyle(
-                                        fontSize = 14.sp,
-                                        lineHeight = 20.sp,
-                                    ),
-                                color = Color.Black,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+                        Text(
+                            text = scrapItem.memo,
+                            style =
+                                TextStyle(
+                                    fontSize = 14.sp,
+                                    lineHeight = 20.sp,
+                                ),
+                            color = Color.Black,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             )
@@ -370,7 +371,9 @@ fun DetailTopBar(title: String, onBackClick: () -> Unit, modifier: Modifier = Mo
 @Composable
 fun DetailBottomBar(
     onDelete: () -> Unit,
-    onEditMemo: () -> Unit,
+    scrapId: String,
+    initialMemo: String,
+    onEditMemo: (String, String) -> Unit,
     onShare: () -> Unit,
     onMove: () -> Unit,
     onToggleFavorite: () -> Unit,
@@ -403,7 +406,7 @@ fun DetailBottomBar(
                 label = "삭제",
                 onClick = onDelete
             )
-            BottomNavItem(icon = Icons.Outlined.Edit, label = "메모 수정", onClick = onEditMemo)
+            BottomNavItem(icon = Icons.Outlined.Edit, label = "메모 수정", onClick = { onEditMemo(scrapId, initialMemo) })
             BottomNavItem(icon = Icons.Outlined.Share, label = "공유", onClick = onShare)
             BottomNavItem(
                 icon = Icons.AutoMirrored.Outlined.DriveFileMove,
@@ -475,6 +478,7 @@ fun FullDataPreview() {
         ScrapDetailContent(
             scrapItem = scrapItem,
             onBack = {},
+            onEditMemo = { _, _ -> },
             onClipboardCopy = {},
             onImageClick = {}
         )
@@ -495,7 +499,12 @@ fun NoImageAndMemoPreview() {
         )
 
     Scrap2025Theme {
-        ScrapDetailContent(scrapItem, onBack = {}, onClipboardCopy = {}, onImageClick = {})
+        ScrapDetailContent(
+            scrapItem,
+            onBack = {},
+            onClipboardCopy = {},
+            onImageClick = {},
+            onEditMemo = { _, _ -> })
     }
 }
 
@@ -517,8 +526,19 @@ fun DarkModePreview() {
         ScrapDetailContent(
             scrapItem = scrapItem,
             onBack = {},
+            onEditMemo = { _, _ -> },
             onClipboardCopy = {},
             onImageClick = {}
         )
+    }
+}
+
+@Preview
+@Composable
+fun LoadingPreview() {
+    Scrap2025Theme {
+        Box(modifier = Modifier.fillMaxSize().background(MainColor), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MainColorDeep)
+        }
     }
 }

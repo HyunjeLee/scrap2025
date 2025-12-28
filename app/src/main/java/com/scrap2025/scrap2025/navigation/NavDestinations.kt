@@ -22,6 +22,8 @@ sealed interface Route
 
 @Serializable object AddScrap : Route
 
+@Serializable data class EditMemo(val scrapId: String, val initialMemo: String) : Route
+
 @Serializable
 data class ScrapDetail(val scrapId: String) : Route
 
