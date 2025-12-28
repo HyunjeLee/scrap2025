@@ -18,6 +18,9 @@ interface ScrapRepository {
     /** 스크랩 아이템 삭제 */
     suspend fun deleteScrapItem(id: String): Result<Unit>
 
+    /** 스크랩 벌크 삭제 */
+    suspend fun deleteScrapBulk(idBulk: List<Long>): Result<Unit>
+
     /** 스크랩 아이템 업데이트 */
     suspend fun updateScrapItem(id: String, memo: String?): Result<Unit>
 

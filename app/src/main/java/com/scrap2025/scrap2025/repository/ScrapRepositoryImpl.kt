@@ -121,6 +121,19 @@ constructor(
         }
     }
 
+    override suspend fun deleteScrapBulk(idBulk: List<Long>): Result<Unit> {
+        return try {
+            authService.deleteScrapBulk(
+                tokenManager.accessToken.firstOrNull()!!,
+                idBulk
+            )
+
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e, "다중 스크랩 삭제 실패")
+        }
+    }
+
     override suspend fun updateScrapItem(id: String, memo: String?): Result<Unit> {
         return try {
             val existing = scrapDao.getScrapById(id)
