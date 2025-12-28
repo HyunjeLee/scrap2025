@@ -9,6 +9,7 @@ import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
 import com.scrap2025.scrap2025.data.model.ScrapCreateRequest
 import com.scrap2025.scrap2025.data.model.ScrapCreateResult
 import com.scrap2025.scrap2025.data.model.ScrapMemoDto
+import com.scrap2025.scrap2025.data.model.ScrapMoveDto
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.Result
@@ -138,7 +139,13 @@ constructor(
         return try {
             val existing = scrapDao.getScrapById(scrapId)
             if (existing != null) {
+                val categoryRemoteId = categoryDao.getCategoryById(categoryId)!!.remoteId!!
+
                 scrapDao.moveScrap(scrapId, categoryId)
+
+                authService.moveScrap(tokenManager.accessToken.firstOrNull()!!, existing.remoteId!!.toLong(),
+                    ScrapMoveDto(categoryRemoteId.toLong()))
+
                 Result.Success(Unit)
             } else {
                 Result.Error(
