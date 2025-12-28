@@ -1,6 +1,9 @@
 package com.scrap2025.scrap2025.data.model
 
-data class ScrapCreateResult (
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ScrapCreateResult(
     val scrapUrl: String,
     val imageURL: String,
     val title: String,

@@ -1,20 +1,23 @@
 package com.scrap2025.scrap2025.data.model
 
-import com.google.gson.annotations.SerializedName
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import java.util.UUID
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class CategoryListResponse(
-    @SerializedName("categories") val categories: List<CategoryResponse>,
-    @SerializedName("total") val total: Int
+    @SerialName("categories") val categories: List<CategoryResponse>,
+    @SerialName("total") val total: Int
 )
 
+@Serializable
 data class CategoryResponse(
-    @SerializedName("categoryId") val categoryId: Int,
-    @SerializedName("categoryTitle") val categoryTitle: String,
-    @SerializedName("scrapCnt") val scrapCnt: Int,
-    @SerializedName("sequence") val sequence: Int,
-    @SerializedName("isDefault") val isDefault: Boolean
+    @SerialName("categoryId") val categoryId: Int,
+    @SerialName("categoryTitle") val categoryTitle: String,
+    @SerialName("scrapCnt") val scrapCnt: Int,
+    @SerialName("sequence") val sequence: Int,
+    @SerialName("isDefault") val isDefault: Boolean
 ) {
     fun toEntity(): CategoryEntity {
         return CategoryEntity(
@@ -23,7 +26,7 @@ data class CategoryResponse(
             name = categoryTitle,
             scrapCount = scrapCnt,
             isDefault = isDefault,
-            orderIndex = sequence - 1,  // 서버에서 1부터 count  // 로컬은 0부터 count
+            orderIndex = sequence - 1, // 서버에서 1부터 count  // 로컬은 0부터 count
             syncStatus = SyncStatus.SYNCED
         )
     }

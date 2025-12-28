@@ -1,24 +1,28 @@
 package com.scrap2025.scrap2025.data.model
 
-import com.google.gson.annotations.SerializedName
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
-import kotlin.Int
 
+@Serializable
 data class ScrapListResponse(
-    @SerializedName("scraps") val scraps: List<ScrapResponse>,
+    @SerialName("scraps") val scraps: List<ScrapResponse>,
 )
 
+@Serializable
 data class ScrapResponse(
-    @SerializedName("scrapId") val id: Int,
-    @SerializedName("title") val title: String,
-    @SerializedName("scrapURL") val url: String,
-    @SerializedName("imageURL") val imageUrl: String,
-    @SerializedName("isFavorite") val isFavorite: Boolean,
-    @SerializedName("scrapDate") val scrapDate: String
+    @SerialName("scrapId") val id: Int,
+    @SerialName("title") val title: String,
+    @SerialName("scrapURL") val url: String,
+    @SerialName("imageURL") val imageUrl: String = "",
+    @SerialName("description") val description: String = "",
+    @SerialName("memo") val memo: String = "",
+    @SerialName("isFavorite") val isFavorite: Boolean,
+    @SerialName("scrapDate") val scrapDate: String = ""
 ) {
     fun toEntity(categoryId: String): ScrapEntity {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -32,7 +36,8 @@ data class ScrapResponse(
             id = UUID.randomUUID().toString(),
             remoteId = id,
             title = title,
-            description = "",  // todo: 서버에서 해당 값 받아와야함 !!
+            description = description,
+            memo = memo,
             url = url,
             imageUrl = imageUrl,
             createdDate = parsedDate,

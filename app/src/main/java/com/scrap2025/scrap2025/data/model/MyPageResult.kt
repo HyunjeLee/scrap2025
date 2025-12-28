@@ -1,15 +1,9 @@
 package com.scrap2025.scrap2025.data.model
 
-data class MyPageResult(
-    val memberInfo: MemberInfo,
-    val statistics: Statistics
-)
+import kotlinx.serialization.Serializable
 
-data class MemberInfo(
-    val name: String
-)
+@Serializable data class MyPageResult(val memberInfo: MemberInfo, val statistics: Statistics)
 
-data class Statistics(
-    val totalCategory: Int,
-    val totalScrap: Int
-)
+@Serializable data class MemberInfo(val name: String)
+
+@Serializable data class Statistics(val totalCategory: Int, val totalScrap: Int)

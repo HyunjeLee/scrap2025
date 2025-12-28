@@ -1,3 +1,5 @@
 package com.scrap2025.scrap2025.data.model
 
-data class CategoryRenameResult(val newCategoryTitle: String)
+import kotlinx.serialization.Serializable
+
+@Serializable data class CategoryRenameResult(val newCategoryTitle: String)
