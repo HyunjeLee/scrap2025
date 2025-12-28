@@ -109,6 +109,9 @@ constructor(
                 // 카테고리 카운트 감소
                 categoryDao.decrementScrapCount(existing.categoryId)
 
+                authService.deleteScrap(tokenManager.accessToken.firstOrNull()!!, existing.remoteId!!.toLong())
+
+
                 Result.Success(Unit)
             } else {
                 Result.Error(NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."), "스크랩을 찾을 수 없습니다")

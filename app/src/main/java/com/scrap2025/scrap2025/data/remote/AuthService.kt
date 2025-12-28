@@ -135,4 +135,11 @@ interface AuthService {
         @Header("Authorization") token: String,
         @Body body: ScrapBulkRequest
     ): Response<BaseResponse<JsonElement?>>
+
+    @Headers("accept: application/json")
+    @PATCH("/auth/scraps/{scrap-id}/trash")
+    suspend fun deleteScrap(
+        @Header("Authorization") token: String,
+        @Path("scrap-id") scrapId: Long
+    ): Response<BaseResponse<JsonElement?>>
 }
