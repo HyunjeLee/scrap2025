@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.gigamole.composeshadowsplus.common.ShadowsPlusType
 import com.gigamole.composeshadowsplus.common.shadowsPlus
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
@@ -80,7 +81,9 @@ fun ScrapDetailScreen(
 
     when (scrapDetailState) {
         Result.Loading -> {
-            Box(modifier = Modifier.fillMaxSize().background(MainColor), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .background(MainColor), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = MainColorDeep)
             }
         }
@@ -108,7 +111,9 @@ fun ScrapDetailScreen(
             }
 
             if (isSyncing) {
-                Box(modifier = Modifier.fillMaxSize().background(MainColor), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .background(MainColor), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = MainColorDeep)
                 }
             } else {
@@ -253,8 +258,9 @@ fun ScrapDetailContent(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .heightIn(min = 60.dp)
+                                .heightIn(min = 60.dp, max = 200.dp)
                                 .background(Color.White, RoundedCornerShape(10.dp))
+                                .verticalScroll(rememberScrollState())
                                 .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -262,7 +268,7 @@ fun ScrapDetailContent(
                             text = scrapItem.description,
                             style = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
                             color = Color.Black,
-                            maxLines = 10,
+                            maxLines = 20,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -385,6 +391,7 @@ fun DetailBottomBar(
                 .fillMaxWidth()
                 .background(MainColor)
                 .shadowsPlus(
+                    type = ShadowsPlusType.SoftLayer,
                     color = Color.Black.copy(alpha = 0.1f),
                     offset = DpOffset(0.dp, (-3).dp),
                     radius = 15.dp,
@@ -456,7 +463,7 @@ fun FullDataPreview() {
             id = "preview1",
             title =
                 "구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n",
-            description = "description",
+            description = "안녕하세요, 안성재입니다.\n\n오늘 두 번째 [흑백2⚒\uFE0F리뷰]는\n네 분의 흑수저 셰프님들과 함께했습니다. \n삐딱한 천재, 중식 마녀, 부채도사 그리고 쓰리스타 킬러가 함께 했는데요. \n\n아직 [흑백요리사 시즌2]에 참여하고 계신 셰프님들이시다 보니\n생생하게 대결 당시 비하인드 스토리와 셰프님들의 각오도 들을 수 있었는데요,\n셰프님들과 더 많은 이야기를 나눌 수 있어 즐거웠던 시간이었습니다.\n\n그럼, 오늘도 재미있게 시청해 주세요.\n다음 주에 또 뵙겠습니다.\n\n*\n*\n\uD83C\uDFE0우리 집이 기네스 맛집\n기네스 나이트로서지의 혁신적인 기술로 집에서도 느낄 수 있는 기네스 생맥주의 퀄리티!\n\n\uD83D\uDCCC기네스 나이트로서지 패키지 특가 찬스!\n✅우리동네 GS: https://abr.ge/4x65k0v\n✅카카오톡 선물하기: https://gift.kakao.com/product/11319266\n\n\uD83D\uDC49패키지 구성품: 디바이스 1개 + 전용 캔 4캔 + 파인트 전용 잔 \n\uD83D\uDC49 완벽한 기네스 생맥주 한잔을 위한 디",
             url = "https://deepmind.google/technologies/antigravity",
             memo =
                 "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
@@ -537,7 +544,9 @@ fun DarkModePreview() {
 @Composable
 fun LoadingPreview() {
     Scrap2025Theme {
-        Box(modifier = Modifier.fillMaxSize().background(MainColor), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(MainColor), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = MainColorDeep)
         }
     }
