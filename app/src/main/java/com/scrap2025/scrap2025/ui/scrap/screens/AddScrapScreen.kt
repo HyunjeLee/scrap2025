@@ -124,7 +124,7 @@ fun AddScrapScreenContent(
     memo: String,
     onUrlChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
-    onAddScrap: (url: String, memo: String?, linkPreview: LinkPreview?) -> Unit,
+    onAddScrap: (url: String, memo: String, linkPreview: LinkPreview?) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -319,7 +319,7 @@ fun AddScrapScreenContent(
                         if (url.isBlank()) {
                             Toast.makeText(context, "링크를 입력해주세요", Toast.LENGTH_SHORT).show()
                         } else {
-                            onAddScrap(url.trim(), memo.trim().ifBlank { null }, linkPreview)
+                            onAddScrap(url.trim(), memo.trim(), linkPreview)
                         }
                     },
                     modifier = Modifier

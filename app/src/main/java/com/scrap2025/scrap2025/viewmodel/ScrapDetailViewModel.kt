@@ -20,22 +20,36 @@ import javax.inject.Inject
 @HiltViewModel
 class ScrapDetailViewModel
 @Inject
-constructor(
-    private val scrapRepository: ScrapRepository,
-    savedStateHandle: SavedStateHandle
-): ViewModel() {
+constructor(private val scrapRepository: ScrapRepository, savedStateHandle: SavedStateHandle) :
+    ViewModel() {
     private val scrapId: String = savedStateHandle.toRoute<ScrapDetail>().scrapId
 
     private val _isDeleteDialogVisible = MutableStateFlow(false)
     val isDeleteDialogVisible: StateFlow<Boolean> = _isDeleteDialogVisible.asStateFlow()
 
-    val scrapDetailState: StateFlow<Result<ScrapItem>> = scrapRepository
-        .getScrapItemByIdAsFlow(scrapId)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Result.Loading
-        )
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
+
+    val scrapDetailState: StateFlow<Result<ScrapItem>> =
+        scrapRepository
+            .getScrapItemByIdAsFlow(scrapId)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = Result.Loading
+            )
+
+    init {
+        fetchScrapDetail()
+    }
+
+    private fun fetchScrapDetail() {
+        viewModelScope.launch {
+            _isSyncing.value = true
+            scrapRepository.syncScrapById(scrapId)
+            _isSyncing.value = false
+        }
+    }
 
     fun showDeleteDialog() {
         _isDeleteDialogVisible.value = true

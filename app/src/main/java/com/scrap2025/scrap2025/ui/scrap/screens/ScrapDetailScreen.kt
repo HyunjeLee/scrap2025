@@ -82,17 +82,16 @@ fun ScrapDetailScreen(
                 CircularProgressIndicator()
             }
         }
-
         is Result.Error -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("스크랩을 불러오는데 실패했습니다.")
                 // todo: 재시도 로직  // pull to refresh
             }
         }
-
         is Result.Success<ScrapItem> -> {
             val scrapItem = (scrapDetailState as Result.Success<ScrapItem>).data
             val isDeleteDialogVisible by viewModel.isDeleteDialogVisible.collectAsStateWithLifecycle()
+            val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
 
             if (isDeleteDialogVisible) {
                 CommonDeleteDialog(
@@ -108,6 +107,7 @@ fun ScrapDetailScreen(
 
             ScrapDetailContent(
                 scrapItem = scrapItem,
+                isSyncing = isSyncing,
                 onBack = onBack,
                 onClipboardCopy = { url -> context.copyToClipboard(url) },
                 onImageClick = { url -> UrlNavigator.openUrl(context, url) },
@@ -115,7 +115,6 @@ fun ScrapDetailScreen(
                 onDelete = { viewModel.showDeleteDialog() }
             )
         }
-
     }
 }
 
@@ -126,6 +125,7 @@ fun ScrapDetailContent(
     onClipboardCopy: (String) -> Unit,
     onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    isSyncing: Boolean = false,
     onDelete: () -> Unit = {},
     onEditMemo: () -> Unit = {},
     onShare: () -> Unit = {},
@@ -180,7 +180,9 @@ fun ScrapDetailContent(
                         contentScale = ContentScale.Crop
                     )
                 } ?: run {
-                    Box(modifier.fillMaxSize().background(LightGrayColor))
+                    Box(modifier
+                        .fillMaxSize()
+                        .background(LightGrayColor))
                 }
             }
 
@@ -193,20 +195,12 @@ fun ScrapDetailContent(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .background(
-                                    Color.White,
-                                    RoundedCornerShape(10.dp)
-                                )
-                                .padding(
-                                    horizontal = 16.dp,
-                                    vertical = 12.dp
-                                )
+                                .background(Color.White, RoundedCornerShape(10.dp))
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         Row(
-                            verticalAlignment =
-                                Alignment.CenterVertically,
-                            horizontalArrangement =
-                                Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
@@ -219,8 +213,7 @@ fun ScrapDetailContent(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
-                                imageVector =
-                                    Icons.Default.ContentCopy,
+                                imageVector = Icons.Default.ContentCopy,
                                 contentDescription = "복사",
                                 tint = Color.Black,
                                 modifier =
@@ -251,23 +244,23 @@ fun ScrapDetailContent(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .background(
-                                    Color.White,
-                                    RoundedCornerShape(10.dp)
-                                )
-                                .padding(16.dp)
+                                .heightIn(min = 60.dp)
+                                .background(Color.White, RoundedCornerShape(10.dp))
+                                .padding(16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = scrapItem.title,
-                            style =
-                                TextStyle(
-                                    fontSize = 14.sp,
-                                    lineHeight = 20.sp
-                                ),
-                            color = Color.Black,
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        if (isSyncing) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text(
+                                text = scrapItem.description,
+                                style = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
+                                color = Color.Black,
+                                maxLines = 10,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             )
@@ -295,22 +288,24 @@ fun ScrapDetailContent(
                             Modifier
                                 .fillMaxWidth()
                                 .heightIn(min = 150.dp, max = 400.dp)
-                                .background(
-                                    Color.White,
-                                    RoundedCornerShape(10.dp)
-                                )
+                                .background(Color.White, RoundedCornerShape(10.dp))
                                 .verticalScroll(rememberScrollState())
                                 .padding(16.dp)
                     ) {
-                        Text(
-                            text = scrapItem.memo ?: "",
-                            style =
-                                TextStyle(
-                                    fontSize = 14.sp,
-                                    lineHeight = 20.sp,
-                                ),
-                            color = Color.Black,
-                        )
+                        if (isSyncing) {
+                            CircularProgressIndicator()
+                        } else {
+                            Text(
+                                text = scrapItem.memo,
+                                style =
+                                    TextStyle(
+                                        fontSize = 14.sp,
+                                        lineHeight = 20.sp,
+                                    ),
+                                color = Color.Black,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
             )
@@ -347,7 +342,8 @@ fun DetailTopBar(title: String, onBackClick: () -> Unit, modifier: Modifier = Mo
     ) {
         // 뒤로가기 버튼
         IconButton(
-            onClick = onBackClick, modifier = Modifier
+            onClick = onBackClick,
+            modifier = Modifier
                 .padding(start = 11.dp)
                 .size(40.dp)
         ) {
@@ -381,17 +377,17 @@ fun DetailBottomBar(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MainColor)
-            .shadowsPlus(
-                color = Color.Black.copy(alpha = 0.1f),
-                offset = DpOffset(0.dp, (-3).dp),
-                radius = 15.dp,
-            )
-            .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)),
-    )
-    {
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(MainColor)
+                .shadowsPlus(
+                    color = Color.Black.copy(alpha = 0.1f),
+                    offset = DpOffset(0.dp, (-3).dp),
+                    radius = 15.dp,
+                )
+                .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)),
+    ) {
         Row(
             modifier =
                 Modifier
@@ -452,26 +448,28 @@ fun BottomNavItem(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun FullDataPreview() {
-    val scrapItem = ScrapItem(
-        id = "preview1",
-        title = "구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n",
-        description = "description",
-        url = "https://deepmind.google/technologies/antigravity",
-        memo =
-            "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                    "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.",
-        imageUrl = "https://picsum.photos/seed/picsum/800/400",
-        categoryId = "",
-        createdDate = LocalDateTime.now()
-    )
+    val scrapItem =
+        ScrapItem(
+            id = "preview1",
+            title =
+                "구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n",
+            description = "description",
+            url = "https://deepmind.google/technologies/antigravity",
+            memo =
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.",
+            imageUrl = "https://picsum.photos/seed/picsum/800/400",
+            categoryId = "",
+            createdDate = LocalDateTime.now()
+        )
 
     Scrap2025Theme {
         ScrapDetailContent(
@@ -486,41 +484,34 @@ fun FullDataPreview() {
 @Preview(showBackground = true)
 @Composable
 fun NoImageAndMemoPreview() {
-    val scrapItem = ScrapItem(
-        id = "preview2",
-        title = "짧은 제목",
-        description = "description",
-        url = "exmaple url",
-        categoryId = "",
-        createdDate = LocalDateTime.now()
-    )
+    val scrapItem =
+        ScrapItem(
+            id = "preview2",
+            title = "짧은 제목",
+            description = "description",
+            url = "exmaple url",
+            categoryId = "",
+            createdDate = LocalDateTime.now()
+        )
 
     Scrap2025Theme {
-        ScrapDetailContent(
-            scrapItem,
-            onBack = {},
-            onClipboardCopy = {},
-            onImageClick = {}
-        )
+        ScrapDetailContent(scrapItem, onBack = {}, onClipboardCopy = {}, onImageClick = {})
     }
 }
 
-@Preview(
-    showBackground = true,
-    name = "다크모드 테스트",
-    uiMode = Configuration.UI_MODE_NIGHT_YES
-)
+@Preview(showBackground = true, name = "다크모드 테스트", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DarkModePreview() {
-    val scrapItem = ScrapItem(
-        id = "preview3",
-        title = "다크모드에서도 잘 보이는지 확인",
-        description = "description",
-        url = "https://example.com/darkmode",
-        memo = "배경색과 텍스트 대비 확인용",
-        categoryId = "",
-        createdDate = LocalDateTime.now()
-    )
+    val scrapItem =
+        ScrapItem(
+            id = "preview3",
+            title = "다크모드에서도 잘 보이는지 확인",
+            description = "description",
+            url = "https://example.com/darkmode",
+            memo = "배경색과 텍스트 대비 확인용",
+            categoryId = "",
+            createdDate = LocalDateTime.now()
+        )
 
     Scrap2025Theme {
         ScrapDetailContent(

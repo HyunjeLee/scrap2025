@@ -92,7 +92,7 @@ constructor(
      */
     fun addScrapItem(
         url: String,
-        memo: String?,
+        memo: String,
         linkPreview: LinkPreview? = null,
         categoryId: String
     ) {

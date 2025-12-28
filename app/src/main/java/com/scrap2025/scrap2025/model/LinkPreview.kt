@@ -28,6 +28,6 @@ fun LinkPreview.toScrapItem(): ScrapItem {
         createdDate = LocalDateTime.now(), // 임시 날짜
         isFavorite = false,
         categoryId = "",
-        memo = null
+        memo = ""
     )
 }

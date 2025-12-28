@@ -1,4 +1,5 @@
 package com.scrap2025.scrap2025.data.local.dao
+
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -17,7 +18,7 @@ interface ScrapDao {
     fun getAllScrapsByCategoryId(categoryId: String): Flow<List<ScrapEntity>>
 
     @Query("SELECT * FROM scraps WHERE id = :id")
-    suspend fun getScrapById(id: String): ScrapEntity?  // 추후 대규모 리팩토링 시 해당 함수 삭제 후 아래 함수로 변경할 것
+    suspend fun getScrapById(id: String): ScrapEntity? // 추후 대규모 리팩토링 시 해당 함수 삭제 후 아래 함수로 변경할 것
 
     @Query("SELECT * FROM scraps WHERE id = :id")
     fun getScrapByIdFlow(id: String): Flow<ScrapEntity?> // Flow로 변경 (suspend 제거)
@@ -48,4 +49,7 @@ interface ScrapDao {
 
     @Query("UPDATE scraps SET remoteId = :remoteId, syncStatus = :status WHERE id = :id")
     suspend fun updateScrapRemoteId(id: String, remoteId: Int, status: SyncStatus)
+
+    @Query("UPDATE scraps SET description = :description, memo = :memo WHERE id = :id")
+    suspend fun updateScrapDetails(id: String, description: String, memo: String?)
 }

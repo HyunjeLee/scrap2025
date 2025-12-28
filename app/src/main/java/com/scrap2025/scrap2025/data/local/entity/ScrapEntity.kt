@@ -24,13 +24,13 @@ data class ScrapEntity(
     @PrimaryKey val id: String,
     val remoteId: Int? = null,
     val title: String,
-    val description: String,
     val url: String,
     val imageUrl: String? = null,
+    val description: String,
+    val memo: String,
     val createdDate: LocalDateTime,
     val isFavorite: Boolean = false,
     val categoryId: String,
-    val memo: String? = null,
     val syncStatus: SyncStatus = SyncStatus.PENDING
 ) {
     fun toDomainModel(): ScrapItem {
@@ -38,13 +38,13 @@ data class ScrapEntity(
             id = id,
             remoteId = remoteId,
             title = title,
-            description = description,
             url = url,
             imageUrl = imageUrl,
+            description = description,
+            memo = memo,
             createdDate = createdDate,
             isFavorite = isFavorite,
             categoryId = categoryId,
-            memo = memo,
             syncStatus = syncStatus
         )
     }
@@ -55,13 +55,13 @@ data class ScrapEntity(
                 id = item.id,
                 remoteId = item.remoteId,
                 title = item.title,
-                description = item.description,
                 url = item.url,
                 imageUrl = item.imageUrl,
+                description = item.description,
+                memo = item.memo,
                 createdDate = item.createdDate,
                 isFavorite = item.isFavorite,
                 categoryId = item.categoryId,
-                memo = item.memo,
                 syncStatus = item.syncStatus
             )
         }

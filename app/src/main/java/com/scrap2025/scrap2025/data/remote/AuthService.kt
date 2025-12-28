@@ -13,6 +13,7 @@ import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.data.model.ScrapCreateRequest
 import com.scrap2025.scrap2025.data.model.ScrapCreateResult
 import com.scrap2025.scrap2025.data.model.ScrapListResponse
+import com.scrap2025.scrap2025.data.model.ScrapResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -93,6 +94,12 @@ interface AuthService {
         @Header("Authorization") token: String,
         @Query("category") categoryId: Int
     ): Response<BaseResponse<ScrapListResponse>>
+
+    @GET("/auth/scraps/{scrap-id}")
+    suspend fun getScrapById(
+        @Header("Authorization") token: String,
+        @Path("scrap-id") scrapId: Int
+    ): Response<BaseResponse<ScrapResponse>>
 
     @Headers("accept: application/json")
     @POST("/auth/scraps/{category-id}")

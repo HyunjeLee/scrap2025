@@ -2,6 +2,7 @@ package com.scrap2025.scrap2025.repository
 
 import androidx.room.withTransaction
 import com.scrap2025.scrap2025.data.local.AppDatabase
+import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
@@ -14,6 +15,7 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -25,7 +27,8 @@ constructor(
     private val appDatabase: AppDatabase,
     private val scrapDao: ScrapDao,
     private val categoryDao: CategoryDao,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val tokenManager: TokenManager
 ) : ScrapRepository {
 
     override fun getScrapItems(categoryId: String?): Flow<Result<List<ScrapItem>>> {
@@ -45,29 +48,18 @@ constructor(
         }
     }
 
-    override suspend fun getScrapItemById(id: String): Result<ScrapItem> {
-        return try {
-            val entity = scrapDao.getScrapById(id)
-            if (entity != null) {
-                Result.Success(entity.toDomainModel())
-            } else {
-                Result.Error(NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."), "스크랩을 찾을 수 없습니다")
-            }
-        } catch (e: Exception) {
-            Result.Error(e, "스크랩 조회 실패")
-        }
-    }
-
     override fun getScrapItemByIdAsFlow(id: String): Flow<Result<ScrapItem>> {
-        return scrapDao.getScrapByIdFlow(id).map { entity ->
-            if (entity != null) {
-                Result.Success(entity.toDomainModel())
-            } else {
-                Result.Error(NoSuchElementException(), "스크랩을 찾을 수 없습니다")
+        return scrapDao.getScrapByIdFlow(id)
+            .map { entity ->
+                if (entity != null) {
+                    Result.Success(entity.toDomainModel())
+                } else {
+                    Result.Error(NoSuchElementException(), "스크랩을 찾을 수 없습니다")
+                }
             }
-        }.catch { e -> // 예외 처리도 Flow 흐름 안에서 처리
-            emit(Result.Error(e, "스크랩 연동 오류"))
-        }
+            .catch { e -> // 예외 처리도 Flow 흐름 안에서 처리
+                emit(Result.Error(e, "스크랩 연동 오류"))
+            }
     }
 
     override suspend fun createScrap(item: ScrapItem, token: String?): Result<Unit> {
@@ -96,7 +88,6 @@ constructor(
                             categoryRemoteId = categoryRemoteId
                         )
                     }
-
                 }
                 // If remote fails, it stays PENDING
             }
@@ -187,7 +178,11 @@ constructor(
 
     override fun getScrapCount(): Flow<Int> = scrapDao.getScrapCount()
 
-    override suspend fun syncScrapsByCategoryId(token: String, categoryId: String, categoryRemoteId: Int): Result<Unit> {
+    override suspend fun syncScrapsByCategoryId(
+        token: String,
+        categoryId: String,
+        categoryRemoteId: Int
+    ): Result<Unit> {
         return try {
             val response = authService.getAllScrapsByCategoryId(token, categoryRemoteId)
             if (response.isSuccessful) {
@@ -232,6 +227,36 @@ constructor(
         }
     }
 
+    override suspend fun syncScrapById(id: String): Result<Unit> {
+        return try {
+            val token =
+                tokenManager.accessToken.firstOrNull()
+                    ?: return Result.Error(Exception("Token not found"), "토큰을 찾을 수 없습니다")
+            val existing =
+                scrapDao.getScrapById(id)
+                    ?: return Result.Error(NoSuchElementException(), "스크랩을 찾을 수 없습니다")
+            val remoteId = existing.remoteId ?: return Result.Success(Unit)
+
+            val response = authService.getScrapById(token, remoteId)
+            if (response.isSuccessful) {
+                val remoteScrap =
+                    response.body()?.result
+                        ?: return Result.Error(Exception("Body is null"), "응답 데이터 오류")
+
+                scrapDao.updateScrapDetails(
+                    id = id,
+                    description = remoteScrap.description,
+                    memo = remoteScrap.memo,
+                )
+                Result.Success(Unit)
+            } else {
+                Result.Error(Exception("Fetch failed code: ${response.code()}"), "스크랩 최신화 실패")
+            }
+        } catch (e: Exception) {
+            Result.Error(e, "스크랩 동기화 중 오류 발생")
+        }
+    }
+
     private suspend fun createScrapRemote(
         token: String,
         item: ScrapItem
@@ -242,17 +267,21 @@ constructor(
             val categoryRemoteId = category?.remoteId
             // 2. 서버 연동에 필수인 remoteId가 없다면 실패 처리 -> 상위에서 PENDING 처리
             if (categoryRemoteId == null) {
-                return Result.Error(Exception("Remote Category ID missing"), "해당 카테고리의 서버 정보를 찾을 수 없습니다.")
+                return Result.Error(
+                    Exception("Remote Category ID missing"),
+                    "해당 카테고리의 서버 정보를 찾을 수 없습니다."
+                )
             }
 
-            val request = ScrapCreateRequest(
-                scrapURL = item.url,
-                imageURL = item.imageUrl,
-                title = item.title,
-                description = item.description,
-                memo = item.memo,
-                isFavorite = item.isFavorite
-            )
+            val request =
+                ScrapCreateRequest(
+                    scrapURL = item.url,
+                    imageURL = item.imageUrl,
+                    title = item.title,
+                    description = item.description,
+                    memo = item.memo,
+                    isFavorite = item.isFavorite
+                )
 
             // 3. remoteId가 확실히 있을 때만 호출
             val response = authService.createScrap(token, categoryRemoteId, request)

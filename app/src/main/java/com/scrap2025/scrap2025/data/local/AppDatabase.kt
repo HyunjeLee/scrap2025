@@ -15,8 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Database(
-        entities = [CategoryEntity::class, ScrapEntity::class, MyPageEntity::class],
-        version = 13,
+    entities = [CategoryEntity::class, ScrapEntity::class, MyPageEntity::class], version = 14,
         exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -33,19 +32,13 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE
-                    ?: synchronized(this) {
-                        val instance =
-                                Room.databaseBuilder(
-                                                context.applicationContext,
-                                                AppDatabase::class.java,
-                                                "scrap_database"
-                                        )
-                                        .fallbackToDestructiveMigration()
-                                        .build()
-                        INSTANCE = instance
-                        instance
-                    }
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext, AppDatabase::class.java, "scrap_database"
+                ).fallbackToDestructiveMigration().build()
+                INSTANCE = instance
+                instance
+            }
         }
     }
 }

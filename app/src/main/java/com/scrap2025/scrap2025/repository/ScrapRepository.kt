@@ -10,7 +10,6 @@ interface ScrapRepository {
     fun getScrapItems(categoryId: String? = null): Flow<Result<List<ScrapItem>>>
 
     /** 특정 ID의 스크랩 아이템 조회 */
-    suspend fun getScrapItemById(id: String): Result<ScrapItem>
     fun getScrapItemByIdAsFlow(id: String): Flow<Result<ScrapItem>> // Flow 반환으로 변경
 
     /** 새로운 스크랩 아이템 추가 */
@@ -39,5 +38,12 @@ interface ScrapRepository {
      * @param token API Access Token
      * @return Result<Unit>
      */
-    suspend fun syncScrapsByCategoryId(token: String, categoryId: String, categoryRemoteId: Int): Result<Unit>
+    suspend fun syncScrapsByCategoryId(
+            token: String,
+            categoryId: String,
+            categoryRemoteId: Int
+    ): Result<Unit>
+
+    /** 특정 스크랩 상세 정보 동기화 (Remote -> Local) */
+    suspend fun syncScrapById(id: String): Result<Unit>
 }

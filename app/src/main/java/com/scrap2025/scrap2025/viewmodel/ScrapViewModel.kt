@@ -298,7 +298,17 @@ constructor(
                 val remoteId = categoryResult.data.remoteId ?: return@launch
                 val token = tokenManager.accessToken.firstOrNull() ?: return@launch
 
-                scrapRepository.syncScrapsByCategoryId(token, categoryId, remoteId)
+                val syncScrapsResult = scrapRepository.syncScrapsByCategoryId(token, categoryId, remoteId)
+
+                when(syncScrapsResult) {
+                    Result.Loading -> {}
+                    is Result.Error -> {
+                        throw syncScrapsResult.exception
+                    }
+                    is Result.Success -> {
+
+                    }
+                }
             }
         }
     }
