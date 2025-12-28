@@ -12,6 +12,7 @@ import com.scrap2025.scrap2025.data.model.ScrapMemoDto
 import com.scrap2025.scrap2025.data.model.ScrapMoveDto
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.data.remote.dto.ScrapBulkRequest
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
@@ -175,13 +176,22 @@ constructor(
         }
     }
 
-    override suspend fun moveScrapsToCategory(fromId: String, toId: String): Result<Unit> {
+    override suspend fun moveScrapsToCategory(fromId: String, toId: String): Result<Unit> {  //todo: 실제 스크랩 ID 리스트로 인자 추가
         return try {
             val movedCount = scrapDao.moveScraps(fromId, toId)
             if (movedCount > 0) {
                 categoryDao.updateScrapCount(fromId, -movedCount)
                 categoryDao.updateScrapCount(toId, movedCount)
             }
+
+            authService.moveScrapBulk(
+                tokenManager.accessToken.firstOrNull()!!,
+                ScrapBulkRequest(
+                    scrapIds = listOf(),  //todo: 실제 스크랩 ID 리스트로 대체
+                    moveCategoryId = categoryDao.getCategoryById(toId)!!.remoteId!!.toLong()
+                )
+            )
+
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "스크랩 이동 실패")

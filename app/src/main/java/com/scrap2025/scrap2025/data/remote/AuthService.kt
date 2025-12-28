@@ -16,6 +16,8 @@ import com.scrap2025.scrap2025.data.model.ScrapListResponse
 import com.scrap2025.scrap2025.data.model.ScrapMemoDto
 import com.scrap2025.scrap2025.data.model.ScrapMoveDto
 import com.scrap2025.scrap2025.data.model.ScrapResponse
+import com.scrap2025.scrap2025.data.remote.dto.ScrapBulkRequest
+import kotlinx.serialization.json.JsonElement
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -126,4 +128,11 @@ interface AuthService {
         @Path("scrap-id") scrapId: Long,
         @Body body: ScrapMoveDto
     ): Response<BaseResponse<ScrapMoveDto>>
+
+    @Headers("accept: application/json")
+    @PATCH("/auth/scraps/move")
+    suspend fun moveScrapBulk(
+        @Header("Authorization") token: String,
+        @Body body: ScrapBulkRequest
+    ): Response<BaseResponse<JsonElement?>>
 }
