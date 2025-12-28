@@ -89,7 +89,8 @@ dependencies {
 
     // Network
     implementation(libs.retrofit)
-    implementation(libs.converter.gson)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.converter.kotlinx.serialization)
     implementation(libs.logging.interceptor)
 
     // jsoup for HTML parsing
@@ -110,10 +111,10 @@ dependencies {
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.hilt.compiler)
 
-    implementation(libs.kotlinx.serialization.json)
-
+    // reorderable
     implementation(libs.reorderable)
 
+    // compose-shadow plus
     implementation(libs.compose.shadows.plus)
 
     // for test

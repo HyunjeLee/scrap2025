@@ -18,8 +18,9 @@ oauth = "5.11.0"
 jsoup = "1.21.2"
 retrofit = "2.9.0"
 okhttp = "4.12.0"
-tink = "1.10.0"
 kotlinxSerialization = "1.7.3"
+converterKotlinxSerialization = "3.0.0"
+tink = "1.10.0"
 room = "2.6.1"
 mockk = "1.13.13"
 work = "2.9.0"
@@ -52,7 +53,7 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 naver-oauth = { group = "com.navercorp.nid", name = "oauth", version.ref = "oauth" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
+converter-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "converterKotlinxSerialization" }
 logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 tink-android = { group = "com.google.crypto.tink", name = "tink-android", version.ref = "tink" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
