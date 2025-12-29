@@ -127,7 +127,7 @@ interface AuthService {
         @Header("Authorization") token: String,
         @Path("scrap-id") scrapId: Long,
         @Body body: ScrapMoveDto
-    ): Response<BaseResponse<ScrapMoveDto>>
+    ): Response<BaseResponse<JsonElement>>
 
     @Headers("accept: application/json")
     @PATCH("/auth/scraps/move")
