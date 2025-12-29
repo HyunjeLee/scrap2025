@@ -26,7 +26,7 @@ fun TabNavHost(
     ) {
         categoryNavGraph(navController = tabNavController)
         scrapNavGraph(navController = tabNavController)
-        favoriteNavGraph()
+        favoriteNavGraph(navController = tabNavController)
         searchNavGraph()
         myPageNavGraph()
     }

@@ -229,7 +229,8 @@ fun ScrapScreenContent(
         onUpdateCategoryTitle: (String, String) -> Unit,
         onDeleteCategory: () -> Unit,
         modifier: Modifier = Modifier,
-        isDeleting: Boolean = false
+        isDeleting: Boolean = false,
+        showAddScrapFab: Boolean = true
 ) {
     // Compose UI 상태 (View에서 관리)
     val listState = rememberLazyListState()
@@ -455,22 +456,24 @@ fun ScrapScreenContent(
                     }
                 }
 
-                // 스크랩 추가 버튼
-                if (!isSelectionMode) { // 일반 모드일 때만 FAB 표시
-                    Spacer(Modifier.height(16.dp))
+                if (showAddScrapFab) {
+                    if (!isSelectionMode) { // 일반 모드일 때만 FAB 표시
+                        Spacer(Modifier.height(16.dp))
 
-                    FloatingActionButton(
-                        onClick = onAddScrap,
-                        shape = CircleShape,
-                        containerColor = MainColor,
-                        contentColor = MainColorDeep,
-                        modifier = Modifier.size(60.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = "스크랩 추가",
-                            modifier = Modifier.size(50.dp)
-                        )
+                        // 스크랩 추가 버튼
+                        FloatingActionButton(
+                            onClick = onAddScrap,
+                            shape = CircleShape,
+                            containerColor = MainColor,
+                            contentColor = MainColorDeep,
+                            modifier = Modifier.size(60.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Add,
+                                contentDescription = "스크랩 추가",
+                                modifier = Modifier.size(50.dp)
+                            )
+                        }
                     }
                 }
 
