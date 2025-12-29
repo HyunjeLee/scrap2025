@@ -20,7 +20,6 @@ class AddCategoryViewModel
 @Inject
 constructor(
     private val categoryRepository: CategoryRepository,
-    private val tokenManager: com.scrap2025.scrap2025.data.local.TokenManager
 ) : ViewModel() {
 
     private val _categoryCount = categoryRepository.getCategoryCount()
@@ -50,7 +49,6 @@ constructor(
             // Loading 상태 설정
             _addCategoryState.value = Result.Loading
 
-            val token = tokenManager.accessToken.firstOrNull()
             val currentCategoryCount = _categoryCount.firstOrNull() ?: 0
 
             // 새로운 카테고리 생성
@@ -63,7 +61,7 @@ constructor(
                 )
 
             // Repository를 통해 카테고리 추가
-            val result = categoryRepository.createCategory(newCategory, token)
+            val result = categoryRepository.createCategory(newCategory)
             _addCategoryState.value = result
         }
     }

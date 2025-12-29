@@ -2,7 +2,6 @@ package com.scrap2025.scrap2025.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.repository.AuthRepository
 import com.scrap2025.scrap2025.repository.CategoryRepository
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,7 +23,6 @@ class MyPageViewModel
 constructor(
     private val authRepository: AuthRepository,
     private val myPageRepository: MyPageRepository,
-    private val tokenManager: TokenManager,
     scrapRepository: ScrapRepository,
     categoryRepository: CategoryRepository
 ) : ViewModel() {
@@ -71,12 +68,7 @@ constructor(
     }
 
     fun fetchMyPageInfo() {
-        viewModelScope.launch {
-            val token = tokenManager.accessToken.firstOrNull()
-            if (token != null) {
-                myPageRepository.invokeMyPageSync(token)
-            }
-        }
+        viewModelScope.launch { myPageRepository.invokeMyPageSync() }
     }
 
     fun showWithdrawalDialog() {

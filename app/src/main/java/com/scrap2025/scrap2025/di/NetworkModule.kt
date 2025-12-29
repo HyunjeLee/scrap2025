@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.di
 
+import com.scrap2025.scrap2025.data.remote.AuthInterceptor
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.data.remote.TokenAuthenticator
 import dagger.Module
@@ -23,12 +24,14 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
         tokenAuthenticator: TokenAuthenticator
     ): OkHttpClient {
         val loggingInterceptor =
             HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
         return OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
             .authenticator(tokenAuthenticator)
             .build()

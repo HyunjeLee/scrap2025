@@ -2,7 +2,6 @@ package com.scrap2025.scrap2025.repository
 
 import androidx.room.withTransaction
 import com.scrap2025.scrap2025.data.local.AppDatabase
-import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
@@ -18,7 +17,6 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +29,6 @@ constructor(
     private val scrapDao: ScrapDao,
     private val categoryDao: CategoryDao,
     private val authService: AuthService,
-    private val tokenManager: TokenManager
 ) : ScrapRepository {
 
     override fun getScrapItems(categoryId: String?): Flow<Result<List<ScrapItem>>> {
@@ -65,7 +62,7 @@ constructor(
             }
     }
 
-    override suspend fun createScrap(item: ScrapItem, token: String?): Result<Unit> {
+    override suspend fun createScrap(item: ScrapItem): Result<Unit> {
         return try {
             appDatabase.withTransaction {
                 // 1. Local Insert (PENDING)
@@ -75,25 +72,23 @@ constructor(
             }
 
             // 2. Remote Sync (if token exists)
-            if (token != null) {
-                val remoteResult = createScrapRemote(token, item)
-                if (remoteResult is Result.Success) {
-                    val category = categoryDao.getCategoryById(item.categoryId)
-                    val categoryRemoteId = category?.remoteId
+            val remoteResult = createScrapRemote(item)
+            if (remoteResult is Result.Success) {
+                val category = categoryDao.getCategoryById(item.categoryId)
+                val categoryRemoteId = category?.remoteId
 
-                    // 3. Trigger Sync to get the remoteId
-                    // Since the creation API doesn't return the ID, we must fetch the list
-                    // and match by name (handled in syncScrapsByCategoryId)
-                    if (categoryRemoteId != null) {
-                        syncScrapsByCategoryId(
-                            token = token,
-                            categoryId = item.categoryId,
-                            categoryRemoteId = categoryRemoteId
-                        )
-                    }
+                // 3. Trigger Sync to get the remoteId
+                // Since the creation API doesn't return the ID, we must fetch the list
+                // and match by name (handled in syncScrapsByCategoryId)
+                if (categoryRemoteId != null) {
+                    syncScrapsByCategoryId(
+                        categoryId = item.categoryId,
+                        categoryRemoteId = categoryRemoteId
+                    )
                 }
-                // If remote fails, it stays PENDING
             }
+            // If remote fails, it stays PENDING
+
 
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -110,7 +105,7 @@ constructor(
                     categoryDao.decrementScrapCount(existing.categoryId) // 카테고리 카운트 감소
                 }
 
-                authService.deleteScrap(tokenManager.accessToken.firstOrNull()!!, existing.remoteId!!.toLong())
+                authService.deleteScrap(existing.remoteId!!.toLong())
 
                 Result.Success(Unit)
             } else {
@@ -123,10 +118,7 @@ constructor(
 
     override suspend fun deleteScrapBulk(idBulk: List<Long>): Result<Unit> {
         return try {
-            authService.deleteScrapBulk(
-                tokenManager.accessToken.firstOrNull()!!,
-                idBulk
-            )
+            authService.deleteScrapBulk(idBulk)
 
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -168,7 +160,6 @@ constructor(
                 }
 
                 authService.moveScrap(
-                    tokenManager.accessToken.firstOrNull()!!,
                     existing.remoteId!!.toLong(),
                     ScrapMoveDto(categoryRemoteId.toLong())
                 )
@@ -202,7 +193,10 @@ constructor(
         }
     }
 
-    override suspend fun moveScrapsToCategory(fromId: String, toId: String): Result<Unit> {  //todo: 실제 스크랩 ID 리스트로 인자 추가
+    override suspend fun moveScrapsToCategory(
+        fromId: String,
+        toId: String
+    ): Result<Unit> {  //todo: 실제 스크랩 ID 리스트로 인자 추가
         return try {
             val movedCount = scrapDao.moveScraps(fromId, toId)
             if (movedCount > 0) {
@@ -211,7 +205,6 @@ constructor(
             }
 
             authService.moveScrapBulk(
-                tokenManager.accessToken.firstOrNull()!!,
                 ScrapBulkRequest(
                     scrapIds = listOf(),  //todo: 실제 스크랩 ID 리스트로 대체
                     moveCategoryId = categoryDao.getCategoryById(toId)!!.remoteId!!.toLong()
@@ -227,12 +220,11 @@ constructor(
     override fun getScrapCount(): Flow<Int> = scrapDao.getScrapCount()
 
     override suspend fun syncScrapsByCategoryId(
-        token: String,
         categoryId: String,
         categoryRemoteId: Int
     ): Result<Unit> {
         return try {
-            val response = authService.getAllScrapsByCategoryId(token, categoryRemoteId)
+            val response = authService.getAllScrapsByCategoryId(categoryRemoteId)
             if (response.isSuccessful) {
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
                 val localScraps = scrapDao.getAllScrapsByCategoryId(categoryId).first()
@@ -277,15 +269,12 @@ constructor(
 
     override suspend fun syncScrapById(id: String): Result<Unit> {
         return try {
-            val token =
-                tokenManager.accessToken.firstOrNull()
-                    ?: return Result.Error(Exception("Token not found"), "토큰을 찾을 수 없습니다")
             val existing =
                 scrapDao.getScrapById(id)
                     ?: return Result.Error(NoSuchElementException(), "스크랩을 찾을 수 없습니다")
             val remoteId = existing.remoteId ?: return Result.Success(Unit)
 
-            val response = authService.getScrapById(token, remoteId)
+            val response = authService.getScrapById(remoteId)
             if (response.isSuccessful) {
                 val remoteScrap =
                     response.body()?.result
@@ -306,7 +295,6 @@ constructor(
     }
 
     private suspend fun createScrapRemote(
-        token: String,
         item: ScrapItem
     ): Result<ScrapCreateResult> {
         return try {
@@ -332,7 +320,7 @@ constructor(
                 )
 
             // 3. remoteId가 확실히 있을 때만 호출
-            val response = authService.createScrap(token, categoryRemoteId, request)
+            val response = authService.createScrap(categoryRemoteId, request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {
@@ -355,7 +343,7 @@ constructor(
         return try {
             val request = ScrapMemoDto(memo = memo)
 
-            val response = authService.updateScrapMemo(tokenManager.accessToken.firstOrNull()!!, remoteId, request)
+            val response = authService.updateScrapMemo(remoteId, request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {

@@ -106,7 +106,7 @@ fun ScrapDetailScreen(
                     confirmText = "삭제하기",
                     onDismiss = { viewModel.hideDeleteDialog() },
                     onConfirm = {
-                        val result = viewModel.deleteScrap(
+                        viewModel.deleteScrap(
                             onSuccess = {
                                 viewModel.hideDeleteDialog()
                                 onBack()

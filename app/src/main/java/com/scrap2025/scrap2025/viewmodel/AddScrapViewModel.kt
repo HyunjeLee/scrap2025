@@ -2,7 +2,6 @@ package com.scrap2025.scrap2025.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.model.LinkPreview
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.util.UUID
@@ -26,7 +24,6 @@ class AddScrapViewModel
 constructor(
     private val scrapRepository: ScrapRepository,
     private val linkPreviewRepository: LinkPreviewRepository,
-    private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _addScrapState = MutableStateFlow<Result<Unit>?>(null)
@@ -99,7 +96,6 @@ constructor(
         viewModelScope.launch {
             // Loading 상태 설정
             _addScrapState.value = Result.Loading
-            val token = tokenManager.accessToken.firstOrNull()
 
             val newItem =
                 ScrapItem(
@@ -115,7 +111,7 @@ constructor(
                 )
 
             // Repository를 통해 스크랩 추가
-            val result = scrapRepository.createScrap(newItem, token)
+            val result = scrapRepository.createScrap(newItem)
             _addScrapState.value = result
         }
     }

@@ -6,7 +6,6 @@ import com.scrap2025.scrap2025.data.local.DatabaseInitializer
 import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.data.remote.AuthService
-import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 class AuthRepository
@@ -46,10 +45,7 @@ constructor(
 
     suspend fun getMyPage(): Result<MyPageResult> {
         return try {
-            val token =
-                tokenManager.accessToken.firstOrNull()
-                    ?: throw Exception("No access token found")
-            val response = authService.getMyPage(token)
+            val response = authService.getMyPage()
             if (response.isSuccessful) {
                 response.body()?.result?.let { Result.success(it) }
                     ?: Result.failure(Exception("MyPage result is null"))
@@ -63,10 +59,7 @@ constructor(
 
     suspend fun logout(): Result<Unit> {
         return try {
-            val token =
-                tokenManager.accessToken.firstOrNull()
-                    ?: throw Exception("No access token found")
-            val response = authService.logout(token)
+            val response = authService.logout()
             if (response.isSuccessful) {
                 tokenManager.clearTokens()
                 Result.success(Unit)
@@ -80,10 +73,7 @@ constructor(
 
     suspend fun withdraw(): Result<Unit> {
         return try {
-            val token =
-                tokenManager.accessToken.firstOrNull()
-                    ?: throw Exception("No access token found")
-            val response = authService.withdraw(token)
+            val response = authService.withdraw()
             if (response.isSuccessful) {
                 tokenManager.clearTokens()
                 database.clearAllData()

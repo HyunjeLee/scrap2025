@@ -32,9 +32,9 @@ constructor(
 
     // 2. Triggered by ViewModel on init or pull-to-refresh
     // Returns true if sync successful, false otherwise.
-    suspend fun invokeMyPageSync(token: String): Boolean {
+    suspend fun invokeMyPageSync(): Boolean {
         return try {
-            val response = authService.getMyPage(token)
+            val response = authService.getMyPage()
             if (response.isSuccessful) {
                 response.body()?.result?.let { remoteData ->
                     // Save to Local DB -> Triggers myPageData Flow -> UI Updates automatically

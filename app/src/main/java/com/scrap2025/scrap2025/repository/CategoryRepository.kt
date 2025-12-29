@@ -29,17 +29,16 @@ interface CategoryRepository {
     /**
      * 새로운 카테고리 추가
      * @param item 추가할 CategoryItem
-     * @param token API Access Token (Optional)
      * @return Result<Unit> (성공/실패)
      */
-    suspend fun createCategory(item: CategoryItem, token: String? = null): Result<Unit>
+    suspend fun createCategory(item: CategoryItem): Result<Unit>
 
     /**
      * 카테고리 삭제
      * @param id 삭제할 카테고리 ID
      * @return Result<Unit> (성공/실패)
      */
-    suspend fun deleteCategory(id: String, token: String? = null): Result<Unit>
+    suspend fun deleteCategory(id: String): Result<Unit>
 
     /**
      * 카테고리 정보 업데이트
@@ -47,23 +46,18 @@ interface CategoryRepository {
      * @param name 새로운 카테고리명
      * @return Result<Unit> (성공/실패)
      */
-    suspend fun updateCategory(id: String, name: String, token: String? = null): Result<Unit>
+    suspend fun updateCategory(id: String, name: String): Result<Unit>
 
     /**
      * 카테고리 동기화 (Remote -> Local)
-     * @param token API Access Token
      * @return Result<Unit>
      */
-    suspend fun syncCategories(token: String): Result<Unit>
+    suspend fun syncCategories(): Result<Unit>
 
     /**
      * 카테고리 순서 변경
      * @param categoryItems 순서가 변경된 categoryItem 리스트
-     * @param token API Access Token (Optional)
      * @return Result<Unit>
      */
-    suspend fun reorderCategories(
-            categoryItems: List<CategoryItem>,
-            token: String? = null
-    ): Result<Unit>
+    suspend fun reorderCategories(categoryItems: List<CategoryItem>): Result<Unit>
 }

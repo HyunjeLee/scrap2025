@@ -3,7 +3,6 @@ package com.scrap2025.scrap2025.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
-import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.SortDirection
@@ -21,7 +20,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -35,7 +33,6 @@ class ScrapViewModel
 constructor(
     private val categoryRepository: CategoryRepository,
     private val scrapRepository: ScrapRepository,
-    private val tokenManager: TokenManager,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
@@ -268,7 +265,6 @@ constructor(
             categoryRepository.updateCategory(
                 id = id,
                 name = newTitle,
-                token = tokenManager.accessToken.firstOrNull()
             )
         }
     }
@@ -280,11 +276,9 @@ constructor(
     fun deleteCategory(id: String) {
         viewModelScope.launch {
             _categoryDeleteEvent.emit(Result.Loading)
-            val token = tokenManager.accessToken.firstOrNull()
             // Repository 내에서 트랜잭션으로 처리 (스크랩 이동 + 카테고리 삭제)
             val result = categoryRepository.deleteCategory(
                 id = id,
-                token = token
             )
             _categoryDeleteEvent.emit(result)
         }
@@ -296,9 +290,8 @@ constructor(
 
             if (categoryResult is Result.Success) {
                 val remoteId = categoryResult.data.remoteId ?: return@launch
-                val token = tokenManager.accessToken.firstOrNull() ?: return@launch
 
-                val syncScrapsResult = scrapRepository.syncScrapsByCategoryId(token, categoryId, remoteId)
+                val syncScrapsResult = scrapRepository.syncScrapsByCategoryId(categoryId, remoteId)
 
                 when(syncScrapsResult) {
                     Result.Loading -> {}

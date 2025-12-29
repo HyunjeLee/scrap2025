@@ -15,10 +15,10 @@ import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /** CategoryRepositoryImpl - CategoryRepository 구현체 Room DB(CategoryDao)를 사용하여 데이터 관리 */
 @Singleton
@@ -62,23 +62,21 @@ constructor(
         }
     }
 
-    override suspend fun createCategory(item: CategoryItem, token: String?): Result<Unit> {
+    override suspend fun createCategory(item: CategoryItem): Result<Unit> {
         return try {
             // 1. Local Insert (PENDING)
             val entity = CategoryEntity.fromDomainModel(item)
             categoryDao.insertCategory(entity)
 
-            // 2. Remote Sync (if token exists)
-            if (token != null) {
-                val remoteResult = createCategoryRemote(token, item.name)
-                if (remoteResult is Result.Success) {
-                    // 3. Trigger Sync to get the remoteId
-                    // Since the creation API doesn't return the ID, we must fetch the list
-                    // and match by name (handled in syncCategories)
-                    syncCategories(token)
-                }
-                // If remote fails, it stays PENDING
+            // 2. Remote Sync
+            val remoteResult = createCategoryRemote(item.name)
+            if (remoteResult is Result.Success) {
+                // 3. Trigger Sync to get the remoteId
+                // Since the creation API doesn't return the ID, we must fetch the list
+                // and match by name (handled in syncCategories)
+                syncCategories()
             }
+            // If remote fails, it stays PENDING
 
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -86,7 +84,7 @@ constructor(
         }
     }
 
-    override suspend fun deleteCategory(id: String, token: String?): Result<Unit> {
+    override suspend fun deleteCategory(id: String): Result<Unit> {
         return try {
             val existing =
                 categoryDao.getCategoryById(id)
@@ -120,12 +118,12 @@ constructor(
                 categoryDao.deleteCategory(id)
             }
 
-            // 3. Remote Delete (if token exists and remoteId exists)
+            // 3. Remote Delete (if remoteId exists)
             val remoteId = existing.remoteId
-            if (token != null && remoteId != null) {
+            if (remoteId != null) {
                 // Remote failure shouldn't rollback local deletion (Local First)
                 // But we might want to log it or schedule a retry
-                val remoteResult = deleteCategoryRemote(token, remoteId)
+                val remoteResult = deleteCategoryRemote(remoteId)
                 if (remoteResult is Result.Error) {
                     // TODO: Handle sync failure (e.g., job scheduler)
                     // For now, we consider the operation successful if local part is done
@@ -138,7 +136,7 @@ constructor(
         }
     }
 
-    override suspend fun updateCategory(id: String, name: String, token: String?): Result<Unit> {
+    override suspend fun updateCategory(id: String, name: String): Result<Unit> {
         return try {
             val existing =
                 categoryDao.getCategoryById(id)
@@ -158,11 +156,11 @@ constructor(
             // 1. Local Update
             categoryDao.updateCategoryName(id, name)
 
-            // 2. Remote Sync (if token exists and remoteId is valid)
+            // 2. Remote Sync (if remoteId is valid)
             val remoteId = existing.remoteId
-            if (token != null && remoteId != null && remoteId != 0 && remoteId != -1) {
+            if (remoteId != null && remoteId != 0 && remoteId != -1) {
                 // If remoteId is 0 or -1, it means it's not synced yet.
-                updateCategoryRemote(token, remoteId, name)
+                updateCategoryRemote(remoteId, name)
                 // We ignore remote failure for now, following local-first principle
             }
             Result.Success(Unit)
@@ -171,9 +169,9 @@ constructor(
         }
     }
 
-    override suspend fun syncCategories(token: String): Result<Unit> {
+    override suspend fun syncCategories(): Result<Unit> {
         return try {
-            val response = authService.getCategories(token)
+            val response = authService.getCategories()
             if (response.isSuccessful) {
                 val remoteCategories = response.body()?.result?.categories ?: emptyList()
                 val localCategories = categoryDao.getAllCategoriesSnapshot()
@@ -224,7 +222,6 @@ constructor(
 
     override suspend fun reorderCategories(
         categoryItems: List<CategoryItem>,
-        token: String?
     ): Result<Unit> {
         return try {
             db.withTransaction {
@@ -235,12 +232,12 @@ constructor(
             }
 
             // Remote Sync
-            if (token != null) {
-                val categoryRemoteIds = categoryItems.mapNotNull { it.remoteId }
-                if (categoryRemoteIds.isNotEmpty()) {
-                    updateCategorySequenceRemote(token, categoryRemoteIds)
-                }
+
+            val categoryRemoteIds = categoryItems.mapNotNull { it.remoteId }
+            if (categoryRemoteIds.isNotEmpty()) {
+                updateCategorySequenceRemote(categoryRemoteIds)
             }
+
 
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -249,12 +246,11 @@ constructor(
     }
 
     private suspend fun createCategoryRemote(
-        token: String,
         title: String
     ): Result<CategoryCreateResult> {
         return try {
             val request = CategoryCreateRequest(categoryTitle = title)
-            val response = authService.createCategory(token, request)
+            val response = authService.createCategory(request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {
@@ -271,13 +267,12 @@ constructor(
     }
 
     private suspend fun updateCategoryRemote(
-        token: String,
         categoryId: Int,
         newTitle: String
     ): Result<CategoryRenameResult> {
         return try {
             val request = CategoryRenameRequest(newCategoryTitle = newTitle)
-            val response = authService.renameCategory(token, categoryId, request)
+            val response = authService.renameCategory(categoryId, request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {
@@ -293,9 +288,9 @@ constructor(
         }
     }
 
-    private suspend fun deleteCategoryRemote(token: String, categoryId: Int): Result<Unit> {
+    private suspend fun deleteCategoryRemote(categoryId: Int): Result<Unit> {
         return try {
-            val response = authService.deleteCategory(token, categoryId)
+            val response = authService.deleteCategory(categoryId)
             if (response.isSuccessful) {
                 Result.Success(Unit)
             } else {
@@ -307,12 +302,11 @@ constructor(
     }
 
     private suspend fun updateCategorySequenceRemote(
-        token: String,
         categoryRemoteIds: List<Int>
     ): Result<CategorySequenceResult> {
         return try {
             val request = CategorySequenceRequest(categoryIdList = categoryRemoteIds)
-            val response = authService.updateCategorySequence(token, request)
+            val response = authService.updateCategorySequence(request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {

@@ -5,11 +5,9 @@ import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.repository.MyPageRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.flow.firstOrNull
 
 @HiltWorker
 class MyPageSyncWorker
@@ -18,23 +16,15 @@ constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val myPageRepository: MyPageRepository,
-    private val tokenManager: TokenManager
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
         Log.d("MyPageSyncWorker", "Starting background sync for MyPage")
 
-        val token = tokenManager.accessToken.firstOrNull()
-
-        if (token.isNullOrEmpty()) {
-            Log.e("MyPageSyncWorker", "No access token found, cannot sync.")
-            return Result.failure()
-        }
-
         return try {
             // invokeMyPageSync가 Exception을 던지면 catch 블록으로 이동하여 retry()
             // false를 반환하면(서버 4xx/5xx 등) -> retry() 할지 failure() 할지 결정
-            val isSuccess = myPageRepository.invokeMyPageSync(token)
+            val isSuccess = myPageRepository.invokeMyPageSync()
 
             if (isSuccess) {
                 Result.success()

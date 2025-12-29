@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.Result
@@ -15,7 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,7 +23,6 @@ class CategorySelectionViewModel
 constructor(
     private val categoryRepository: CategoryRepository,
     private val scrapRepository: ScrapRepository,
-    private val tokenManager: TokenManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -67,12 +64,7 @@ constructor(
         }
 
         // Trigger Sync
-        viewModelScope.launch {
-            val token = tokenManager.accessToken.firstOrNull()
-            if (!token.isNullOrBlank()) {
-                categoryRepository.syncCategories(token)
-            }
-        }
+        viewModelScope.launch { categoryRepository.syncCategories() }
     }
 
 }

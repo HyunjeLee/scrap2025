@@ -2,7 +2,6 @@ package com.scrap2025.scrap2025.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.repository.CategoryRepository
@@ -11,7 +10,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -21,7 +19,6 @@ class CategoryViewModel
 @Inject
 constructor(
         private val categoryRepository: CategoryRepository,
-        private val tokenManager: TokenManager
 ) : ViewModel() {
 
     private val _categoryUiState = MutableStateFlow<Result<List<CategoryItem>>>(Result.Loading)
@@ -37,12 +34,7 @@ constructor(
         }
 
         // Trigger Sync
-        viewModelScope.launch {
-            val token = tokenManager.accessToken.firstOrNull()
-            if (!token.isNullOrBlank()) {
-                categoryRepository.syncCategories(token)
-            }
-        }
+        viewModelScope.launch { categoryRepository.syncCategories() }
     }
 
     /**
@@ -77,9 +69,6 @@ constructor(
         val updatedList = currentState.data
 
         // DB 업데이트 및 서버 동기화
-        viewModelScope.launch {
-            val token = tokenManager.accessToken.firstOrNull()
-            categoryRepository.reorderCategories(updatedList, token)
-        }
+        viewModelScope.launch { categoryRepository.reorderCategories(updatedList) }
     }
 }
