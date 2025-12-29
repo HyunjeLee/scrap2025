@@ -2,21 +2,13 @@ package com.scrap2025.scrap2025.ui.category.screens
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -29,18 +21,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.model.Result
+import com.scrap2025.scrap2025.ui.common.buttons.TwoButtons
+import com.scrap2025.scrap2025.ui.common.topbars.TopBarWithBack
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
-import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
-import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
-import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.AddCategoryViewModel
@@ -101,42 +91,8 @@ fun AddCategoryScreenContent(
         .fillMaxSize()
         .background(BackgroundColor)) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // 헤더 (높이 68dp)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(68.dp)
-                    .background(MainColor),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 21.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(onClick = { onBack() }, modifier = Modifier.padding(0.dp)) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                            contentDescription = "뒤로가기",
-                            tint = DarkGrayColor
-                        )
-                    }
-
-                    Text(
-                        text = "카테고리 추가하기",
-                        style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-                        color = Color.Black,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 12.dp)
-                    )
-
-                    // 우측 빈 공간 (뒤로가기 버튼과 균형)
-                    Box(modifier = Modifier.padding(8.dp))
-                }
-            }
+            // 헤더
+            TopBarWithBack(title = "카테고리 추가하기" ,onBack = onBack)
 
             // 입력 필드
             Box(
@@ -188,47 +144,13 @@ fun AddCategoryScreenContent(
         }
 
         // 하단 버튼
-        Row(
-            modifier =
-                Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .padding(horizontal = 21.dp, vertical = 21.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // 취소 버튼
-            Button(
-                onClick = { onBack() },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LightGrayColor),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = "취소",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
-                    color = DarkGrayColor
-                )
-            }
-
-            // 추가하기 버튼
-            Button(
-                onClick = { onAddCategory() },
-                enabled = addCategoryState !is Result.Loading,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MainColorDeep),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    text = if (addCategoryState is Result.Loading) "추가 중..." else "추가하기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
-                    color = MainColor
-                )
-            }
-        }
+        TwoButtons(
+            confirmText = "추가하기",
+            onCancel = onBack,
+            onConfirm = onAddCategory,
+            state = addCategoryState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
