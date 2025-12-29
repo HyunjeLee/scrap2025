@@ -17,6 +17,7 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,6 +46,26 @@ constructor(
             } catch (e: Exception) {
                 Result.Error(e, "스크랩 목록 조회 실패")
             }
+        }
+    }
+
+    override fun getFavoriteScrapItemsFromRemote(): Flow<Result<List<ScrapItem>>> = flow {
+        emit(Result.Loading)
+
+        try {
+            val response = authService.getFavoriteScraps()
+
+            if (response.isSuccessful) {
+                val remoteScraps = response.body()?.result?.scraps ?: emptyList()
+
+                val domainItems = remoteScraps.map { it.toEntity("NO_LOCAL").toDomainModel() }
+
+                emit(Result.Success(domainItems))
+            } else {
+                Result.Error(Exception("error code: ${response.code()}"), "즐겨찾기 조회 실패")
+            }
+        } catch (e: Exception) {
+            emit(Result.Error(e, "네트워크 오류 발생 (즐겨찾기 조회)"))
         }
     }
 
@@ -88,7 +109,6 @@ constructor(
                 }
             }
             // If remote fails, it stays PENDING
-
 
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -196,7 +216,7 @@ constructor(
     override suspend fun moveScrapsToCategory(
         fromId: String,
         toId: String
-    ): Result<Unit> {  //todo: 실제 스크랩 ID 리스트로 인자 추가
+    ): Result<Unit> { // todo: 실제 스크랩 ID 리스트로 인자 추가
         return try {
             val movedCount = scrapDao.moveScraps(fromId, toId)
             if (movedCount > 0) {
@@ -206,7 +226,7 @@ constructor(
 
             authService.moveScrapBulk(
                 ScrapBulkRequest(
-                    scrapIds = listOf(),  //todo: 실제 스크랩 ID 리스트로 대체
+                    scrapIds = listOf(), // todo: 실제 스크랩 ID 리스트로 대체
                     moveCategoryId = categoryDao.getCategoryById(toId)!!.remoteId!!.toLong()
                 )
             )
@@ -293,10 +313,7 @@ constructor(
             Result.Error(e, "스크랩 동기화 중 오류 발생")
         }
     }
-
-    private suspend fun createScrapRemote(
-        item: ScrapItem
-    ): Result<ScrapCreateResult> {
+    private suspend fun createScrapRemote(item: ScrapItem): Result<ScrapCreateResult> {
         return try {
             // 1. 카테고리 정보 가져오기
             val category = categoryDao.getCategoryById(item.categoryId)
@@ -336,10 +353,7 @@ constructor(
         }
     }
 
-    private suspend fun editMemo(
-        remoteId: Int,
-        memo: String
-    ): Result<ScrapMemoDto> {
+    private suspend fun editMemo(remoteId: Int, memo: String): Result<ScrapMemoDto> {
         return try {
             val request = ScrapMemoDto(memo = memo)
 

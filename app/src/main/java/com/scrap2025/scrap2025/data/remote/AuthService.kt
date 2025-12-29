@@ -81,6 +81,9 @@ interface AuthService {
         @Query("category") categoryId: Int
     ): Response<BaseResponse<ScrapListResponse>>
 
+    @GET("/auth/scraps/favorite")
+    suspend fun getFavoriteScraps(): Response<BaseResponse<ScrapListResponse>>
+
     @GET("/auth/scraps/{scrap-id}")
     suspend fun getScrapById(
         @Path("scrap-id") scrapId: Int
