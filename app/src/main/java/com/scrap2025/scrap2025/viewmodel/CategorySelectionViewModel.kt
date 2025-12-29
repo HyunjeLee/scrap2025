@@ -10,6 +10,7 @@ import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.navigation.CategorySelection
 import com.scrap2025.scrap2025.repository.CategoryRepository
+import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,11 +24,13 @@ class CategorySelectionViewModel
 @Inject
 constructor(
     private val categoryRepository: CategoryRepository,
+    private val scrapRepository: ScrapRepository,
     private val tokenManager: TokenManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     val mode = savedStateHandle.toRoute<CategorySelection>().mode
+    val scrapId = savedStateHandle.toRoute<CategorySelection>().scrapId
 
     private val _categoryUiState = MutableStateFlow<Result<List<CategoryItem>>>(Result.Loading)
     val categoryUiState: StateFlow<Result<List<CategoryItem>>> = _categoryUiState.asStateFlow()
@@ -46,6 +49,16 @@ constructor(
     fun updateSelectedCategory(id: String, name: String) {
         _selectedCategoryId.value = id
         _selectedCategoryName.value = name
+    }
+
+    fun moveScrap(categoryId: String, onSuccess: () -> Unit) {
+        if (scrapId != null) {
+            viewModelScope.launch {
+                val result = scrapRepository.moveScrapItem(scrapId, categoryId)
+
+                if (result is Result.Success) { onSuccess() }
+            }
+        }
     }
 
     private fun fetchCategories() {

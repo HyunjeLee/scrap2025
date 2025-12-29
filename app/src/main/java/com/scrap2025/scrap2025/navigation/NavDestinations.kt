@@ -16,7 +16,7 @@ sealed interface Route
 @Serializable object Category : Route
 
 @Serializable
-data class CategorySelection(val mode: Mode) : Route
+data class CategorySelection(val mode: Mode, val scrapId: String? = null) : Route
 
 @Serializable object AddCategory : Route
 

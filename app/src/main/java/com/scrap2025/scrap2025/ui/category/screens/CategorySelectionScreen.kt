@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.ui.category.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,26 +44,39 @@ enum class Mode {
 
 @Composable
 fun CategorySelectionScreen(
-    title: String,
-    confirmText: String,
     onBack: () -> Unit,
     onAddClick: () -> Unit,
-    onConfirmClick: (String, String) -> Unit,
+    onConfirmShare: (String, String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategorySelectionViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val mode = viewModel.mode
+    val title = when (mode) {
+        Mode.MOVE -> "이동하기"
+        Mode.SHARE -> "카테고리 선택하기"
+    }
+    val confirmText = when (mode) {
+        Mode.MOVE -> "이동하기"
+        Mode.SHARE -> "다음"
+    }
+
     val uiState by viewModel.categoryUiState.collectAsState()
     val selectedCategoryId by viewModel.selectedCategoryId.collectAsState()
     val selectedCategoryName by viewModel.selectedCategoryName.collectAsState()
 
-    fun onConfirm() = {
-        when (viewModel.mode) {
+    fun onConfirm(): () -> Unit = {
+        when (mode) {
             Mode.MOVE -> {
-
+                viewModel.moveScrap(selectedCategoryId) {
+                    onBack()
+                    onBack()  // UX를 위해 기존의 스크랩 목록 화면으로 돌아가 사용자에게 이동되었음을 보여준다.
+                    Toast.makeText(context, "스크랩이 성공적으로 이동되었습니다.", Toast.LENGTH_SHORT).show()
+                }
             }
 
             Mode.SHARE -> {
-                onConfirmClick(selectedCategoryId, selectedCategoryName)
+                onConfirmShare(selectedCategoryId, selectedCategoryName)
             }
         }
     }

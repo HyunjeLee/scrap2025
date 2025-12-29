@@ -71,7 +71,8 @@ import java.time.LocalDateTime
 @Composable
 fun ScrapDetailScreen(
     onBack: () -> Unit,
-    onEditMemo: (String, String) -> Unit,
+    onEditMemo: (String) -> Unit,
+    onMove: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ScrapDetailViewModel = hiltViewModel()
 ) {
@@ -121,6 +122,7 @@ fun ScrapDetailScreen(
                     scrapItem = scrapItem,
                     onBack = onBack,
                     onEditMemo = onEditMemo,
+                    onMove = onMove,
                     onClipboardCopy = { url -> context.copyToClipboard(url) },
                     onImageClick = { url -> UrlNavigator.openUrl(context, url) },
                     modifier = modifier,
@@ -135,13 +137,13 @@ fun ScrapDetailScreen(
 fun ScrapDetailContent(
     scrapItem: ScrapItem,
     onBack: () -> Unit,
-    onEditMemo: (String, String) -> Unit,
+    onEditMemo: (String) -> Unit,
+    onMove: () -> Unit,
     onClipboardCopy: (String) -> Unit,
     onImageClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     onDelete: () -> Unit = {},
     onShare: () -> Unit = {},
-    onMove: () -> Unit = {},
     onToggleFavorite: () -> Unit = {},
 ) {
     Scaffold(
@@ -379,7 +381,7 @@ fun DetailBottomBar(
     onDelete: () -> Unit,
     scrapId: String,
     initialMemo: String,
-    onEditMemo: (String, String) -> Unit,
+    onEditMemo: (String) -> Unit,
     onShare: () -> Unit,
     onMove: () -> Unit,
     onToggleFavorite: () -> Unit,
@@ -413,7 +415,7 @@ fun DetailBottomBar(
                 label = "삭제",
                 onClick = onDelete
             )
-            BottomNavItem(icon = Icons.Outlined.Edit, label = "메모 수정", onClick = { onEditMemo(scrapId, initialMemo) })
+            BottomNavItem(icon = Icons.Outlined.Edit, label = "메모 수정", onClick = { onEditMemo(initialMemo) })
             BottomNavItem(icon = Icons.Outlined.Share, label = "공유", onClick = onShare)
             BottomNavItem(
                 icon = Icons.AutoMirrored.Outlined.DriveFileMove,
@@ -485,7 +487,8 @@ fun FullDataPreview() {
         ScrapDetailContent(
             scrapItem = scrapItem,
             onBack = {},
-            onEditMemo = { _, _ -> },
+            onEditMemo = {},
+            onMove = {},
             onClipboardCopy = {},
             onImageClick = {}
         )
@@ -511,7 +514,9 @@ fun NoImageAndMemoPreview() {
             onBack = {},
             onClipboardCopy = {},
             onImageClick = {},
-            onEditMemo = { _, _ -> })
+            onEditMemo = {},
+            onMove = {}
+        )
     }
 }
 
@@ -533,9 +538,10 @@ fun DarkModePreview() {
         ScrapDetailContent(
             scrapItem = scrapItem,
             onBack = {},
-            onEditMemo = { _, _ -> },
+            onEditMemo = {},
             onClipboardCopy = {},
-            onImageClick = {}
+            onImageClick = {},
+            onMove = {},
         )
     }
 }

@@ -33,11 +33,9 @@ fun NavGraphBuilder.categoryNavGraph(navController: NavHostController) {
 
         composable<CategorySelection> {
             CategorySelectionScreen(
-                title = "카테고리 선택하기",
-                confirmText = "다음",
                 onBack = { navController.popBackStack() },
                 onAddClick = { navController.navigate(AddCategory) },
-                onConfirmClick = { categoryId, categoryName ->
+                onConfirmShare = { categoryId, categoryName ->
                     GlobalUiState.setCategory(categoryId, categoryName)
                     // 1. 해당 카테고리의 스크랩 리스트로 백스택 교체
                     navController.navigate(Scrap) { popUpTo(0) { inclusive = true } }
