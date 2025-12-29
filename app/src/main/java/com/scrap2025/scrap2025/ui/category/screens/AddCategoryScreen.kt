@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -16,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -87,71 +87,75 @@ fun AddCategoryScreenContent(
     addCategoryState: Result<Unit>?,
     onAddCategory: () -> Unit,
 ) {
-    Box(modifier = modifier
-        .fillMaxSize()
-        .background(BackgroundColor)) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // 헤더
-            TopBarWithBack(title = "카테고리 추가하기" ,onBack = onBack)
-
-            // 입력 필드
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 21.dp, vertical = 20.dp)
-                        .background(MainColorLight, shape = RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-            ) {
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundColor,
+        topBar = { TopBarWithBack(title = "카테고리 추가하기", onBack = onBack) },
+        bottomBar = {
+            TwoButtons(
+                confirmText = "추가하기",
+                onCancel = onBack,
+                onConfirm = onAddCategory,
+                state = addCategoryState
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // 입력 필드
                 Box(
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .height(56.dp)
-                            .background(MainColor, shape = RoundedCornerShape(10.dp))
+                            .padding(horizontal = 21.dp, vertical = 20.dp)
+                            .background(MainColorLight, shape = RoundedCornerShape(8.dp))
+                            .padding(12.dp)
                 ) {
-                    TextField(
-                        value = categoryTitleInput,
-                        onValueChange = { newName -> onValueChange(newName) },
-                        placeholder = {
-                            Text(
-                                text = "카테고리명을 입력하세요",
-                                color = GrayColor,
-                                style = TextStyle(fontSize = 15.sp)
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
-                        textStyle =
-                            TextStyle(
-                                fontSize = 15.sp,
-                            ),
-                        colors =
-                            TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.Black,
-                                cursorColor = Color.Black
-                            ),
-                        singleLine = true
-                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .background(MainColor, shape = RoundedCornerShape(10.dp))
+                    ) {
+                        TextField(
+                            value = categoryTitleInput,
+                            onValueChange = { newName -> onValueChange(newName) },
+                            placeholder = {
+                                Text(
+                                    text = "카테고리명을 입력하세요",
+                                    color = GrayColor,
+                                    style = TextStyle(fontSize = 15.sp)
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp),
+                            textStyle = TextStyle(fontSize = 15.sp),
+                            colors =
+                                TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    focusedTextColor = Color.Black,
+                                    unfocusedTextColor = Color.Black,
+                                    cursorColor = Color.Black
+                                ),
+                            singleLine = true,
+                            readOnly = addCategoryState is Result.Loading
+                        )
+                    }
                 }
             }
         }
 
-        // 하단 버튼
-        TwoButtons(
-            confirmText = "추가하기",
-            onCancel = onBack,
-            onConfirm = onAddCategory,
-            state = addCategoryState,
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
     }
+
 }
 
 @Preview(showBackground = true)
