@@ -24,8 +24,8 @@ constructor(
         private val tokenManager: TokenManager
 ) : ViewModel() {
 
-    private val _categoryUiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
-    val categoryUiState: StateFlow<CategoryUiState> = _categoryUiState.asStateFlow()
+    private val _categoryUiState = MutableStateFlow<Result<List<CategoryItem>>>(Result.Loading)
+    val categoryUiState: StateFlow<Result<List<CategoryItem>>> = _categoryUiState.asStateFlow()
 
     init {
         fetchCategories()
@@ -33,16 +33,7 @@ constructor(
 
     private fun fetchCategories() {
         viewModelScope.launch {
-            _categoryUiState.value = CategoryUiState.Loading
-            categoryRepository.getAllCategories().collect { result ->
-                _categoryUiState.update {
-                    when (result) {
-                        is Result.Loading -> CategoryUiState.Loading
-                        is Result.Success -> CategoryUiState.Success(result.data)
-                        is Result.Error -> CategoryUiState.Error(result.message)
-                    }
-                }
-            }
+            categoryRepository.getAllCategories().collect { _categoryUiState.value = it }
         }
 
         // Trigger Sync
@@ -62,9 +53,9 @@ constructor(
      */
     fun moveCategory(fromIndex: Int, toIndex: Int) {
         val currentState = _categoryUiState.value
-        if (currentState !is CategoryUiState.Success) return
+        if (currentState !is Result.Success) return
 
-        val currentCategories = currentState.categories
+        val currentCategories = currentState.data
 
         // 0번 자리가 DEFAULT_ID인 경우, 출발지가 0번이거나 목적지가 0번이면 이동 불가
         if (currentCategories[0].id == CategoryItem.DEFAULT_ID && (fromIndex == 0 || toIndex == 0)) return
@@ -72,7 +63,7 @@ constructor(
         val updatedList = currentCategories.toMutableList().apply { add(toIndex, removeAt(fromIndex)) }
 
         // 낙관적 업데이트 (UI 즉시 반영)
-        _categoryUiState.update { CategoryUiState.Success(updatedList) }
+        _categoryUiState.update { Result.Success(updatedList) }
     }
 
     /**
@@ -81,9 +72,9 @@ constructor(
      */
     fun updateCategoryOrder() {
         val currentState = _categoryUiState.value
-        if (currentState !is CategoryUiState.Success) return
+        if (currentState !is Result.Success) return
 
-        val updatedList = currentState.categories
+        val updatedList = currentState.data
 
         // DB 업데이트 및 서버 동기화
         viewModelScope.launch {
@@ -91,10 +82,4 @@ constructor(
             categoryRepository.reorderCategories(updatedList, token)
         }
     }
-}
-
-sealed interface CategoryUiState {
-    data object Loading : CategoryUiState
-    data class Success(val categories: List<CategoryItem>) : CategoryUiState
-    data class Error(val message: String?) : CategoryUiState
 }

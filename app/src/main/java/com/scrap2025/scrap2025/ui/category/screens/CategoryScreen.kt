@@ -37,13 +37,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.model.CategoryItem
+import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
+import com.scrap2025.scrap2025.ui.common.components.ErrorScreen
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
-import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -55,7 +56,6 @@ fun CategoryScreen(
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategoryViewModel = hiltViewModel(),
-    showFab: Boolean = true,
 ) {
     val uiState by viewModel.categoryUiState.collectAsState()
 
@@ -64,7 +64,6 @@ fun CategoryScreen(
         onCategoryClick = onCategoryClick,
         onAddClick = onAddClick,
         modifier = modifier,
-        showFab = showFab,
         onMove = { from, to -> viewModel.moveCategory(from, to) },
         onDragStopped = { viewModel.updateCategoryOrder() }
     )
@@ -73,11 +72,10 @@ fun CategoryScreen(
 /** CategoryScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
 @Composable
 fun CategoryScreenContent(
-    uiState: CategoryUiState,
+    uiState: Result<List<CategoryItem>>,
     onCategoryClick: (CategoryItem) -> Unit,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
-    showFab: Boolean = true,
     onMove: (Int, Int) -> Unit = { _, _ -> },
     onDragStopped: () -> Unit = {}
 ) {
@@ -108,40 +106,23 @@ fun CategoryScreenContent(
 
             // 카테고리 리스트 - 상태 처리
             when (uiState) {
-                is CategoryUiState.Loading -> {
+                is Result.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MainColorDeep)
                     }
                 }
-                is CategoryUiState.Error -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "카테고리를 불러올 수 없습니다",
-                                style =
-                                    TextStyle(
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Medium
-                                    ),
-                                color = GrayColor
-                            )
-                            uiState.message?.let {
-                                Text(
-                                    text = it,
-                                    style = TextStyle(fontSize = 14.sp),
-                                    color = GrayColor,
-                                    modifier = Modifier.padding(top = 8.dp)
-                                )
-                            }
-                        }
-                    }
+                is Result.Error -> {
+                    ErrorScreen(
+                        errorText = "카테고리를 불러올 수 없습니다.",
+                        errorState = uiState
+                    )
                 }
-                is CategoryUiState.Success -> {
+                is Result.Success -> {
                     // TODO: 전체 동기화 상태 표시 UI 추가 필요
                     // 동기화 상태 로깅
-                    LaunchedEffect(uiState.categories) {
+                    LaunchedEffect(uiState.data) {
                         val hasPending =
-                            uiState.categories.any { it.syncStatus == SyncStatus.PENDING }
+                            uiState.data.any { it.syncStatus == SyncStatus.PENDING }
 
                         if (hasPending) {
                             Log.d("CategorySync", "전체 카테고리 동기화 중... (Pending items detected)")
@@ -159,7 +140,7 @@ fun CategoryScreenContent(
                         )
 
                     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                        items(items = uiState.categories, key = { it.id }) { item ->
+                        items(items = uiState.data, key = { it.id }) { item ->
                             ReorderableItem(state, key = item.id) { isDragging ->
                                 val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
 
@@ -197,24 +178,22 @@ fun CategoryScreenContent(
         }
 
         // FAB 버튼 - 오른쪽 하단에 고정
-        if (showFab) {
-            FloatingActionButton(
-                onClick = onAddClick,
-                shape = CircleShape,
-                containerColor = MainColor,
-                contentColor = MainColorDeep,
-                modifier =
-                    Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 21.dp, bottom = 21.dp)
-                        .size(60.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Add,
-                    contentDescription = "카테고리 추가",
-                    modifier = Modifier.size(50.dp)
-                )
-            }
+        FloatingActionButton(
+            onClick = onAddClick,
+            shape = CircleShape,
+            containerColor = MainColor,
+            contentColor = MainColorDeep,
+            modifier =
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 21.dp, bottom = 21.dp)
+                    .size(60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = "카테고리 추가",
+                modifier = Modifier.size(50.dp)
+            )
         }
     }
 }
@@ -244,7 +223,7 @@ fun CategoryScreenContentPreview() {
 
     Scrap2025Theme {
         CategoryScreenContent(
-            uiState = CategoryUiState.Success(categories = dummyCategories),
+            uiState = Result.Success(data = dummyCategories),
             onCategoryClick = {},
             onAddClick = {}
         )
