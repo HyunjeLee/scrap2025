@@ -197,6 +197,7 @@ constructor(
                             categoryDao.updateCategoryRemoteId(
                                 existingLocal.id,
                                 remoteCategory.categoryId,
+                                remoteCategory.scrapCnt,
                                 remoteCategory.sequence - 1,
                                 SyncStatus.SYNCED
                             )

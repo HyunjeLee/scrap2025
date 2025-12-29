@@ -158,10 +158,20 @@ constructor(
             if (existing != null) {
                 val categoryRemoteId = categoryDao.getCategoryById(categoryId)!!.remoteId!!
 
-                scrapDao.moveScrap(scrapId, categoryId)
+                appDatabase.withTransaction {
+                    // 이전 카테고리 카운트 감소
+                    categoryDao.decrementScrapCount(existing.categoryId)
+                    // 카테고리 이동
+                    scrapDao.moveScrap(scrapId, categoryId)
+                    // 이동한 카테고리 카운트 증가
+                    categoryDao.incrementScrapCount(categoryId)
+                }
 
-                authService.moveScrap(tokenManager.accessToken.firstOrNull()!!, existing.remoteId!!.toLong(),
-                    ScrapMoveDto(categoryRemoteId.toLong()))
+                authService.moveScrap(
+                    tokenManager.accessToken.firstOrNull()!!,
+                    existing.remoteId!!.toLong(),
+                    ScrapMoveDto(categoryRemoteId.toLong())
+                )
 
                 Result.Success(Unit)
             } else {
