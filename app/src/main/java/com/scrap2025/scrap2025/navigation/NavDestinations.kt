@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.navigation
 
+import com.scrap2025.scrap2025.ui.category.screens.Mode
 import kotlinx.serialization.Serializable
 
 /** Type-Safe Navigation Route Definitions */
@@ -14,7 +15,8 @@ sealed interface Route
 // Tab Routes
 @Serializable object Category : Route
 
-@Serializable object CategorySelection : Route
+@Serializable
+data class CategorySelection(val mode: Mode) : Route
 
 @Serializable object AddCategory : Route
 
@@ -22,7 +24,8 @@ sealed interface Route
 
 @Serializable object AddScrap : Route
 
-@Serializable data class EditMemo(val scrapId: String, val initialMemo: String) : Route
+@Serializable
+data class EditMemo(val scrapId: String, val initialMemo: String) : Route
 
 @Serializable
 data class ScrapDetail(val scrapId: String) : Route

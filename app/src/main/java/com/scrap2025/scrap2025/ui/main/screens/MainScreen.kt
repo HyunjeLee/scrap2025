@@ -25,6 +25,7 @@ import com.scrap2025.scrap2025.navigation.MyPage
 import com.scrap2025.scrap2025.navigation.Scrap
 import com.scrap2025.scrap2025.navigation.Search
 import com.scrap2025.scrap2025.navigation.TabNavHost
+import com.scrap2025.scrap2025.ui.category.screens.Mode
 import com.scrap2025.scrap2025.ui.common.utils.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
@@ -70,7 +71,7 @@ fun MainScreen(
     // 공유된 URL이 있으면 AddScrapScreen으로 이동
     LaunchedEffect(sharedUrl) {
         if (sharedUrl != null) {
-            tabNavController.navigate(CategorySelection)
+            tabNavController.navigate(CategorySelection(Mode.SHARE))
         }
     }
 

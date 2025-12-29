@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.model.CategoryItem
-import com.scrap2025.scrap2025.ui.theme.LightGrayColor
+import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
@@ -30,13 +33,15 @@ import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 fun CategoryItemCard(
     categoryItem: CategoryItem,
     modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
+    isSelectable: Boolean = false,
     onClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(60.dp)
-            .background(Color.White)
+            .background(if (isSelected) MainColorLight else Color.White)
             .clickable { onClick() }
             .padding(horizontal = 21.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -47,7 +52,8 @@ fun CategoryItemCard(
             text = categoryItem.name,
             style = TextStyle(
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight =
+                    if (isSelected) FontWeight.SemiBold  else FontWeight.Normal
             ),
             color = Color.Black,
             maxLines = 1,
@@ -57,25 +63,36 @@ fun CategoryItemCard(
                 .padding(end = 12.dp)
         )
 
-        // 스크랩 개수 badge
-        Box(
-            modifier = Modifier
-                .background(
-                    color = MainColorLight,
-                    shape = RoundedCornerShape(15.dp)
+        if (isSelectable) {
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = "선택",
+                    tint = MainColorDeep
                 )
-                .padding(horizontal = 10.dp, vertical = 5.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = categoryItem.scrapCount.toString(),
-                style = TextStyle(
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal
-                ),
-                color = Color.Black
-            )
+            }
+        } else {
+            // 스크랩 개수 badge
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = MainColorLight,
+                        shape = RoundedCornerShape(15.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = categoryItem.scrapCount.toString(),
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Normal
+                    ),
+                    color = Color.Black
+                )
+            }
         }
+
     }
 }
 
@@ -93,6 +110,35 @@ fun CategoryItemCardPreview() {
                 )
             )
             CategoryItemCard(
+                categoryItem = CategoryItem(
+                    id = "2",
+                    name = "데이트",
+                    scrapCount = 32,
+                    orderIndex = 0
+                )
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CategoryItemCardSelectionPreview() {
+    Scrap2025Theme {
+        Column {
+            CategoryItemCard(
+                isSelected = true,
+                isSelectable = true,
+                categoryItem = CategoryItem(
+                    id = "1",
+                    name = "isSelectable",
+                    scrapCount = 322,
+                    orderIndex = 0
+                )
+            )
+            CategoryItemCard(
+                isSelected = false,
+                isSelectable = true,
                 categoryItem = CategoryItem(
                     id = "2",
                     name = "데이트",
