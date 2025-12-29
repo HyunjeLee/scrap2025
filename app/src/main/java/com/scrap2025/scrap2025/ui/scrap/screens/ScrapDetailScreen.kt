@@ -1,6 +1,7 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -105,8 +106,16 @@ fun ScrapDetailScreen(
                     confirmText = "삭제하기",
                     onDismiss = { viewModel.hideDeleteDialog() },
                     onConfirm = {
-                        viewModel.deleteScrap()
-                        onBack()
+                        val result = viewModel.deleteScrap(
+                            onSuccess = {
+                                viewModel.hideDeleteDialog()
+                                onBack()
+                                Toast.makeText(context, "스크랩 삭제 성공", Toast.LENGTH_SHORT).show()
+                            },
+                            onFailure = {
+                                Toast.makeText(context, "스크랩 삭제 실패", Toast.LENGTH_SHORT).show()
+                            }
+                        )
                     }
                 )
             }

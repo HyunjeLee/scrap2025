@@ -20,8 +20,10 @@ import javax.inject.Inject
 @HiltViewModel
 class ScrapDetailViewModel
 @Inject
-constructor(private val scrapRepository: ScrapRepository, savedStateHandle: SavedStateHandle) :
-    ViewModel() {
+constructor(
+    private val scrapRepository: ScrapRepository,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
     private val scrapId: String = savedStateHandle.toRoute<ScrapDetail>().scrapId
 
     private val _isDeleteDialogVisible = MutableStateFlow(false)
@@ -59,10 +61,15 @@ constructor(private val scrapRepository: ScrapRepository, savedStateHandle: Save
         _isDeleteDialogVisible.value = false
     }
 
-    fun deleteScrap() {
+    fun deleteScrap(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            scrapRepository.deleteScrapItem(scrapId)
-            hideDeleteDialog()
+            val result = scrapRepository.deleteScrapItem(scrapId)
+
+            when (result) {
+                is Result.Success -> { onSuccess() }
+                is Result.Error -> { onFailure() }
+                else -> {}
+            }
         }
     }
 }

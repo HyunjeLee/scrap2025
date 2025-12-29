@@ -105,12 +105,12 @@ constructor(
         return try {
             val existing = scrapDao.getScrapById(id)
             if (existing != null) {
-                scrapDao.deleteScrap(id)
-                // 카테고리 카운트 감소
-                categoryDao.decrementScrapCount(existing.categoryId)
+                appDatabase.withTransaction {
+                    scrapDao.deleteScrap(id)
+                    categoryDao.decrementScrapCount(existing.categoryId) // 카테고리 카운트 감소
+                }
 
                 authService.deleteScrap(tokenManager.accessToken.firstOrNull()!!, existing.remoteId!!.toLong())
-
 
                 Result.Success(Unit)
             } else {
