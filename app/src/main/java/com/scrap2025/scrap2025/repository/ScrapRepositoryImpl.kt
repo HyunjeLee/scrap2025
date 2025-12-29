@@ -197,20 +197,34 @@ constructor(
     }
 
     override suspend fun toggleFavorite(scrapId: String): Result<Unit> {
-        return try {
-            val existing = scrapDao.getScrapById(scrapId)
-            if (existing != null) {
-                scrapDao.updateIsFavorite(scrapId, !existing.isFavorite)
+//        return try {
+//            val existing = scrapDao.getScrapById(scrapId)
+//            if (existing != null) {
+//                scrapDao.updateIsFavorite(scrapId, !existing.isFavorite)
+//                Result.Success(Unit)
+//            } else {
+//                Result.Error(
+//                    NoSuchElementException("ID가 $scrapId 인 스크랩을 찾을 수 없습니다."),
+//                    "스크랩을 찾을 수 없습니다"
+//                )
+//            }
+//        } catch (e: Exception) {
+//            Result.Error(e, "즐겨찾기 토글 실패")
+//        }
+        try {
+            val scrapRemoteId = scrapDao.getScrapById(scrapId)?.remoteId
+            val response = authService.updateScrapFavorite(scrapRemoteId!!.toLong())
+
+            return if (response.isSuccessful) {
                 Result.Success(Unit)
             } else {
-                Result.Error(
-                    NoSuchElementException("ID가 $scrapId 인 스크랩을 찾을 수 없습니다."),
-                    "스크랩을 찾을 수 없습니다"
-                )
+                Result.Error(Exception("Toggle Favorite failed code: ${response.code()}"), "즐겨찾기 토글 실패")
             }
         } catch (e: Exception) {
-            Result.Error(e, "즐겨찾기 토글 실패")
+            return Result.Error(e, "즐겨찾기 토글 실패")
         }
+
+
     }
 
     override suspend fun moveScrapsToCategory(

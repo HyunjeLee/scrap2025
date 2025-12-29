@@ -135,7 +135,13 @@ fun ScrapDetailScreen(
                     onClipboardCopy = { url -> context.copyToClipboard(url) },
                     onImageClick = { url -> UrlNavigator.openUrl(context, url) },
                     modifier = modifier,
-                    onDelete = { viewModel.showDeleteDialog() }
+                    onDelete = { viewModel.showDeleteDialog() },
+                    onToggleFavorite = {
+                        viewModel.toggleFavorite(
+                            onSuccess = { Toast.makeText(context, "즐겨찾기 성공", Toast.LENGTH_SHORT).show() },
+                            onFailure = { Toast.makeText(context, "즐겨찾기 실패", Toast.LENGTH_SHORT).show() }
+                        )
+                    }
                 )
             }
         }

@@ -72,4 +72,15 @@ constructor(
             }
         }
     }
+
+    fun toggleFavorite(onSuccess: () -> Unit, onFailure: () -> Unit) {
+        viewModelScope.launch {
+            val result = scrapRepository.toggleFavorite(scrapId)
+
+            when (result) {
+                is Result.Success -> { onSuccess() }
+                is Result.Error -> { onFailure() }
+                else -> {}}
+        }
+    }
 }

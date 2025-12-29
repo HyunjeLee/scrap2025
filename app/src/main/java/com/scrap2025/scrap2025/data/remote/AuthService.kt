@@ -84,6 +84,11 @@ interface AuthService {
     @GET("/auth/scraps/favorite")
     suspend fun getFavoriteScraps(): Response<BaseResponse<ScrapListResponse>>
 
+    @PATCH("/auth/scraps/{scrap-id}/favorite")
+    suspend fun updateScrapFavorite(
+        @Path("scrap-id") scrapId: Long
+    ): Response<BaseResponse<JsonElement>>
+
     @GET("/auth/scraps/{scrap-id}")
     suspend fun getScrapById(
         @Path("scrap-id") scrapId: Int
