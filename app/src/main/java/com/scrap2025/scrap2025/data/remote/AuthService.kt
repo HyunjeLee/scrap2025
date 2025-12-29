@@ -16,6 +16,7 @@ import com.scrap2025.scrap2025.data.model.ScrapListResponse
 import com.scrap2025.scrap2025.data.model.ScrapMemoDto
 import com.scrap2025.scrap2025.data.model.ScrapMoveDto
 import com.scrap2025.scrap2025.data.model.ScrapResponse
+import com.scrap2025.scrap2025.data.remote.dto.FavoriteBulkDTO
 import com.scrap2025.scrap2025.data.remote.dto.ScrapBulkRequest
 import kotlinx.serialization.json.JsonElement
 import retrofit2.Response
@@ -87,6 +88,11 @@ interface AuthService {
     @PATCH("/auth/scraps/{scrap-id}/favorite")
     suspend fun updateScrapFavorite(
         @Path("scrap-id") scrapId: Long
+    ): Response<BaseResponse<JsonElement>>
+
+    @PATCH("/auth/scraps/favorite")
+    suspend fun updateScrapBulkFavorite(
+        @Body body: FavoriteBulkDTO
     ): Response<BaseResponse<JsonElement>>
 
     @GET("/auth/scraps/{scrap-id}")

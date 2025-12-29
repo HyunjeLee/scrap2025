@@ -243,10 +243,24 @@ constructor(
     }
 
     // 선택된 아이템 즐겨찾기 토글
-    fun toggleFavoriteSelectedItems() {
+    fun toggleFavoriteSelectedItems(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            _selectedScrapIds.value.forEach { id -> scrapRepository.toggleFavorite(id) }
-            exitSelectionMode()
+//            _selectedScrapIds.value.forEach { id -> scrapRepository.toggleFavorite(id) }
+            val scrapIdBulk = _selectedScrapIds.value.toList()
+            val result = scrapRepository.toggleFavoriteBulk(scrapIdBulk)
+
+            when (result) {
+                is Result.Success -> {
+                    onSuccess()
+                    exitSelectionMode()
+                }
+
+                is Result.Error -> {
+                    onFailure()
+                }
+
+                else -> {}
+            }
         }
     }
 

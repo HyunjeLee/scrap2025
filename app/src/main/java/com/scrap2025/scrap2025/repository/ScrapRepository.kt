@@ -33,6 +33,8 @@ interface ScrapRepository {
     /** 스크랩 아이템의 즐겨찾기 상태 토글 */
     suspend fun toggleFavorite(scrapId: String): Result<Unit>
 
+    suspend fun toggleFavoriteBulk(scrapIdBulk: List<String>): Result<Unit>
+
     /** 특정 카테고리의 모든 스크랩을 다른 카테고리로 이동 */
     suspend fun moveScrapsToCategory(
             fromId: String,

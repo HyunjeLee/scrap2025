@@ -11,6 +11,7 @@ import com.scrap2025.scrap2025.data.model.ScrapMemoDto
 import com.scrap2025.scrap2025.data.model.ScrapMoveDto
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.data.remote.dto.FavoriteBulkDTO
 import com.scrap2025.scrap2025.data.remote.dto.ScrapBulkRequest
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
@@ -223,8 +224,22 @@ constructor(
         } catch (e: Exception) {
             return Result.Error(e, "즐겨찾기 토글 실패")
         }
+    }
 
+    override suspend fun toggleFavoriteBulk(scrapIdBulk: List<String>): Result<Unit> {
+        try {
+            val scrapRemoteIdBulk = scrapIdBulk.map { scrapId -> scrapDao.getScrapById(scrapId)?.remoteId!!.toLong() }
+            val response = authService.updateScrapBulkFavorite(FavoriteBulkDTO(scrapIdList = scrapRemoteIdBulk))
 
+            return if (response.isSuccessful) {
+                Result.Success(Unit)
+            } else {
+                Result.Error(Exception("Toggle Favorite Bulk failed code: ${response.code()}"), "즐겨찾기 목록 토글 실패")
+            }
+
+        } catch (e: Exception) {
+            return Result.Error(e, "즐겨찾기 목록 토글 실패")
+        }
     }
 
     override suspend fun moveScrapsToCategory(
