@@ -24,6 +24,8 @@ val BackgroundColor = Color(0xFFFCFCFC)
 val DarkGrayColor = Color(0xFF7E7E7E)
 val GrayColor = Color(0xFFA3A3A3)
 val LightGrayColor = Color(0xFFEDEDED)
+val LineGrayColor = Color(0xFFEEEEEE)
+val Duotone = Color(0xFF7E869E).copy(alpha = 0.25f)
 
 // Status Colors
 val FavoriteColor = Color(0xFFFFDE32)
