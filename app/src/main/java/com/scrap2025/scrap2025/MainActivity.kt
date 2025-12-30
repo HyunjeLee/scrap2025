@@ -29,21 +29,26 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        when (intent?.action) {
-            Intent.ACTION_SEND -> {
-                if (intent.type == "text/plain") {
-                    val sharedUrl = intent.getStringExtra(Intent.EXTRA_TEXT)
-                    if (sharedUrl != null) {
-                        Log.d("SharedLink", "Received shared URL: $sharedUrl")
+        if (intent?.action == Intent.ACTION_SEND && intent.type == "text/plain") {
+            val sharedText =
+                intent.getStringExtra(Intent.EXTRA_TEXT)
+                    ?: intent.clipData?.getItemAt(0)?.text?.toString()
 
-                        // GlobalUiState에 공유된 URL 설정
-                        // 스크랩 화면에서 이를 감지하여 자동으로 스크랩 추가
-                        GlobalUiState.setSharedUrl(sharedUrl)
-                    } else {
-                        Log.w("SharedLink", "Shared URL is null")
-                    }
+            if (sharedText != null) {
+                val extractedUrl = extractUrl(sharedText)
+                if (extractedUrl != null) {
+                    Log.d("SharedLink", "Extracted URL: $extractedUrl")
+                    GlobalUiState.setSharedUrl(extractedUrl)
+                } else {
+                    Log.w("SharedLink", "No URL found in shared text: $sharedText")
                 }
             }
         }
+    }
+
+    private fun extractUrl(text: String): String? {
+        // Regex to find URLs starting with http or https
+        val urlRegex = "(https?://[\\w-]+(\\.[\\w-]+)+(:\\d+)?(/\\S*)?)".toRegex()
+        return urlRegex.find(text)?.value
     }
 }

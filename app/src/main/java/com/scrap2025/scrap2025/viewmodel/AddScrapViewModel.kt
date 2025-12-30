@@ -62,7 +62,7 @@ constructor(
     }
 
     fun updateUrl(newUrl: String) {
-        _url.value = newUrl
+        _url.value = newUrl.trim()
     }
 
     fun updateMemo(newMemo: String) {

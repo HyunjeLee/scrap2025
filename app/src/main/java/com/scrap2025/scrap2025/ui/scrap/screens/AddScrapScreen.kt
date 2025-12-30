@@ -65,18 +65,13 @@ fun AddScrapScreen(
     val linkPreviewState by viewModel.linkPreviewState.collectAsState()
     val url by viewModel.url.collectAsState()
     val memo by viewModel.memo.collectAsState()
-    val sharedUrl by GlobalUiState.sharedUrl.collectAsState()
+    val isLoading = addScrapState is Result.Loading
     val globalCategoryId by GlobalUiState.selectedCategoryId.collectAsState()
 
-    val isLoading = addScrapState is Result.Loading
-
-    // 공유된 URL이 있으면 자동으로 입력 (ViewModel 상태 업데이트)
-    LaunchedEffect(sharedUrl) {
-        sharedUrl?.let { shared ->
-            viewModel.updateUrl(shared)
-            // 처리 후 초기화
-            GlobalUiState.setSharedUrl(null)
-        }
+    // 화면 진입 시 공유된 URL이 있는지 확인하고 소비
+    LaunchedEffect(Unit) {
+        val pendingUrl = GlobalUiState.consumePendingSharedUrl()
+        pendingUrl?.let { shared -> viewModel.updateUrl(shared) }
     }
 
     // 스크랩 추가 상태 관찰
@@ -87,10 +82,12 @@ fun AddScrapScreen(
                 viewModel.resetState()
                 onBack()
             }
+
             is Result.Error -> {
                 Toast.makeText(context, state.message ?: "스크랩 추가 실패", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
             }
+
             else -> {}
         }
     }
@@ -139,7 +136,9 @@ fun AddScrapScreenContent(
     val isLoadingPreview = linkPreviewState is Result.Loading
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = modifier.fillMaxSize().background(BackgroundColor)) {
+        Column(modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundColor)) {
             // 톱바
             TopBar(onBackClick = onBack)
 
@@ -190,7 +189,9 @@ fun AddScrapScreenContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // 링크 입력 필드
-                Box(modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth()) {
+                Box(modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()) {
                     TextField(
                         value = url,
                         onValueChange = { onUrlChange(it) },

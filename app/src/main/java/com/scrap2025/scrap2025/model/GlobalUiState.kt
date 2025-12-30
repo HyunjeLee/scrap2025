@@ -12,14 +12,29 @@ object GlobalUiState {
     private val _sharedUrl = MutableStateFlow<String?>(null)
     val sharedUrl: StateFlow<String?> = _sharedUrl.asStateFlow()
 
+    private var _pendingSharedUrl: String? = null
+
     /** 바텀바에 표시할 커스텀 컴포저블을 설정합니다. null을 전달하면 기본 바텀바를 표시합니다. */
     fun setBottomBar(content: (@Composable () -> Unit)?) {
         _customBottomBar.value = content
     }
 
-    /** 다른 앱에서 공유된 URL을 설정합니다. 스크랩 화면에서 이 URL을 감지하여 자동으로 스크랩을 추가할 수 있습니다. */
+    /** 다른 앱에서 공유된 URL을 설정하여 네비게이션을 트리거합니다. */
     fun setSharedUrl(url: String?) {
+        _pendingSharedUrl = url
         _sharedUrl.value = url
+    }
+
+    /** 공유 프로세스가 시작되면 트리거 상태를 해제합니다. */
+    fun clearSharedUrlTrigger() {
+        _sharedUrl.value = null
+    }
+
+    /** AddScrapScreen에서 사용할 실제 공유 URL을 가져오고 내부적으로 비웁니다. */
+    fun consumePendingSharedUrl(): String? {
+        val url = _pendingSharedUrl
+        _pendingSharedUrl = null
+        return url
     }
 
     private val _selectedCategoryId = MutableStateFlow(CategoryItem.DEFAULT_ID)
