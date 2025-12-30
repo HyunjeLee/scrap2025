@@ -27,9 +27,7 @@ fun NavGraphBuilder.categoryNavGraph(navController: NavHostController) {
             )
         }
 
-        composable<AddCategory> {
-            AddCategoryScreen(onBack = { navController.popBackStack() })
-        }
+        composable<AddCategory> { AddCategoryScreen(onBack = { navController.popBackStack() }) }
 
         composable<CategorySelection> {
             CategorySelectionScreen(
@@ -42,6 +40,12 @@ fun NavGraphBuilder.categoryNavGraph(navController: NavHostController) {
                     // 2. 스크랩 추가 화면으로 이동 (사용자가 추가 취소 시 스크랩 리스트로 돌아감)
                     navController.navigate(AddScrap)
                 },
+                onConfirmSearch = { categories ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "selectedCategories",
+                        categories
+                    )
+                }
             )
         }
     }

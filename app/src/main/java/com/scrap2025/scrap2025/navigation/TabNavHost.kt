@@ -15,10 +15,7 @@ import com.scrap2025.scrap2025.navigation.graphs.searchNavGraph
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 @Composable
-fun TabNavHost(
-    tabNavController: NavHostController,
-    modifier: Modifier = Modifier
-) {
+fun TabNavHost(tabNavController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(
         navController = tabNavController,
         startDestination = CategoryGraph,
@@ -27,7 +24,7 @@ fun TabNavHost(
         categoryNavGraph(navController = tabNavController)
         scrapNavGraph(navController = tabNavController)
         favoriteNavGraph(navController = tabNavController)
-        searchNavGraph()
+        searchNavGraph(navController = tabNavController)
         myPageNavGraph()
     }
 }

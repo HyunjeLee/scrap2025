@@ -53,7 +53,7 @@ fun SearchHeader(
     searchRange: Set<String>,
     onSearchRangeToggle: (String) -> Unit,
     selectedCategories: List<String>,
-    onAddCategoryClick: () -> Unit,
+    onSelectCategoryClick: () -> Unit,
     onRemoveCategory: (String) -> Unit,
     startDate: String,
     endDate: String,
@@ -170,7 +170,7 @@ fun SearchHeader(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 IconButton(
-                    onClick = onAddCategoryClick,
+                    onClick = onSelectCategoryClick,
                     modifier =
                         Modifier
                             .size((22.5).dp)
@@ -275,7 +275,7 @@ fun SearchHeaderPreview() {
             searchRange = setOf("제목"),
             onSearchRangeToggle = {},
             selectedCategories = listOf("분류 섹션 1", "분류 섹션 2"),
-            onAddCategoryClick = {},
+            onSelectCategoryClick = {},
             onRemoveCategory = {},
             startDate = "2024-05-23",
             endDate = "2024-05-30",
