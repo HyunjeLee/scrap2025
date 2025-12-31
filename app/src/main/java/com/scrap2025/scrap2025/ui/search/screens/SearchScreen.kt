@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.ui.search.screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -20,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -30,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,6 +44,7 @@ import com.scrap2025.scrap2025.ui.search.components.SearchHeader
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.SearchWarning
 import com.scrap2025.scrap2025.viewmodel.SearchViewModel
 import kotlinx.coroutines.launch
 
@@ -79,6 +83,18 @@ fun SearchScreen(
         }
     }
 
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is SearchWarning.ShowMinRangeWarning -> {
+                    Toast.makeText(context, "검색 범위는 1개 이상 지정되어야 합니다", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     if (showDatePicker) {
         val initialStart = viewModel.parseDateToMillis(uiState.startDate) ?: viewModel.nowMillis
         val initialEnd = viewModel.parseDateToMillis(uiState.endDate) ?: viewModel.nowMillis
@@ -99,11 +115,9 @@ fun SearchScreen(
         )
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-    ) {
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(BackgroundColor)) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 1. 검색 헤더 (ViewModel 상태와 연동)
             SearchHeader(

@@ -12,16 +12,19 @@ import com.scrap2025.scrap2025.model.ViewMode
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone.getTimeZone
-import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -43,6 +46,10 @@ data class SearchUiState(
     val searchResults: Result<List<ScrapItem>> = Result.Success(emptyList())
 )
 
+sealed interface SearchWarning {
+    data object ShowMinRangeWarning : SearchWarning
+}
+
 @HiltViewModel
 class SearchViewModel
 @Inject
@@ -55,6 +62,9 @@ constructor(
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+
+    private val _effect = MutableSharedFlow<SearchWarning>()
+    val effect: SharedFlow<SearchWarning> = _effect.asSharedFlow()
 
     // ID 리스트와 전체 카테고리 목록을 결합하여 UI용 리스트 생성
     val selectedCategoryItems: StateFlow<List<CategoryItem>> =
@@ -100,6 +110,12 @@ constructor(
     }
 
     fun toggleSearchRange(range: String) {
+        val currentState = _uiState.value
+        if (currentState.searchRanges.contains(range) && currentState.searchRanges.size == 1) {
+            viewModelScope.launch { _effect.emit(SearchWarning.ShowMinRangeWarning) }
+            return
+        }
+
         _uiState.update { state ->
             val newRanges =
                 if (state.searchRanges.contains(range)) {
