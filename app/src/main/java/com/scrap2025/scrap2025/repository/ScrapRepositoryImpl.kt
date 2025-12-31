@@ -415,6 +415,32 @@ constructor(
             Result.Error(e)
         }
 
+    override suspend fun searchScrapsByCategory(
+        categoryRemoteId: Long,
+        query: String,
+        sortType: String?,
+        sortDirection: String?
+    ): Result<List<ScrapItem>> =
+        try {
+            val response =
+                authService.searchScrapsByCategory(
+                    categoryRemoteId = categoryRemoteId,
+                    query = query,
+                    sort = sortType,
+                    direction = sortDirection
+                )
+
+            if (response.isSuccessful) {
+                val remoteScraps = response.body()?.result?.scraps ?: emptyList()
+                val domainItems = remoteScraps.map { it.toDomainModel() }
+                Result.Success(domainItems)
+            } else {
+                Result.Error(Exception("Category Search failed"))
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+
     private suspend fun createScrapRemote(item: ScrapItem): Result<ScrapCreateResult> {
         return try {
             // 1. 카테고리 정보 가져오기

@@ -152,4 +152,12 @@ interface AuthService {
         @Query("sort") sort: String? = null,
         @Query("direction") direction: String? = null,
     ): Response<BaseResponse<FavoriteSearchResult>>
+
+    @GET("/auth/scraps/search/{category-id}")
+    suspend fun searchScrapsByCategory(
+        @Path("category-id") categoryRemoteId: Long,
+        @Query("q") query: String,
+        @Query("sort") sort: String? = null,
+        @Query("direction") direction: String? = null
+    ): Response<BaseResponse<FavoriteSearchResult>>
 }

@@ -73,4 +73,11 @@ interface ScrapRepository {
         sortType: String? = null,
         sortDirection: String? = null,
     ): Result<List<ScrapItem>>
+
+    suspend fun searchScrapsByCategory(
+        categoryRemoteId: Long,
+        query: String,
+        sortType: String? = null,
+        sortDirection: String? = null,
+    ): Result<List<ScrapItem>>
 }

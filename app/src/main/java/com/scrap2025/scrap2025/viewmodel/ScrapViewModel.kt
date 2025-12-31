@@ -3,6 +3,7 @@ package com.scrap2025.scrap2025.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
+import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.SortDirection
@@ -11,6 +12,7 @@ import com.scrap2025.scrap2025.model.ViewMode
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -20,12 +22,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class ScrapViewModel
@@ -40,9 +44,9 @@ constructor(
     private val _isSelectionMode = MutableStateFlow(false)
     val isSelectionMode: StateFlow<Boolean> = _isSelectionMode.asStateFlow()
 
-    // 선택된 카테고리 ID (null이면 전체)
-    private val _selectedCategoryId = MutableStateFlow<String?>(null)
-    val selectedCategoryId: StateFlow<String?> = _selectedCategoryId.asStateFlow()
+    // 선택된 카테고리 ID
+    private val _selectedCategoryId = MutableStateFlow<String>(CategoryItem.DEFAULT_ID)
+    val selectedCategoryId: StateFlow<String> = _selectedCategoryId.asStateFlow()
 
     // 선택된 스크랩 아이템 ID 목록
     private val _selectedScrapIds = MutableStateFlow<Set<String>>(emptySet())
@@ -85,12 +89,15 @@ constructor(
         )
 
     // 정렬된 스크랩 아이템 목록 (Repository, sortType, sortDirection, selectedCategory 조합)
-    val sortedScrapItems: StateFlow<Result<List<ScrapItem>>> =
-        combine(_selectedCategoryId, sortType, sortDirection) { categoryId, type, direction ->
-            Triple(categoryId, type, direction)
-        }
-            .flatMapLatest { (categoryId, type, direction) ->
-                // categoryId가 null이면 전체 조회, null이 아니면 해당 카테고리만 조회
+    val sortedScrapItems: StateFlow<Result<List<ScrapItem>>> = combine(
+        _selectedCategoryId, queryState, sortType, sortDirection
+    ) { categoryId, query, type, direction ->
+        Quartic(categoryId, query, type, direction)
+    }
+        .distinctUntilChanged()
+        .debounce(500L)
+        .flatMapLatest { (categoryId, query, type, direction) ->
+            if (query.isBlank()) {
                 scrapRepository.getScrapItems(categoryId).map { result ->
                     when (result) {
                         is Result.Success -> {
@@ -102,12 +109,49 @@ constructor(
                         is Result.Loading -> result
                     }
                 }
+            } else {
+                flow<Result<List<ScrapItem>>> {
+                    emit(Result.Loading)
+                    val categoryResult = categoryRepository.getCategoryById(categoryId)
+                    if (categoryResult is Result.Success) {
+                        val remoteId = categoryResult.data.remoteId?.toLong()
+                        if (remoteId != null) {
+                            val searchResult = scrapRepository.searchScrapsByCategory(
+                                categoryRemoteId = remoteId,
+                                query = query,
+                                sortType = type.name,
+                                sortDirection = direction.name
+                            )
+                            when (searchResult) {
+                                is Result.Success -> {
+                                    emit(
+                                        Result.Success(
+                                            sortScrapItems(
+                                                searchResult.data, type, direction
+                                            )
+                                        )
+                                    )
+                                }
+
+                                is Result.Error -> emit(searchResult)
+                                is Result.Loading -> emit(Result.Loading)
+                            }
+                        } else {
+                            emit(Result.Success(emptyList()))
+                        }
+                    } else {
+                        emit(Result.Error(Exception("Category not found")))
+                    }
+                }
             }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = Result.Loading
-            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = Result.Loading
+        )
+
+    // Quartic 헬퍼 클래스 (4개 파라미터 combine용)
+    private data class Quartic<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 
     init {
         // DataStore에서 모든 preference가 로드되면 isPreferencesLoaded를 true로 설정
@@ -249,7 +293,6 @@ constructor(
     // 선택된 아이템 즐겨찾기 토글
     fun toggleFavoriteSelectedItems(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-//            _selectedScrapIds.value.forEach { id -> scrapRepository.toggleFavorite(id) }
             val scrapIdBulk = _selectedScrapIds.value.toList()
             val result = scrapRepository.toggleFavoriteBulk(scrapIdBulk)
 
@@ -269,7 +312,7 @@ constructor(
     }
 
     // 카테고리 선택
-    fun setSelectedCategory(categoryId: String?) {
+    fun setSelectedCategory(categoryId: String) {
         _selectedCategoryId.value = categoryId
     }
 
@@ -295,9 +338,7 @@ constructor(
         viewModelScope.launch {
             _categoryDeleteEvent.emit(Result.Loading)
             // Repository 내에서 트랜잭션으로 처리 (스크랩 이동 + 카테고리 삭제)
-            val result = categoryRepository.deleteCategory(
-                id = id,
-            )
+            val result = categoryRepository.deleteCategory(id = id,)
             _categoryDeleteEvent.emit(result)
         }
     }
@@ -311,14 +352,13 @@ constructor(
 
                 val syncScrapsResult = scrapRepository.syncScrapsByCategoryId(categoryId, remoteId)
 
-                when(syncScrapsResult) {
+                when (syncScrapsResult) {
                     Result.Loading -> {}
                     is Result.Error -> {
                         throw syncScrapsResult.exception
                     }
-                    is Result.Success -> {
 
-                    }
+                    is Result.Success -> {}
                 }
             }
         }
@@ -327,5 +367,4 @@ constructor(
     fun onQueryChange(newQuery: String) {
         _queryState.value = newQuery
     }
-
 }
