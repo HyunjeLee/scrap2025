@@ -9,6 +9,7 @@ import com.scrap2025.scrap2025.data.model.ScrapCreateRequest
 import com.scrap2025.scrap2025.data.model.ScrapCreateResult
 import com.scrap2025.scrap2025.data.model.ScrapMemoDto
 import com.scrap2025.scrap2025.data.model.ScrapMoveDto
+import com.scrap2025.scrap2025.data.model.SearchRequest
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteBulkDTO
@@ -342,6 +343,42 @@ constructor(
             Result.Error(e, "스크랩 동기화 중 오류 발생")
         }
     }
+
+    override suspend fun searchScraps(
+        query: String,
+        searchScope: List<String>,
+        categoryRemoteIds: List<Int>,
+        startDate: String,
+        endDate: String,
+        sortType: String,
+        sortDirection: String,
+        page: Int,
+        size: Int
+    ): Result<List<ScrapItem>> =
+        try {
+            val request = SearchRequest(searchScope, categoryRemoteIds, startDate, endDate)
+
+            val response = authService.searchScraps(
+                query = query,
+                sort = sortType,
+                direction = sortDirection,
+                page = page,
+                size = size,
+                body = request
+            )
+
+            if (response.isSuccessful) {
+                val remoteScraps = response.body()?.result?.scraps ?: emptyList()
+                // 도메인 모델로 변환 (categoryId가 서버에서 이름으로 오므로 적절한 처리 필요)
+                val domainItems = remoteScraps.map { it.toDomainModel() }
+                Result.Success(domainItems)
+            } else {
+                Result.Error(Exception("Search failed"))
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+
     private suspend fun createScrapRemote(item: ScrapItem): Result<ScrapCreateResult> {
         return try {
             // 1. 카테고리 정보 가져오기

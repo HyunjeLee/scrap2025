@@ -55,4 +55,16 @@ interface ScrapRepository {
 
     /** 특정 스크랩 상세 정보 동기화 (Remote -> Local) */
     suspend fun syncScrapById(id: String): Result<Unit>
+
+    suspend fun searchScraps(
+        query: String,
+        searchScope: List<String>,
+        categoryRemoteIds: List<Int>,
+        startDate: String,
+        endDate: String,
+        sortType: String,
+        sortDirection: String,
+        page: Int,
+        size: Int
+    ): Result<List<ScrapItem>>
 }

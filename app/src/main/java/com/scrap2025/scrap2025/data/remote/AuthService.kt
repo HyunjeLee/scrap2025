@@ -16,6 +16,8 @@ import com.scrap2025.scrap2025.data.model.ScrapListResponse
 import com.scrap2025.scrap2025.data.model.ScrapMemoDto
 import com.scrap2025.scrap2025.data.model.ScrapMoveDto
 import com.scrap2025.scrap2025.data.model.ScrapResponse
+import com.scrap2025.scrap2025.data.model.SearchRequest
+import com.scrap2025.scrap2025.data.model.SearchResult
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteBulkDTO
 import com.scrap2025.scrap2025.data.remote.dto.ScrapBulkRequest
 import kotlinx.serialization.json.JsonElement
@@ -132,4 +134,14 @@ interface AuthService {
     suspend fun deleteScrapBulk(
         @Body body: List<Long> // scrapIds
     ): Response<BaseResponse<JsonElement?>>
+
+    @POST("/auth/search")
+    suspend fun searchScraps(
+        @Query("q") query: String,
+        @Query("sort") sort: String?,
+        @Query("direction") direction: String?,
+        @Query("page") page: Int?,
+        @Query("size") size: Int?,
+        @Body body: SearchRequest
+    ): Response<BaseResponse<SearchResult>>
 }

@@ -9,6 +9,7 @@ import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
 import com.scrap2025.scrap2025.repository.CategoryRepository
+import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -46,6 +47,7 @@ class SearchViewModel
 @Inject
 constructor(
     categoryRepository: CategoryRepository,
+    private val scrapRepository: ScrapRepository
 ) : ViewModel() {
     // picker에서 사용할 '오늘' 날짜의 UTC 00:00 밀리초 계산
     val nowMillis = LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
@@ -151,23 +153,23 @@ constructor(
     /** 서버와의 통신을 시뮬레이션하거나 준비하는 함수 로컬 DB는 일절 사용하지 않으며, 모든 파라미터를 서버에 넘겨줄 준비를 합니다. */
     fun performSearch() {
         val state = _uiState.value
+        val categoryRemoteIds = selectedCategoryItems.value.mapNotNull { it.remoteId }
 
-        // 실제 서버 통신 코드가 위치할 곳 (주석 처리)
-        /*
         viewModelScope.launch {
             _uiState.update { it.copy(searchResults = Result.Loading) }
-            val result = scrapRepository.searchScrapsRemote(
+            val result = scrapRepository.searchScraps(
                 query = state.query,
-                ranges = state.searchRanges.toList(),
-                categories = state.selectedCategories,
+                searchScope = state.searchRanges.toList(),
+                categoryRemoteIds = categoryRemoteIds,
                 startDate = state.startDate,
                 endDate = state.endDate,
-                sortType = state.sortType,
-                sortDirection = state.sortDirection
+                sortType = state.sortType.name,
+                sortDirection = state.sortDirection.name,
+                page = 0,
+                size = 10
             )
             _uiState.update { it.copy(searchResults = result) }
         }
-        */
 
         // 로그를 통해 서버로 전달될 파라미터 확인 (디버깅용)
         println(
