@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -187,7 +188,10 @@ fun SearchHeader(
                     )
                 }
                 Spacer(modifier = Modifier.width(10.dp))
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LazyRow(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     items(selectedCategories) { category ->
                         CategoryChip(category.name) { onRemoveCategory(category.id) }
                     }
@@ -247,12 +251,13 @@ fun CategoryChip(label: String, onRemove: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         modifier =
             Modifier
+                .heightIn(min = 32.dp)
                 .border(1.dp, Duotone, RoundedCornerShape(16.dp))
                 .padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
     ) {
         Text(
             text = label,
-            style = TextStyle(fontSize = 13.sp),
+            style = TextStyle(fontSize = 14.sp),
             modifier = Modifier.padding(bottom = 2.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
