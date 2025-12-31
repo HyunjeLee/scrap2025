@@ -10,11 +10,11 @@ import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,6 +26,9 @@ import com.scrap2025.scrap2025.navigation.MyPage
 import com.scrap2025.scrap2025.navigation.Route
 import com.scrap2025.scrap2025.navigation.Scrap
 import com.scrap2025.scrap2025.navigation.Search
+import com.scrap2025.scrap2025.ui.theme.MainColor
+import com.scrap2025.scrap2025.ui.theme.MainColorDeep
+import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import kotlin.reflect.KClass
 
@@ -52,7 +55,8 @@ fun BottomNavigationBar(
 
     NavigationBar(
         modifier = modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)),
-        containerColor = Color.White,
+        contentColor = MainColorDeep,
+        containerColor = MainColor,
         tonalElevation = 0.dp
     ) {
         items.forEach { item ->
@@ -60,6 +64,11 @@ fun BottomNavigationBar(
 
             NavigationBarItem(
                 selected = isSelected,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MainColorDeep,
+                    selectedTextColor = MainColorDeep,
+                    indicatorColor = MainColorLight
+                ),
                 onClick = { onItemClick(item.route) },
                 icon = { Icon(imageVector = item.icon, contentDescription = item.label) },
                 label = { Text(item.label) },
