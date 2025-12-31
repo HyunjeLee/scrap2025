@@ -52,6 +52,7 @@ fun SearchScreen(
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val selectedCategoryItems by viewModel.selectedCategoryItems.collectAsState()
 
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
@@ -98,9 +99,11 @@ fun SearchScreen(
         )
     }
 
-    Box(modifier = modifier
-        .fillMaxSize()
-        .background(BackgroundColor)) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundColor)
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 1. 검색 헤더 (ViewModel 상태와 연동)
             SearchHeader(
@@ -108,7 +111,7 @@ fun SearchScreen(
                 onQueryChange = { viewModel.onQueryChange(it) },
                 searchRange = uiState.searchRanges,
                 onSearchRangeToggle = { viewModel.toggleSearchRange(it) },
-                selectedCategories = uiState.selectedCategories,
+                selectedCategories = selectedCategoryItems,
                 onSelectCategoryClick = onSelectCategoryClick,
                 onRemoveCategory = { viewModel.removeCategory(it) },
                 startDate = uiState.startDate,

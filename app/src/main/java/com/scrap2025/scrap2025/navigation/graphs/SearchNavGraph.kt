@@ -30,7 +30,14 @@ fun NavGraphBuilder.searchNavGraph(navController: NavHostController) {
         }
 
         SearchScreen(
-            onSelectCategoryClick = { navController.navigate(CategorySelection(Mode.SEARCH)) },
+            onSelectCategoryClick = {
+                navController.navigate(
+                    CategorySelection(
+                        mode = Mode.SEARCH,
+                        initialSelectedIds = viewModel.uiState.value.selectedCategoryIds
+                    )
+                )
+            },
             viewModel = viewModel
         )
     }

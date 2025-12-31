@@ -28,6 +28,7 @@ constructor(
 
     val mode = savedStateHandle.toRoute<CategorySelection>().mode
     val scrapId = savedStateHandle.toRoute<CategorySelection>().scrapId
+    val initialSelectedIds = savedStateHandle.toRoute<CategorySelection>().initialSelectedIds
 
     private val _categoryUiState = MutableStateFlow<Result<List<CategoryItem>>>(Result.Loading)
     val categoryUiState: StateFlow<Result<List<CategoryItem>>> = _categoryUiState.asStateFlow()
@@ -41,11 +42,8 @@ constructor(
     val selectedCategoryName: StateFlow<String> = _selectedCategoryName.asStateFlow()
 
     // For SEARCH mode (Multi-Selection)
-    private val _selectedCategoryIds = MutableStateFlow<Set<String>>(emptySet())
+    private val _selectedCategoryIds = MutableStateFlow<Set<String>>(initialSelectedIds.toSet())
     val selectedCategoryIds: StateFlow<Set<String>> = _selectedCategoryIds.asStateFlow()
-
-    private val _selectedCategoryNames = MutableStateFlow<Map<String, String>>(emptyMap())
-    val selectedCategoryNames: StateFlow<Map<String, String>> = _selectedCategoryNames.asStateFlow()
 
     init {
         fetchCategories()
@@ -56,13 +54,11 @@ constructor(
         _selectedCategoryName.value = name
     }
 
-    fun toggleCategorySelection(id: String, name: String) {
+    fun toggleCategorySelection(id: String) {
         if (_selectedCategoryIds.value.contains(id)) {
             _selectedCategoryIds.value -= id
-            _selectedCategoryNames.value -= id
         } else {
             _selectedCategoryIds.value += id
-            _selectedCategoryNames.value += (id to name)
         }
     }
 
@@ -80,7 +76,9 @@ constructor(
 
     private fun fetchCategories() {
         viewModelScope.launch {
-            categoryRepository.getAllCategories().collect { _categoryUiState.value = it }
+            categoryRepository.getAllCategories().collect { result ->
+                _categoryUiState.value = result
+            }
         }
 
         // Trigger Sync

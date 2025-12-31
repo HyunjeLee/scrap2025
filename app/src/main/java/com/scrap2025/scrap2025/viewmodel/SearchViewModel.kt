@@ -2,11 +2,13 @@ package com.scrap2025.scrap2025.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -16,18 +18,21 @@ import java.util.Locale
 import java.util.TimeZone.getTimeZone
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class SearchUiState(
     val query: String = "",
     val searchRanges: Set<String> = setOf("제목"),
-    val selectedCategories: List<String> = emptyList(),
+    val selectedCategoryIds: List<String> = emptyList(),
     val startDate: String = "",
     val endDate: String = "",
     val sortType: SortType = SortType.DATE,
@@ -40,12 +45,32 @@ data class SearchUiState(
 class SearchViewModel
 @Inject
 constructor(
+    categoryRepository: CategoryRepository,
 ) : ViewModel() {
     // picker에서 사용할 '오늘' 날짜의 UTC 00:00 밀리초 계산
     val nowMillis = LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+
+    // ID 리스트와 전체 카테고리 목록을 결합하여 UI용 리스트 생성
+    val selectedCategoryItems: StateFlow<List<CategoryItem>> =
+        combine(
+            categoryRepository.getAllCategories(),
+            uiState.map { it.selectedCategoryIds }.distinctUntilChanged()
+        ) { categoriesResult, selectedIds ->
+            if (categoriesResult is Result.Success) {
+                val allCategories = categoriesResult.data
+                selectedIds.mapNotNull { id -> allCategories.find { it.id == id } }
+            } else {
+                emptyList()
+            }
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
 
     init {
         onDateChange(formatMillisToDate(nowMillis), formatMillisToDate(nowMillis))
@@ -56,7 +81,7 @@ constructor(
                 .map {
                     // 검색 결과(searchResults)만 제외하고 나머지를 묶음
                     Triple(
-                        Triple(it.query, it.searchRanges, it.selectedCategories),
+                        Triple(it.query, it.searchRanges, it.selectedCategoryIds),
                         Triple(it.startDate, it.endDate, it.sortType),
                         it.sortDirection
                     )
@@ -83,24 +108,14 @@ constructor(
         }
     }
 
-    fun removeCategory(category: String) {
+    fun removeCategory(categoryId: String) {
         _uiState.update { state ->
-            state.copy(selectedCategories = state.selectedCategories - category)
+            state.copy(selectedCategoryIds = state.selectedCategoryIds - categoryId)
         }
     }
 
-    fun addCategory(category: String) {
-        _uiState.update { state ->
-            if (!state.selectedCategories.contains(category)) {
-                state.copy(selectedCategories = state.selectedCategories + category)
-            } else {
-                state
-            }
-        }
-    }
-
-    fun setSelectedCategories(categories: List<String>) {
-        _uiState.update { it.copy(selectedCategories = categories) }
+    fun setSelectedCategories(categoryIds: List<String>) {
+        _uiState.update { it.copy(selectedCategoryIds = categoryIds) }
     }
 
     fun onDateChange(start: String, end: String) {
@@ -160,7 +175,7 @@ constructor(
             [Server Search Request]
             Query: ${state.query}
             Ranges: ${state.searchRanges}
-            Categories: ${state.selectedCategories}
+            Categories: ${state.selectedCategoryIds}
             Date: ${state.startDate} ~ ${state.endDate}
             Sort: ${state.sortType} (${state.sortDirection})
         """.trimIndent()

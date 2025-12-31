@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.ui.theme.Duotone
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LineGrayColor
@@ -52,7 +53,7 @@ fun SearchHeader(
     onQueryChange: (String) -> Unit,
     searchRange: Set<String>,
     onSearchRangeToggle: (String) -> Unit,
-    selectedCategories: List<String>,
+    selectedCategories: List<CategoryItem>,
     onSelectCategoryClick: () -> Unit,
     onRemoveCategory: (String) -> Unit,
     startDate: String,
@@ -61,10 +62,9 @@ fun SearchHeader(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .background(MainColor)
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MainColor)
     ) {
         Text(
             text = "검색",
@@ -102,11 +102,7 @@ fun SearchHeader(
                             contentAlignment = Alignment.CenterStart
                         ) {
                             if (query.isEmpty()) {
-                                Text(
-                                    text = "검색하기",
-                                    color = GrayColor,
-                                    fontSize = 15.sp
-                                )
+                                Text(text = "검색하기", color = GrayColor, fontSize = 15.sp)
                             }
                             // 3. 실제 입력창 영역도 동일한 중앙 기준선에 배치됩니다.
                             innerTextField()
@@ -130,11 +126,14 @@ fun SearchHeader(
 
         // 검색 범위
         Box(
-            modifier = Modifier.height(48.dp).fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 15.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(horizontal = 15.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -145,7 +144,9 @@ fun SearchHeader(
                 Spacer(modifier = Modifier.width(12.dp))
                 SearchRangeItem("제목", searchRange.contains("제목")) { onSearchRangeToggle("제목") }
                 Spacer(modifier = Modifier.width(12.dp))
-                SearchRangeItem("본문 내용", searchRange.contains("본문 내용")) { onSearchRangeToggle("본문 내용") }
+                SearchRangeItem("본문 내용", searchRange.contains("본문 내용")) {
+                    onSearchRangeToggle("본문 내용")
+                }
                 Spacer(modifier = Modifier.width(12.dp))
                 SearchRangeItem("메모", searchRange.contains("메모")) { onSearchRangeToggle("메모") }
             }
@@ -155,11 +156,14 @@ fun SearchHeader(
 
         // 카테고리
         Box(
-            modifier = Modifier.height(48.dp).fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 15.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(horizontal = 15.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -176,12 +180,16 @@ fun SearchHeader(
                             .border((1.2).dp, Duotone, CircleShape)
                             .clip(CircleShape)
                 ) {
-                    Icon(Icons.Rounded.Add, contentDescription = "추가", modifier = Modifier.size(18.dp))
+                    Icon(
+                        Icons.Rounded.Add,
+                        contentDescription = "추가",
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(selectedCategories) { category ->
-                        CategoryChip(category) { onRemoveCategory(category) }
+                        CategoryChip(category.name) { onRemoveCategory(category.id) }
                     }
                 }
             }
@@ -191,11 +199,14 @@ fun SearchHeader(
 
         // 날짜
         Box(
-            modifier = Modifier.height(48.dp).fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(), contentAlignment = Alignment.Center
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 15.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(horizontal = 15.dp)
+                    .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -239,7 +250,11 @@ fun CategoryChip(label: String, onRemove: () -> Unit) {
                 .border(1.dp, Duotone, RoundedCornerShape(16.dp))
                 .padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
     ) {
-        Text(text = label, style = TextStyle(fontSize = 13.sp), modifier = Modifier.padding(bottom = 2.dp))
+        Text(
+            text = label,
+            style = TextStyle(fontSize = 13.sp),
+            modifier = Modifier.padding(bottom = 2.dp)
+        )
         Spacer(modifier = Modifier.width(4.dp))
         Icon(
             imageVector = Icons.Default.Cancel,
@@ -273,7 +288,7 @@ fun SearchHeaderPreview() {
             onQueryChange = {},
             searchRange = setOf("제목"),
             onSearchRangeToggle = {},
-            selectedCategories = listOf("분류 섹션 1", "분류 섹션 2"),
+            selectedCategories = emptyList(),
             onSelectCategoryClick = {},
             onRemoveCategory = {},
             startDate = "2024-05-23",

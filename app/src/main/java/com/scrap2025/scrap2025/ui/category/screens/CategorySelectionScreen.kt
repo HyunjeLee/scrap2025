@@ -88,7 +88,7 @@ fun CategorySelectionScreen(
             }
 
             Mode.SEARCH -> {
-                onConfirmSearch(viewModel.selectedCategoryNames.value.values.toList())
+                onConfirmSearch(viewModel.selectedCategoryIds.value.toList())
                 onBack()
             }
         }
@@ -114,7 +114,7 @@ fun CategorySelectionScreen(
                 onBack = onBack,
                 onCategoryClick = { id, name ->
                     if (mode == Mode.SEARCH) {
-                        viewModel.toggleCategorySelection(id, name)
+                        viewModel.toggleCategorySelection(id)
                     } else {
                         viewModel.updateSelectedCategory(id, name)
                     }
