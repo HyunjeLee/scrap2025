@@ -65,7 +65,6 @@ fun SearchHeader(
             modifier
                 .fillMaxWidth()
                 .background(MainColor)
-//                .padding(horizontal = 21.dp, vertical = 10.dp)
     ) {
         Text(
             text = "검색",
