@@ -17,7 +17,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
@@ -27,8 +30,8 @@ import kotlinx.coroutines.launch
 class FavoriteViewModel
 @Inject
 constructor(
-        private val scrapRepository: ScrapRepository,
-        private val preferencesManager: PreferencesManager
+    private val scrapRepository: ScrapRepository,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
     // 선택 모드 상태
@@ -49,77 +52,109 @@ constructor(
 
     // 정렬 타입 (DataStore에서 로드)
     val sortType: StateFlow<SortType> =
-            preferencesManager.sortType.stateIn(
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5000),
-                    initialValue = SortType.SCRAP_DATE
-            )
+        preferencesManager.sortType.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SortType.SCRAP_DATE
+        )
 
     // 정렬 방향 (DataStore에서 로드)
     val sortDirection: StateFlow<SortDirection> =
-            preferencesManager.sortDirection.stateIn(
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5000),
-                    initialValue = SortDirection.ASC
-            )
+        preferencesManager.sortDirection.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SortDirection.ASC
+        )
 
     // 뷰 모드 (DataStore에서 로드)
     val viewMode: StateFlow<ViewMode> =
-            preferencesManager.viewMode.stateIn(
-                    scope = viewModelScope,
-                    started = SharingStarted.WhileSubscribed(5000),
-                    initialValue = ViewMode.LIST
-            )
+        preferencesManager.viewMode.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ViewMode.LIST
+        )
 
     // 정렬된 즐겨찾기 스크랩 아이템 목록
     val sortedFavoriteItems: StateFlow<Result<List<ScrapItem>>> =
-            combine(sortType, sortDirection) { type, direction -> Pair(type, direction) }
-                    .flatMapLatest { (type, direction) ->
-                        scrapRepository.getFavoriteScrapItemsFromRemote().map { result ->
-                            when (result) {
-                                is Result.Success -> {
-                                    val sortedItems = sortScrapItems(result.data, type, direction)
-                                    Result.Success(sortedItems)
-                                }
-                                is Result.Error -> result
-                                is Result.Loading -> result
+        combine(queryState, sortType, sortDirection) { query, type, direction ->
+            Triple(query, type, direction)
+        }
+            .distinctUntilChanged()
+            .debounce(500L)
+            .flatMapLatest { (query, type, direction) ->
+                if (query.isBlank()) {
+                    scrapRepository.getFavoriteScrapItemsFromRemote().map { result ->
+                        when (result) {
+                            is Result.Success -> {
+                                val sortedItems =
+                                    sortScrapItems(result.data, type, direction)
+                                Result.Success(sortedItems)
                             }
+
+                            is Result.Error -> result
+                            is Result.Loading -> result
                         }
                     }
-                    .stateIn(
-                            scope = viewModelScope,
-                            started = SharingStarted.WhileSubscribed(5000),
-                            initialValue = Result.Loading
-                    )
+                } else {
+                    flow<Result<List<ScrapItem>>> {
+                        emit(Result.Loading)
+                        val searchResult =
+                            scrapRepository.searchFavoriteScraps(
+                                query = query,
+                                sortType = type.name,
+                                sortDirection = direction.name
+                            )
+                        when (searchResult) {
+                            is Result.Success -> {
+                                // SearchViewModel처럼 서버 결과를 그대로 쓰거나, 기존 Favorite의 로컬 정렬 로직을
+                                // 유지할 수 있음
+                                val sortedItems =
+                                    sortScrapItems(searchResult.data, type, direction)
+                                emit(Result.Success(sortedItems))
+                            }
+
+                            is Result.Error -> emit(searchResult)
+                            is Result.Loading -> emit(Result.Loading)
+                        }
+                    }
+                }
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = Result.Loading
+            )
 
     init {
         viewModelScope.launch {
             combine(
-                            preferencesManager.sortType,
-                            preferencesManager.sortDirection,
-                            preferencesManager.viewMode
-                    ) { _, _, _ -> _isPreferencesLoaded.value = true }
-                    .take(1)
-                    .collect()
+                preferencesManager.sortType,
+                preferencesManager.sortDirection,
+                preferencesManager.viewMode
+            ) { _, _, _ -> _isPreferencesLoaded.value = true }
+                .take(1)
+                .collect()
         }
     }
 
     private fun sortScrapItems(
-            items: List<ScrapItem>,
-            sortType: SortType,
-            sortDirection: SortDirection
+        items: List<ScrapItem>,
+        sortType: SortType,
+        sortDirection: SortDirection
     ): List<ScrapItem> {
         val sorted =
-                when (sortType) {
-                    SortType.SCRAP_DATE -> items.sortedBy { it.createdDate }
-                    SortType.TITLE -> items.sortedBy { it.title.lowercase() }
-                }
+            when (sortType) {
+                SortType.SCRAP_DATE -> items.sortedBy { it.createdDate }
+                SortType.TITLE -> items.sortedBy { it.title.lowercase() }
+            }
         return if (sortDirection == SortDirection.ASC) sorted else sorted.reversed()
     }
 
     fun toggleSortType() {
         viewModelScope.launch {
-            val newSortType = if (sortType.value == SortType.SCRAP_DATE) SortType.TITLE else SortType.SCRAP_DATE
+            val newSortType =
+                if (sortType.value == SortType.SCRAP_DATE) SortType.TITLE
+                else SortType.SCRAP_DATE
             preferencesManager.setSortType(newSortType)
             preferencesManager.setSortDirection(SortDirection.ASC)
         }
@@ -128,8 +163,8 @@ constructor(
     fun toggleSortDirection() {
         viewModelScope.launch {
             val newDirection =
-                    if (sortDirection.value == SortDirection.ASC) SortDirection.DESC
-                    else SortDirection.ASC
+                if (sortDirection.value == SortDirection.ASC) SortDirection.DESC
+                else SortDirection.ASC
             preferencesManager.setSortDirection(newDirection)
         }
     }
@@ -154,7 +189,7 @@ constructor(
     fun toggleScrapItemSelection(id: String) {
         val currentSelection = _selectedScrapIds.value
         _selectedScrapIds.value =
-                if (currentSelection.contains(id)) currentSelection - id else currentSelection + id
+            if (currentSelection.contains(id)) currentSelection - id else currentSelection + id
     }
 
     fun selectAllScrapItems() {

@@ -16,13 +16,13 @@ import com.scrap2025.scrap2025.data.remote.dto.FavoriteBulkDTO
 import com.scrap2025.scrap2025.data.remote.dto.ScrapBulkRequest
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class ScrapRepositoryImpl
@@ -199,20 +199,20 @@ constructor(
     }
 
     override suspend fun toggleFavorite(scrapId: String): Result<Unit> {
-//        return try {
-//            val existing = scrapDao.getScrapById(scrapId)
-//            if (existing != null) {
-//                scrapDao.updateIsFavorite(scrapId, !existing.isFavorite)
-//                Result.Success(Unit)
-//            } else {
-//                Result.Error(
-//                    NoSuchElementException("ID가 $scrapId 인 스크랩을 찾을 수 없습니다."),
-//                    "스크랩을 찾을 수 없습니다"
-//                )
-//            }
-//        } catch (e: Exception) {
-//            Result.Error(e, "즐겨찾기 토글 실패")
-//        }
+        //        return try {
+        //            val existing = scrapDao.getScrapById(scrapId)
+        //            if (existing != null) {
+        //                scrapDao.updateIsFavorite(scrapId, !existing.isFavorite)
+        //                Result.Success(Unit)
+        //            } else {
+        //                Result.Error(
+        //                    NoSuchElementException("ID가 $scrapId 인 스크랩을 찾을 수 없습니다."),
+        //                    "스크랩을 찾을 수 없습니다"
+        //                )
+        //            }
+        //        } catch (e: Exception) {
+        //            Result.Error(e, "즐겨찾기 토글 실패")
+        //        }
         try {
             val scrapRemoteId = scrapDao.getScrapById(scrapId)?.remoteId
             val response = authService.updateScrapFavorite(scrapRemoteId!!.toLong())
@@ -220,7 +220,10 @@ constructor(
             return if (response.isSuccessful) {
                 Result.Success(Unit)
             } else {
-                Result.Error(Exception("Toggle Favorite failed code: ${response.code()}"), "즐겨찾기 토글 실패")
+                Result.Error(
+                    Exception("Toggle Favorite failed code: ${response.code()}"),
+                    "즐겨찾기 토글 실패"
+                )
             }
         } catch (e: Exception) {
             return Result.Error(e, "즐겨찾기 토글 실패")
@@ -229,15 +232,23 @@ constructor(
 
     override suspend fun toggleFavoriteBulk(scrapIdBulk: List<String>): Result<Unit> {
         try {
-            val scrapRemoteIdBulk = scrapIdBulk.map { scrapId -> scrapDao.getScrapById(scrapId)?.remoteId!!.toLong() }
-            val response = authService.updateScrapBulkFavorite(FavoriteBulkDTO(scrapIdList = scrapRemoteIdBulk))
+            val scrapRemoteIdBulk =
+                scrapIdBulk.map { scrapId ->
+                    scrapDao.getScrapById(scrapId)?.remoteId!!.toLong()
+                }
+            val response =
+                authService.updateScrapBulkFavorite(
+                    FavoriteBulkDTO(scrapIdList = scrapRemoteIdBulk)
+                )
 
             return if (response.isSuccessful) {
                 Result.Success(Unit)
             } else {
-                Result.Error(Exception("Toggle Favorite Bulk failed code: ${response.code()}"), "즐겨찾기 목록 토글 실패")
+                Result.Error(
+                    Exception("Toggle Favorite Bulk failed code: ${response.code()}"),
+                    "즐겨찾기 목록 토글 실패"
+                )
             }
-
         } catch (e: Exception) {
             return Result.Error(e, "즐겨찾기 목록 토글 실패")
         }
@@ -358,14 +369,15 @@ constructor(
         try {
             val request = SearchRequest(searchScope, categoryRemoteIds, startDate, endDate)
 
-            val response = authService.searchScraps(
-                query = query,
-                sort = sortType,
-                direction = sortDirection,
-                page = page,
-                size = size,
-                body = request
-            )
+            val response =
+                authService.searchScraps(
+                    query = query,
+                    sort = sortType,
+                    direction = sortDirection,
+                    page = page,
+                    size = size,
+                    body = request
+                )
 
             if (response.isSuccessful) {
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
@@ -374,6 +386,30 @@ constructor(
                 Result.Success(domainItems)
             } else {
                 Result.Error(Exception("Search failed"))
+            }
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
+
+    override suspend fun searchFavoriteScraps(
+        query: String,
+        sortType: String?,
+        sortDirection: String?,
+    ): Result<List<ScrapItem>> =
+        try {
+            val response =
+                authService.favoriteSearch(
+                    query = query,
+                    sort = sortType,
+                    direction = sortDirection,
+                )
+
+            if (response.isSuccessful) {
+                val remoteScraps = response.body()?.result?.scraps ?: emptyList()
+                val domainItems = remoteScraps.map { it.toDomainModel() }
+                Result.Success(domainItems)
+            } else {
+                Result.Error(Exception("Favorite Search failed"))
             }
         } catch (e: Exception) {
             Result.Error(e)

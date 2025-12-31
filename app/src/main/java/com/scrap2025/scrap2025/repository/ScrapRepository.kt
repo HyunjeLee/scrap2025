@@ -37,8 +37,8 @@ interface ScrapRepository {
 
     /** 특정 카테고리의 모든 스크랩을 다른 카테고리로 이동 */
     suspend fun moveScrapsToCategory(
-            fromId: String,
-            toId: String
+        fromId: String,
+        toId: String
     ): Result<Unit> // todo: 실제 스크랩 ID 리스트로 인자 추가
 
     /** 전체 스크랩 개수 조회 */
@@ -66,5 +66,11 @@ interface ScrapRepository {
         sortDirection: String,
         page: Int,
         size: Int
+    ): Result<List<ScrapItem>>
+
+    suspend fun searchFavoriteScraps(
+        query: String,
+        sortType: String? = null,
+        sortDirection: String? = null,
     ): Result<List<ScrapItem>>
 }

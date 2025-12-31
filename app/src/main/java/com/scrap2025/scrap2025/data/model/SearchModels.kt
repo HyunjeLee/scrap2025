@@ -1,6 +1,7 @@
 package com.scrap2025.scrap2025.data.model
 
 import com.scrap2025.scrap2025.model.ScrapItem
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -57,4 +58,41 @@ data class SearchScrapItem(
             categoryTitle = categoryTitle
         )
     }
+}
+
+@Serializable
+data class FavoriteSearchResult(
+    val total: Int,
+    val scraps: List<FavoriteSearchScrapItem>
+)
+
+@Serializable
+data class FavoriteSearchScrapItem(
+    @SerialName("scrapId") val scrapRemoteId: Int,
+    val title: String,
+    val scrapURL: String,
+    val imageURL: String? = null,
+    val isFavorite: Boolean = true,
+    val scrapDate: String
+) {
+    fun toDomainModel(): ScrapItem {
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val parsedDate = try {
+            LocalDate.parse(scrapDate, formatter).atStartOfDay()
+        } catch (e: Exception) {
+            LocalDateTime.now() // 파싱 실패 시 기본값 처리
+        }
+
+        return ScrapItem(
+            id = "",
+            remoteId = scrapRemoteId,
+            title = title,
+            url = scrapURL,
+            imageUrl = imageURL,
+            createdDate = parsedDate,
+            isFavorite = isFavorite,
+            categoryId = "",
+        )
+    }
+
 }

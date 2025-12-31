@@ -8,6 +8,7 @@ import com.scrap2025.scrap2025.data.model.CategoryRenameRequest
 import com.scrap2025.scrap2025.data.model.CategoryRenameResult
 import com.scrap2025.scrap2025.data.model.CategorySequenceRequest
 import com.scrap2025.scrap2025.data.model.CategorySequenceResult
+import com.scrap2025.scrap2025.data.model.FavoriteSearchResult
 import com.scrap2025.scrap2025.data.model.LoginResult
 import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.data.model.ScrapCreateRequest
@@ -144,4 +145,11 @@ interface AuthService {
         @Query("size") size: Int?,
         @Body body: SearchRequest
     ): Response<BaseResponse<SearchResult>>
+
+    @GET("/auth/scraps/search/favorite")
+    suspend fun favoriteSearch(
+        @Query("q") query: String,
+        @Query("sort") sort: String? = null,
+        @Query("direction") direction: String? = null,
+    ): Response<BaseResponse<FavoriteSearchResult>>
 }
