@@ -155,6 +155,12 @@ constructor(
         val state = _uiState.value
         val categoryRemoteIds = selectedCategoryItems.value.mapNotNull { it.remoteId }
 
+        // 쿼리가 비어있으면 통신하지 않고 결과를 즉시 비움
+        if (state.query.isBlank()) {
+            _uiState.update { it.copy(searchResults = Result.Success(emptyList())) }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(searchResults = Result.Loading) }
             val result = scrapRepository.searchScraps(
