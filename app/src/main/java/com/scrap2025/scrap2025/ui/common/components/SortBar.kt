@@ -38,8 +38,8 @@ import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 @Composable
 fun SortBar(
     modifier: Modifier = Modifier,
-    sortType: SortType = SortType.DATE,
-    sortDirection: SortDirection = SortDirection.ASCENDING,
+    sortType: SortType = SortType.SCRAP_DATE,
+    sortDirection: SortDirection = SortDirection.ASC,
     viewMode: ViewMode = ViewMode.LIST,
     onSortTypeToggle: () -> Unit = {},
     onSortDirectionToggle: () -> Unit = {},
@@ -47,7 +47,7 @@ fun SortBar(
 ) {
     val sortTypeText =
         when (sortType) {
-            SortType.DATE -> "스크랩한 날짜 순"
+            SortType.SCRAP_DATE -> "스크랩한 날짜 순"
             SortType.TITLE -> "제목 순"
         }
 
@@ -72,8 +72,8 @@ fun SortBar(
                 Icon(
                     imageVector =
                         when (sortDirection) {
-                            SortDirection.ASCENDING -> Icons.Outlined.ArrowCircleUp
-                            SortDirection.DESCENDING -> Icons.Outlined.ArrowCircleDown
+                            SortDirection.ASC -> Icons.Outlined.ArrowCircleUp
+                            SortDirection.DESC -> Icons.Outlined.ArrowCircleDown
                         },
                     contentDescription = "정렬 방향",
                     tint = Color.Black,

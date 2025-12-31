@@ -35,8 +35,8 @@ data class SearchUiState(
     val selectedCategoryIds: List<String> = emptyList(),
     val startDate: String = "",
     val endDate: String = "",
-    val sortType: SortType = SortType.DATE,
-    val sortDirection: SortDirection = SortDirection.ASCENDING,
+    val sortType: SortType = SortType.SCRAP_DATE,
+    val sortDirection: SortDirection = SortDirection.ASC,
     val viewMode: ViewMode = ViewMode.LIST,
     val searchResults: Result<List<ScrapItem>> = Result.Success(emptyList())
 )
@@ -124,18 +124,18 @@ constructor(
 
     fun toggleSortType() {
         _uiState.update { state ->
-            val newType = if (state.sortType == SortType.DATE) SortType.TITLE else SortType.DATE
-            state.copy(sortType = newType, sortDirection = SortDirection.ASCENDING)
+            val newType = if (state.sortType == SortType.SCRAP_DATE) SortType.TITLE else SortType.SCRAP_DATE
+            state.copy(sortType = newType, sortDirection = SortDirection.ASC)
         }
     }
 
     fun toggleSortDirection() {
         _uiState.update { state ->
             val newDirection =
-                if (state.sortDirection == SortDirection.ASCENDING) {
-                    SortDirection.DESCENDING
+                if (state.sortDirection == SortDirection.ASC) {
+                    SortDirection.DESC
                 } else {
-                    SortDirection.ASCENDING
+                    SortDirection.ASC
                 }
             state.copy(sortDirection = newDirection)
         }

@@ -61,7 +61,7 @@ constructor(
         preferencesManager.sortType.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SortType.DATE
+            initialValue = SortType.SCRAP_DATE
         )
 
     // 정렬 방향 (DataStore에서 로드)
@@ -69,7 +69,7 @@ constructor(
         preferencesManager.sortDirection.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SortDirection.ASCENDING
+            initialValue = SortDirection.ASC
         )
 
     // 뷰 모드 (DataStore에서 로드)
@@ -128,7 +128,7 @@ constructor(
     ): List<ScrapItem> {
         val sorted =
             when (sortType) {
-                SortType.DATE -> {
+                SortType.SCRAP_DATE -> {
                     items.sortedBy { it.createdDate }
                 }
 
@@ -137,7 +137,7 @@ constructor(
                 }
             }
 
-        return if (sortDirection == SortDirection.ASCENDING) {
+        return if (sortDirection == SortDirection.ASC) {
             sorted
         } else {
             sorted.reversed()
@@ -148,13 +148,13 @@ constructor(
     fun toggleSortType() {
         viewModelScope.launch {
             val newSortType =
-                if (sortType.value == SortType.DATE) {
+                if (sortType.value == SortType.SCRAP_DATE) {
                     SortType.TITLE
                 } else {
-                    SortType.DATE
+                    SortType.SCRAP_DATE
                 }
             preferencesManager.setSortType(newSortType)
-            preferencesManager.setSortDirection(SortDirection.ASCENDING)
+            preferencesManager.setSortDirection(SortDirection.ASC)
         }
     }
 
@@ -162,10 +162,10 @@ constructor(
     fun toggleSortDirection() {
         viewModelScope.launch {
             val newDirection =
-                if (sortDirection.value == SortDirection.ASCENDING) {
-                    SortDirection.DESCENDING
+                if (sortDirection.value == SortDirection.ASC) {
+                    SortDirection.DESC
                 } else {
-                    SortDirection.ASCENDING
+                    SortDirection.ASC
                 }
             preferencesManager.setSortDirection(newDirection)
         }

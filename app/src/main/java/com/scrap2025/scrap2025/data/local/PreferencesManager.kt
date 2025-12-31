@@ -28,11 +28,11 @@ class PreferencesManager(private val context: Context) {
     // 정렬 타입 Flow (기본값: DATE)
     val sortType: Flow<SortType> =
         dataStore.data.map { preferences ->
-            val sortTypeString = preferences[SORT_TYPE_KEY] ?: SortType.DATE.name
+            val sortTypeString = preferences[SORT_TYPE_KEY] ?: SortType.SCRAP_DATE.name
             try {
                 SortType.valueOf(sortTypeString)
             } catch (e: IllegalArgumentException) {
-                SortType.DATE
+                SortType.SCRAP_DATE
             }
         }
 
@@ -40,11 +40,11 @@ class PreferencesManager(private val context: Context) {
     val sortDirection: Flow<SortDirection> =
         dataStore.data.map { preferences ->
             val sortDirectionString =
-                preferences[SORT_DIRECTION_KEY] ?: SortDirection.ASCENDING.name
+                preferences[SORT_DIRECTION_KEY] ?: SortDirection.ASC.name
             try {
                 SortDirection.valueOf(sortDirectionString)
             } catch (e: IllegalArgumentException) {
-                SortDirection.ASCENDING
+                SortDirection.ASC
             }
         }
 
