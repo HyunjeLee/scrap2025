@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
+import com.scrap2025.scrap2025.model.SearchScope
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
@@ -32,7 +33,7 @@ import kotlinx.coroutines.launch
 
 data class SearchUiState(
     val query: String = "",
-    val searchRanges: Set<String> = setOf("title"),
+    val searchRanges: Set<String> = setOf(SearchScope.TITLE.value),
     val selectedCategoryIds: List<String> = emptyList(),
     val startDate: String = "",
     val endDate: String = "",
@@ -126,7 +127,9 @@ constructor(
 
     fun toggleSortType() {
         _uiState.update { state ->
-            val newType = if (state.sortType == SortType.SCRAP_DATE) SortType.TITLE else SortType.SCRAP_DATE
+            val newType =
+                if (state.sortType == SortType.SCRAP_DATE) SortType.TITLE
+                else SortType.SCRAP_DATE
             state.copy(sortType = newType, sortDirection = SortDirection.ASC)
         }
     }
@@ -163,17 +166,18 @@ constructor(
 
         viewModelScope.launch {
             _uiState.update { it.copy(searchResults = Result.Loading) }
-            val result = scrapRepository.searchScraps(
-                query = state.query,
-                searchScope = state.searchRanges.toList(),
-                categoryRemoteIds = categoryRemoteIds,
-                startDate = state.startDate,
-                endDate = state.endDate,
-                sortType = state.sortType.name,
-                sortDirection = state.sortDirection.name,
-                page = 0,
-                size = 10
-            )
+            val result =
+                scrapRepository.searchScraps(
+                    query = state.query,
+                    searchScope = state.searchRanges.toList(),
+                    categoryRemoteIds = categoryRemoteIds,
+                    startDate = state.startDate,
+                    endDate = state.endDate,
+                    sortType = state.sortType.name,
+                    sortDirection = state.sortDirection.name,
+                    page = 0,
+                    size = 10
+                )
             _uiState.update { it.copy(searchResults = result) }
         }
 

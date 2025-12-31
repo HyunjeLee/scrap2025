@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.model.CategoryItem
+import com.scrap2025.scrap2025.model.SearchScope
 import com.scrap2025.scrap2025.ui.theme.Duotone
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LineGrayColor
@@ -62,11 +63,9 @@ fun SearchHeader(
     onDateClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MainColor)
-    ) {
+    Column(modifier = modifier
+        .fillMaxWidth()
+        .background(MainColor)) {
         Text(
             text = "검색",
             style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
@@ -126,11 +125,9 @@ fun SearchHeader(
         HorizontalDivider(color = LineGrayColor)
 
         // 검색 범위
-        Box(
-            modifier = Modifier
-                .height(48.dp)
-                .fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier
+            .height(48.dp)
+            .fillMaxWidth(), contentAlignment = Alignment.Center) {
             Row(
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
@@ -142,25 +139,23 @@ fun SearchHeader(
                     style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
                     modifier = Modifier.width(60.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
-                SearchRangeItem("제목", searchRange.contains("title")) { onSearchRangeToggle("title") }
-                Spacer(modifier = Modifier.width(12.dp))
-                SearchRangeItem("본문 내용", searchRange.contains("description")) {
-                    onSearchRangeToggle("description")
+                SearchScope.entries.forEachIndexed { index, scope ->
+                    SearchRangeItem(
+                        label = scope.label,
+                        isSelected = searchRange.contains(scope.value)
+                    ) { onSearchRangeToggle(scope.value) }
+
+                    Spacer(modifier = Modifier.width(12.dp))
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                SearchRangeItem("메모", searchRange.contains("memo")) { onSearchRangeToggle("memo") }
             }
         }
 
         HorizontalDivider(color = LineGrayColor)
 
         // 카테고리
-        Box(
-            modifier = Modifier
-                .height(48.dp)
-                .fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier
+            .height(48.dp)
+            .fillMaxWidth(), contentAlignment = Alignment.Center) {
             Row(
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
@@ -202,11 +197,9 @@ fun SearchHeader(
         HorizontalDivider(color = LineGrayColor)
 
         // 날짜
-        Box(
-            modifier = Modifier
-                .height(48.dp)
-                .fillMaxWidth(), contentAlignment = Alignment.Center
-        ) {
+        Box(modifier = Modifier
+            .height(48.dp)
+            .fillMaxWidth(), contentAlignment = Alignment.Center) {
             Row(
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
@@ -291,7 +284,7 @@ fun SearchHeaderPreview() {
         SearchHeader(
             query = "",
             onQueryChange = {},
-            searchRange = setOf("제목"),
+            searchRange = setOf(SearchScope.TITLE.value),
             onSearchRangeToggle = {},
             selectedCategories = emptyList(),
             onSelectCategoryClick = {},
