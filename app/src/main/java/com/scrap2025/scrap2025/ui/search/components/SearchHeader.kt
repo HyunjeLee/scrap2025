@@ -143,13 +143,13 @@ fun SearchHeader(
                     modifier = Modifier.width(60.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                SearchRangeItem("제목", searchRange.contains("제목")) { onSearchRangeToggle("제목") }
+                SearchRangeItem("제목", searchRange.contains("title")) { onSearchRangeToggle("title") }
                 Spacer(modifier = Modifier.width(12.dp))
-                SearchRangeItem("본문 내용", searchRange.contains("본문 내용")) {
-                    onSearchRangeToggle("본문 내용")
+                SearchRangeItem("본문 내용", searchRange.contains("description")) {
+                    onSearchRangeToggle("description")
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                SearchRangeItem("메모", searchRange.contains("메모")) { onSearchRangeToggle("메모") }
+                SearchRangeItem("메모", searchRange.contains("memo")) { onSearchRangeToggle("memo") }
             }
         }
 

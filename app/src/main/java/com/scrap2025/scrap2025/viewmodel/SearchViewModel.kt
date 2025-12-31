@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 
 data class SearchUiState(
     val query: String = "",
-    val searchRanges: Set<String> = setOf("제목"),
+    val searchRanges: Set<String> = setOf("title"),
     val selectedCategoryIds: List<String> = emptyList(),
     val startDate: String = "",
     val endDate: String = "",
