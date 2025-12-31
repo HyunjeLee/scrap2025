@@ -14,5 +14,6 @@ data class ScrapItem(
     val createdDate: LocalDateTime,
     val isFavorite: Boolean = false,
     val categoryId: String,
+    val categoryTitle: String? = null,
     val syncStatus: SyncStatus = SyncStatus.PENDING
 )
