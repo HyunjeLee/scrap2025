@@ -6,9 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -44,8 +43,8 @@ import com.scrap2025.scrap2025.ui.search.components.SearchHeader
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
-import com.scrap2025.scrap2025.viewmodel.SearchWarning
 import com.scrap2025.scrap2025.viewmodel.SearchViewModel
+import com.scrap2025.scrap2025.viewmodel.SearchWarning
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -115,53 +114,38 @@ fun SearchScreen(
         )
     }
 
-    Box(modifier = modifier
-        .fillMaxSize()
-        .background(BackgroundColor)) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // 1. 검색 헤더 (ViewModel 상태와 연동)
-            SearchHeader(
-                query = uiState.query,
-                onQueryChange = { viewModel.onQueryChange(it) },
-                searchRange = uiState.searchRanges,
-                onSearchRangeToggle = { viewModel.toggleSearchRange(it) },
-                selectedCategories = selectedCategoryItems,
-                onSelectCategoryClick = onSelectCategoryClick,
-                onRemoveCategory = { viewModel.removeCategory(it) },
-                startDate = uiState.startDate,
-                endDate = uiState.endDate,
-                onDateClick = { showDatePicker = true }
-            )
+    Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        modifier = modifier.fillMaxSize(),
+        containerColor = BackgroundColor,
+        topBar = {
+            Column {
+                // 1. 검색 헤더 (ViewModel 상태와 연동)
+                SearchHeader(
+                    query = uiState.query,
+                    onQueryChange = { viewModel.onQueryChange(it) },
+                    searchRange = uiState.searchRanges,
+                    onSearchRangeToggle = { viewModel.toggleSearchRange(it) },
+                    selectedCategories = selectedCategoryItems,
+                    onSelectCategoryClick = onSelectCategoryClick,
+                    onRemoveCategory = { viewModel.removeCategory(it) },
+                    startDate = uiState.startDate,
+                    endDate = uiState.endDate,
+                    onDateClick = { showDatePicker = true },
+                )
 
-            // 2. 정렬 바 (ViewModel 상태와 연동)
-            SortBar(
-                sortType = uiState.sortType,
-                sortDirection = uiState.sortDirection,
-                viewMode = uiState.viewMode,
-                onSortTypeToggle = { viewModel.toggleSortType() },
-                onSortDirectionToggle = { viewModel.toggleSortDirection() },
-                onViewModeToggle = { viewModel.toggleViewMode() }
-            )
-
-            // 3. 스크랩 리스트 영역 (ViewModel의 검색 결과 표시)
-            ScrapListContent(
-                scrapItemsResult = uiState.searchResults,
-                viewMode = uiState.viewMode,
-                isPreferencesLoaded = true,
-                listState = listState,
-                gridState = gridState,
-                onItemClick = { /* 상세 이동 로직 */ },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // 맨 위로 가기 버튼 (ScrapScreen과 동일한 구조)
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+                // 2. 정렬 바
+                SortBar(
+                    sortType = uiState.sortType,
+                    sortDirection = uiState.sortDirection,
+                    viewMode = uiState.viewMode,
+                    onSortTypeToggle = { viewModel.toggleSortType() },
+                    onSortDirectionToggle = { viewModel.toggleSortDirection() },
+                    onViewModeToggle = { viewModel.toggleViewMode() }
+                )
+            }
+        },
+        floatingActionButton = {
             AnimatedVisibility(
                 visible = showScrollToTop,
                 enter = fadeIn() + scaleIn(),
@@ -185,12 +169,25 @@ fun SearchScreen(
                     Icon(
                         imageVector = Icons.Outlined.KeyboardArrowUp,
                         contentDescription = "맨 위로가기",
-                        tint = Color(0xFF4CAF50),
+                        tint = MainColorDeep,
                         modifier = Modifier.size(32.dp)
                     )
                 }
             }
         }
+    ) { paddingValues ->
+        // 3. 스크랩 리스트 영역
+        ScrapListContent(
+            scrapItemsResult = uiState.searchResults,
+            viewMode = uiState.viewMode,
+            isPreferencesLoaded = true,
+            listState = listState,
+            gridState = gridState,
+            onItemClick = { /* 상세 이동 로직 */ },
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        )
     }
 }
 
