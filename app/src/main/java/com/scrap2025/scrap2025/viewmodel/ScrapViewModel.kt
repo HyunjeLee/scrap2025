@@ -56,6 +56,10 @@ constructor(
     private val _categoryDeleteEvent = MutableSharedFlow<Result<Unit>>()
     val categoryDeleteEvent: SharedFlow<Result<Unit>> = _categoryDeleteEvent.asSharedFlow()
 
+    // query
+    private val _queryState = MutableStateFlow("")
+    val queryState: StateFlow<String> = _queryState.asStateFlow()
+
     // 정렬 타입 (DataStore에서 로드)
     val sortType: StateFlow<SortType> =
         preferencesManager.sortType.stateIn(
@@ -319,4 +323,9 @@ constructor(
             }
         }
     }
+
+    fun onQueryChange(newQuery: String) {
+        _queryState.value = newQuery
+    }
+
 }

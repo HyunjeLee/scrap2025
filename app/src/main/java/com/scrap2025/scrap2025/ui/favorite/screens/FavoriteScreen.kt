@@ -25,6 +25,7 @@ fun FavoriteScreen(
     val isSelectionMode by viewModel.isSelectionMode.collectAsState()
     val selectedScrapIds by viewModel.selectedScrapIds.collectAsState()
     val isPreferencesLoaded by viewModel.isPreferencesLoaded.collectAsState()
+    val queryState by viewModel.queryState.collectAsState()
 
     val selectionBottomBar: @Composable () -> Unit = {
         SelectionActionBar(
@@ -67,6 +68,8 @@ fun FavoriteScreen(
         onUpdateCategoryTitle = { _, _ -> /* 즐겨찾기 제목 수정 불가 */ },
         onDeleteCategory = { /* 즐겨찾기 카테고리 삭제 불가 */ },
         showAddScrapFab = false, // FAB 숨기기
-        modifier = modifier
+        modifier = modifier,
+        query = queryState,
+        onQueryChange = { viewModel.onQueryChange(it) }
     )
 }

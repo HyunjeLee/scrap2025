@@ -31,6 +31,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.Delete
@@ -116,6 +117,7 @@ fun ScrapScreen(
     val isSelectionMode by scrapViewModel.isSelectionMode.collectAsState()
     val selectedScrapIds by scrapViewModel.selectedScrapIds.collectAsState()
     val isPreferencesLoaded by scrapViewModel.isPreferencesLoaded.collectAsState()
+    val queryState by scrapViewModel.queryState.collectAsState()
 
     // 뷰모델에 현재 카테고리 설정 (DB 필터링용)
     LaunchedEffect(globalCategoryId) {
@@ -197,7 +199,9 @@ fun ScrapScreen(
         },
         onDeleteCategory = { scrapViewModel.deleteCategory(globalCategoryId) },
         isDeleting = isDeleting,
-        modifier = modifier
+        modifier = modifier,
+        query = queryState,
+        onQueryChange = { scrapViewModel.onQueryChange(it) }
     )
 }
 
@@ -226,7 +230,9 @@ fun ScrapScreenContent(
     onDeleteCategory: () -> Unit,
     modifier: Modifier = Modifier,
     isDeleting: Boolean = false,
-    showAddScrapFab: Boolean = true
+    showAddScrapFab: Boolean = true,
+    query: String,
+    onQueryChange: (String) -> Unit,
 ) {
     // Compose UI 상태 (View에서 관리)
     val listState = rememberLazyListState()
@@ -289,7 +295,7 @@ fun ScrapScreenContent(
                     )
 
                     // 톱바 - 검색
-                    SearchBar()
+                    SearchBar(query, onQueryChange)
 
                     // 정렬 바
                     SortBar(
@@ -572,7 +578,11 @@ private fun TopBarEditMode(
 }
 
 @Composable
-fun SearchBar(modifier: Modifier = Modifier) {
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier =
             modifier
@@ -592,23 +602,44 @@ fun SearchBar(modifier: Modifier = Modifier) {
                     .padding(horizontal = 8.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.Search,
                     contentDescription = "검색",
                     tint = Color.Black,
-                    modifier = Modifier.size(27.dp),
+                    modifier = Modifier.size(24.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "제목, 본문내용, 메모로 검색하기",
-                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                    color = GrayColor
+                Spacer(modifier = Modifier.width(8.dp))
+                BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    modifier = Modifier.weight(1f),
+                    textStyle = TextStyle(fontSize = 15.sp),
+                    decorationBox = { innerTextField ->
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (query.isEmpty()) {
+                                Text(text = "검색하기", color = GrayColor, fontSize = 15.sp)
+                            }
+                            // 3. 실제 입력창 영역도 동일한 중앙 기준선에 배치됩니다.
+                            innerTextField()
+                        }
+                    }
                 )
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { onQueryChange("") }, modifier = Modifier.size(24.dp)) {
+                        Icon(
+                            imageVector = Icons.Filled.Cancel,
+                            contentDescription = "지우기",
+                            tint = GrayColor,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
             }
+
         }
     }
 }
@@ -842,7 +873,9 @@ fun ScrapScreenContentPreview() {
             onDeselectAll = {},
             onAddScrap = {},
             onUpdateCategoryTitle = { dummy1, dummy2 -> },
-            onDeleteCategory = {}
+            onDeleteCategory = {},
+            query = "",
+            onQueryChange = {}
         )
     }
 }
@@ -871,7 +904,9 @@ fun ScrapScreenContentSelectionModePreview() {
             onDeselectAll = {},
             onAddScrap = {},
             onUpdateCategoryTitle = { dummy1, dummy2 -> },
-            onDeleteCategory = {}
+            onDeleteCategory = {},
+            query = "",
+            onQueryChange = {}
         )
     }
 }
@@ -906,5 +941,10 @@ fun TopBarEditModePreview() {
 @Preview(showBackground = true)
 @Composable
 fun SearchBarPreview() {
-    Scrap2025Theme { SearchBar() }
+    Scrap2025Theme {
+        SearchBar(
+            query = "",
+            onQueryChange = {}
+        )
+    }
 }
