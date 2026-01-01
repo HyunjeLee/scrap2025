@@ -179,6 +179,7 @@ fun SearchScreen(
     ) { paddingValues ->
         // 3. 스크랩 리스트 영역
         ScrapListContent(
+            showCategory = true,
             scrapItemsResult = uiState.searchResults,
             viewMode = uiState.viewMode,
             isPreferencesLoaded = true,

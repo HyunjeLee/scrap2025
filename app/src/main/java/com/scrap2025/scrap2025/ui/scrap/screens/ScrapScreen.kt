@@ -233,6 +233,7 @@ fun ScrapScreenContent(
     showAddScrapFab: Boolean = true,
     query: String,
     onQueryChange: (String) -> Unit,
+    showCategory: Boolean = false,
 ) {
     // Compose UI 상태 (View에서 관리)
     val listState = rememberLazyListState()
@@ -310,6 +311,7 @@ fun ScrapScreenContent(
 
                 // 스크랩 리스트/그리드
                 ScrapListContent(
+                    showCategory = showCategory,
                     scrapItemsResult = scrapItemsResult,
                     viewMode = viewMode,
                     isPreferencesLoaded = isPreferencesLoaded,

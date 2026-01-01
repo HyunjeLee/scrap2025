@@ -51,6 +51,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ScrapItemCardList(
     scrapItem: ScrapItem,
+    showCategory: Boolean,
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean = false,
     isSelected: Boolean = false,
@@ -171,15 +172,24 @@ fun ScrapItemCardList(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    // 날짜
-                    Text(
-                        text = scrapItem.createdDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Normal
-                        ),
-                        color = Color.Black
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // 날짜
+                        Text(
+                            text = scrapItem.createdDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+                            style = TextStyle(fontSize = 12.sp,),
+                        )
+                        // 카테고리 출력
+                        if (showCategory) {
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                text = scrapItem.categoryTitle?.let { "[$it]" }.orEmpty(),
+                                style = TextStyle(fontSize = 12.sp,),
+                            )
+                        }
+                    }
                 }
             }
 
@@ -229,9 +239,11 @@ fun ScrapItemCardListPreview() {
                     url = "주소주소주소주소",
                     imageUrl = null,
                     categoryId = "",
+                    categoryTitle = "분류되지 않음",
                     createdDate = LocalDateTime.of(2024, 2, 22, 10, 0),
                     isFavorite = true
-                )
+                ),
+                showCategory = true,
             )
             ScrapItemCardList(
                 scrapItem = ScrapItem(
@@ -243,7 +255,8 @@ fun ScrapItemCardListPreview() {
                     categoryId = "",
                     createdDate = LocalDateTime.of(2024, 2, 22, 14, 30),
                     isFavorite = true
-                )
+                ),
+                showCategory = true,
             )
             ScrapItemCardList(
                 scrapItem = ScrapItem(
@@ -255,7 +268,8 @@ fun ScrapItemCardListPreview() {
                     categoryId = "",
                     createdDate = LocalDateTime.of(2024, 2, 22, 16, 45),
                     isFavorite = false
-                )
+                ),
+                showCategory = true,
             )
         }
     }

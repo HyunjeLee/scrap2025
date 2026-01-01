@@ -71,6 +71,7 @@ fun FavoriteScreen(
         showAddScrapFab = false, // FAB 숨기기
         modifier = modifier,
         query = queryState,
-        onQueryChange = { viewModel.onQueryChange(it) }
+        onQueryChange = { viewModel.onQueryChange(it) },
+        showCategory = true,
     )
 }

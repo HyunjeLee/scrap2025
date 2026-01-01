@@ -172,7 +172,8 @@ fun AddScrapScreenContent(
 
                     ScrapItemCardList(
                         scrapItem = linkPreview.toScrapItem(),
-                        isSelectionMode = false
+                        isSelectionMode = false,
+                        showCategory = false
                     )
                 }
 

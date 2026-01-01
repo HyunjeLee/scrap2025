@@ -64,10 +64,10 @@ constructor(
                 val domainItems = remoteScraps.map { remoteScrap ->
                     val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
 
-                    remoteScrap.toEntity(
+                    remoteScrap.toDomainModel(
                         scrapLocalId = localScrap?.id ?: "NO_LOCAL",
                         categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
-                    ).toDomainModel()
+                    )
                 }
 
                 emit(Result.Success(domainItems))
@@ -428,10 +428,12 @@ constructor(
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
                 val domainItems = remoteScraps.map { remoteScrap ->
                     val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
+                    val categoryTitle = categoryDao.getCategoryById(localScrap?.categoryId ?: "NO_LOCAL")?.name.orEmpty()
 
                     remoteScrap.toDomainModel(
                         scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                        categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
+                        categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL",
+                        categoryTitle = categoryTitle,
                     )
                 }
                 Result.Success(domainItems)

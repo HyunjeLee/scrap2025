@@ -68,7 +68,7 @@ data class SearchFavoriteItemResponse(
     val isFavorite: Boolean = true,
     val scrapDate: String = ""
 ) {
-    fun toDomainModel(scrapLocalId: String, categoryLocalId: String): ScrapItem {
+    fun toDomainModel(scrapLocalId: String, categoryLocalId: String, categoryTitle: String): ScrapItem {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val parsedDate = try {
             LocalDate.parse(scrapDate, formatter).atStartOfDay()
@@ -85,6 +85,7 @@ data class SearchFavoriteItemResponse(
             createdDate = parsedDate,
             isFavorite = isFavorite,
             categoryId = categoryLocalId,
+            categoryTitle = categoryTitle,
         )
     }
 }

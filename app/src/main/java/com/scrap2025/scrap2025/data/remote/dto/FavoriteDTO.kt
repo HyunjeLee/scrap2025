@@ -1,7 +1,6 @@
 package com.scrap2025.scrap2025.data.remote.dto
 
-import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
-import com.scrap2025.scrap2025.data.model.SyncStatus
+import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
@@ -26,7 +25,7 @@ data class FavoriteItemResponse(
     @SerialName("imageURL") val imageUrl: String? = null,
     val scrapDate: String = "",
 ) {
-    fun toEntity(scrapLocalId: String, categoryLocalId: String): ScrapEntity {
+    fun toDomainModel(scrapLocalId: String, categoryLocalId: String): ScrapItem {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         val parsedDate = try {
             LocalDate.parse(scrapDate, formatter).atStartOfDay()
@@ -34,7 +33,7 @@ data class FavoriteItemResponse(
             LocalDateTime.now() // 파싱 실패 시 기본값 처리
         }
 
-        return ScrapEntity(
+        return ScrapItem(
             id = scrapLocalId,
             remoteId = scrapRemoteId,
             title = scrapTitle,
@@ -45,7 +44,7 @@ data class FavoriteItemResponse(
             createdDate = parsedDate,
             isFavorite = true,
             categoryId = categoryLocalId,
-            syncStatus = SyncStatus.SYNCED,
+            categoryTitle = categoryTitle,
         )
     }
 }

@@ -43,7 +43,8 @@ fun ScrapListContent(
     onItemLongClick: (String) -> Unit = {},
     onItemSelectionToggle: (String) -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
-    gridState: LazyGridState = rememberLazyGridState()
+    gridState: LazyGridState = rememberLazyGridState(),
+    showCategory: Boolean,
 ) {
     when (val result = scrapItemsResult) {
         is Result.Loading -> {
@@ -83,6 +84,7 @@ fun ScrapListContent(
                             items(scrapItems) { scrapItem ->
                                 ScrapItemCardList(
                                     scrapItem = scrapItem,
+                                    showCategory = showCategory,
                                     isSelectionMode = isSelectionMode,
                                     isSelected = selectedScrapIds.contains(scrapItem.id),
                                     onClick = { onItemClick(scrapItem.id) },
@@ -105,6 +107,7 @@ fun ScrapListContent(
                             items(scrapItems) { scrapItem ->
                                 ScrapItemCardGrid(
                                     scrapItem = scrapItem,
+                                    showCategory = showCategory,
                                     isSelectionMode = isSelectionMode,
                                     isSelected = selectedScrapIds.contains(scrapItem.id),
                                     onClick = { onItemClick(scrapItem.id) },

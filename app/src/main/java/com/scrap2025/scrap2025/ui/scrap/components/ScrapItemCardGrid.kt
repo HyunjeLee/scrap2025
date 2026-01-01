@@ -48,6 +48,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ScrapItemCardGrid(
     scrapItem: ScrapItem,
+    showCategory: Boolean,
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean = false,
     isSelected: Boolean = false,
@@ -157,15 +158,24 @@ fun ScrapItemCardGrid(
                         overflow = TextOverflow.Ellipsis
                     )
 
-                    // 날짜
-                    Text(
-                        text = scrapItem.createdDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Normal
-                        ),
-                        color = Color.Black
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // 날짜
+                        Text(
+                            text = scrapItem.createdDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+                            style = TextStyle(fontSize = 12.sp,),
+                        )
+                        // 카테고리 출력
+                        if (showCategory) {
+                            Spacer(Modifier.weight(1f))
+                            Text(
+                                text = scrapItem.categoryTitle?.let { "[$it]" }.orEmpty(),
+                                style = TextStyle(fontSize = 12.sp,),
+                            )
+                        }
+                    }
                 }
             }
 
@@ -220,7 +230,8 @@ fun ScrapItemCardGridPreview() {
                     categoryId = "",
                     createdDate = LocalDateTime.of(2024, 2, 26, 10, 0),
                     isFavorite = true
-                )
+                ),
+                showCategory = true,
             )
             ScrapItemCardGrid(
                 scrapItem = ScrapItem(
@@ -232,7 +243,8 @@ fun ScrapItemCardGridPreview() {
                     categoryId = "",
                     createdDate = LocalDateTime.of(2024, 2, 26, 14, 30),
                     isFavorite = false
-                )
+                ),
+                showCategory = true,
             )
         }
     }
