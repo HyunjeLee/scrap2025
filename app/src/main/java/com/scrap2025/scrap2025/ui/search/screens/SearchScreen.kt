@@ -51,6 +51,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
+    navigateToDetail: (String) -> Unit = {},
     onSelectCategoryClick: () -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel()
 ) {
@@ -183,7 +184,7 @@ fun SearchScreen(
             isPreferencesLoaded = true,
             listState = listState,
             gridState = gridState,
-            onItemClick = { /* 상세 이동 로직 */ },
+            onItemClick = navigateToDetail,
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
