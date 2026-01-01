@@ -7,6 +7,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreenContent
 import com.scrap2025.scrap2025.ui.scrap.screens.SelectionActionBar
@@ -47,8 +48,8 @@ fun FavoriteScreen(
     BackHandler(enabled = isSelectionMode) { viewModel.exitSelectionMode() }
 
     ScrapScreenContent(
-        categoryId = "favorite", // 고정값
-        categoryTitle = "즐겨찾기",
+        categoryId = CategoryItem.FAVORITE_ID,
+        categoryTitle = CategoryItem.FAVORITE_NAME,
         scrapItemsResult = itemsResult,
         viewMode = viewMode,
         sortType = sortType,

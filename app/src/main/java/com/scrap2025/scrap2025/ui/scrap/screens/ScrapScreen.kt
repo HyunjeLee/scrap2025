@@ -435,10 +435,11 @@ fun TopBarWithTitle(
         )
     } else {
         TopBarDefault(
-                categoryTitle = categoryTitle,
-                onEditClick = { isEditMode = true },
-                onDeleteClick = { onDeleteCategory() },
-                modifier = modifier
+            categoryId = categoryId,
+            categoryTitle = categoryTitle,
+            onEditClick = { isEditMode = true },
+            onDeleteClick = { onDeleteCategory() },
+            modifier = modifier
         )
     }
 }
@@ -446,10 +447,11 @@ fun TopBarWithTitle(
 /** TopBarDefault - 일반 모드 (카테고리명 표시 + 편집/삭제 버튼) */
 @Composable
 private fun TopBarDefault(
-        categoryTitle: String,
-        onEditClick: () -> Unit,
-        onDeleteClick: () -> Unit,
-        modifier: Modifier = Modifier
+    categoryId: String,
+    categoryTitle: String,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
@@ -468,7 +470,9 @@ private fun TopBarDefault(
                 modifier = Modifier.padding(start = 21.dp, end = 85.dp)
         )
 
-        if (categoryTitle != "분류되지 않음") {
+        if (categoryId != CategoryItem.DEFAULT_ID
+            && categoryId != CategoryItem.FAVORITE_ID
+        ) {
             // 편집/삭제 버튼
             Row(
                 modifier = Modifier
@@ -928,7 +932,7 @@ fun TopBarWithTitlePreview() {
 @Composable
 fun TopBarDefaultPreview() {
     Scrap2025Theme {
-        TopBarDefault(categoryTitle = "분류되지 않음", onEditClick = {}, onDeleteClick = {})
+        TopBarDefault(categoryId = "", categoryTitle = "분류되지 않음", onEditClick = {}, onDeleteClick = {})
     }
 }
 

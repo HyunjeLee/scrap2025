@@ -14,5 +14,8 @@ data class CategoryItem(
         companion object {
                 const val DEFAULT_ID = "00000000-0000-0000-0000-000000000000"
                 const val DEFAULT_NAME = "분류되지 않음"
+
+                const val FAVORITE_ID = "FAVORITE_ID"
+                const val FAVORITE_NAME = "즐겨찾기"
         }
 }
