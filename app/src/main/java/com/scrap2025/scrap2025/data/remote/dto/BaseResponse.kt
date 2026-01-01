@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Meta(
-    val totalElemnt: Int, // todo: 서버에서 오타 수정 시 같이 수정할 것
+    val totalElement: Int,
     val numOfElement: Int,
     val isEnd: Boolean
 )
