@@ -7,9 +7,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.scrap2025.scrap2025.data.local.dao.MyPageDao
 import com.scrap2025.scrap2025.data.local.entity.MyPageEntity
-import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.data.remote.dto.MemberInfo
+import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
+import com.scrap2025.scrap2025.data.remote.dto.Statistics
 import com.scrap2025.scrap2025.worker.MyPageSyncWorker
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
@@ -25,9 +27,9 @@ constructor(
 ) {
 
     // 1. UI Observes this (SSOT)
-    // Convert Entity to Domain Model (MyPageResult)
+    // Convert Entity to Domain Model (MyPageResponse)
     // If Entity is null, emit null (or handle default state)
-    val myPageData: Flow<MyPageResult?> =
+    val myPageData: Flow<MyPageResponse?> =
         myPageDao.getMyPage().map { entity -> entity?.toDomainModel() }
 
     // 2. Triggered by ViewModel on init or pull-to-refresh
@@ -72,18 +74,18 @@ constructor(
         }
     }
 
-    private fun MyPageEntity.toDomainModel(): MyPageResult {
-        return MyPageResult(
-            memberInfo = com.scrap2025.scrap2025.data.model.MemberInfo(name = this.name),
+    private fun MyPageEntity.toDomainModel(): MyPageResponse {
+        return MyPageResponse(
+            memberInfo = MemberInfo(name = this.name),
             statistics =
-                com.scrap2025.scrap2025.data.model.Statistics(
+                Statistics(
                     totalCategory = this.totalCategory,
                     totalScrap = this.totalScrap
                 )
         )
     }
 
-    private fun MyPageResult.toEntity(): MyPageEntity {
+    private fun MyPageResponse.toEntity(): MyPageEntity {
         return MyPageEntity(
             name = this.memberInfo.name,
             totalCategory = this.statistics.totalCategory,

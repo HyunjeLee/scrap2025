@@ -5,14 +5,14 @@ import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
-import com.scrap2025.scrap2025.data.model.CategoryCreateRequest
-import com.scrap2025.scrap2025.data.model.CategoryCreateResult
-import com.scrap2025.scrap2025.data.model.CategoryRenameRequest
-import com.scrap2025.scrap2025.data.model.CategoryRenameResult
-import com.scrap2025.scrap2025.data.model.CategorySequenceRequest
-import com.scrap2025.scrap2025.data.model.CategorySequenceResult
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryRequest
+import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryResponse
+import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryRequest
+import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryResponse
+import com.scrap2025.scrap2025.data.remote.dto.SequenceCategoryRequest
+import com.scrap2025.scrap2025.data.remote.dto.SequenceCategoryResponse
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
 import kotlinx.coroutines.flow.Flow
@@ -191,12 +191,12 @@ constructor(
                         // Match found! Update remoteId of existing local category
                         // Preserve local ID (UUID)
                         // Update remoteId and syncStatus
-                        if (existingLocal.remoteId != remoteCategory.categoryId) {
+                        if (existingLocal.remoteId != remoteCategory.categoryRemoteId) {
                             categoryDao.updateCategoryRemoteId(
                                 existingLocal.id,
-                                remoteCategory.categoryId,
-                                remoteCategory.scrapCnt,
-                                remoteCategory.sequence - 1,
+                                remoteCategory.categoryRemoteId,
+                                remoteCategory.scrapCount,
+                                remoteCategory.orderIndex - 1,
                                 SyncStatus.SYNCED
                             )
                         }
@@ -247,9 +247,9 @@ constructor(
 
     private suspend fun createCategoryRemote(
         title: String
-    ): Result<CategoryCreateResult> {
+    ): Result<CreateCategoryResponse> {
         return try {
-            val request = CategoryCreateRequest(categoryTitle = title)
+            val request = CreateCategoryRequest(categoryTitle = title)
             val response = authService.createCategory(request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
@@ -269,9 +269,9 @@ constructor(
     private suspend fun updateCategoryRemote(
         categoryId: Int,
         newTitle: String
-    ): Result<CategoryRenameResult> {
+    ): Result<RenameCategoryResponse> {
         return try {
-            val request = CategoryRenameRequest(newCategoryTitle = newTitle)
+            val request = RenameCategoryRequest(newCategoryTitle = newTitle)
             val response = authService.renameCategory(categoryId, request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
@@ -303,9 +303,9 @@ constructor(
 
     private suspend fun updateCategorySequenceRemote(
         categoryRemoteIds: List<Int>
-    ): Result<CategorySequenceResult> {
+    ): Result<SequenceCategoryResponse> {
         return try {
-            val request = CategorySequenceRequest(categoryIdList = categoryRemoteIds)
+            val request = SequenceCategoryRequest(categoryIdList = categoryRemoteIds)
             val response = authService.updateCategorySequence(request)
             if (response.isSuccessful) {
                 val result = response.body()?.result

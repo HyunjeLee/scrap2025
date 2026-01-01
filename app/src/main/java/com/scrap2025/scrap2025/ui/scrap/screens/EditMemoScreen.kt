@@ -41,7 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
-import com.scrap2025.scrap2025.data.model.ScrapMemoDto
+import com.scrap2025.scrap2025.data.remote.dto.ScrapMemoDto
 import com.scrap2025.scrap2025.model.Result
 
 @Composable

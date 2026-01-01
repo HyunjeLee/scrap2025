@@ -4,7 +4,6 @@ import android.util.Log
 import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.DatabaseInitializer
 import com.scrap2025.scrap2025.data.local.TokenManager
-import com.scrap2025.scrap2025.data.model.MyPageResult
 import com.scrap2025.scrap2025.data.remote.AuthService
 import javax.inject.Inject
 
@@ -39,20 +38,6 @@ constructor(
             }
         } catch (e: Exception) {
             Log.e("AuthRepository", "Login exception", e)
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getMyPage(): Result<MyPageResult> {
-        return try {
-            val response = authService.getMyPage()
-            if (response.isSuccessful) {
-                response.body()?.result?.let { Result.success(it) }
-                    ?: Result.failure(Exception("MyPage result is null"))
-            } else {
-                Result.failure(Exception("Failed to get MyPage: ${response.code()}"))
-            }
-        } catch (e: Exception) {
             Result.failure(e)
         }
     }

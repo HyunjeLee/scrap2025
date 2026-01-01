@@ -3,8 +3,8 @@
 package com.scrap2025.scrap2025.data.remote
 
 import com.scrap2025.scrap2025.data.local.TokenManager
-import com.scrap2025.scrap2025.data.model.BaseResponse
-import com.scrap2025.scrap2025.data.model.LoginResult
+import com.scrap2025.scrap2025.data.remote.dto.BaseResponse
+import com.scrap2025.scrap2025.data.remote.dto.LoginResponse
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -64,7 +64,7 @@ class TokenAuthenticatorTest {
 
         every { tokenManager.refreshToken } returns flowOf(oldRefreshToken)
 
-        val loginResult = LoginResult(newAccessToken, newRefreshToken)
+        val loginResult = LoginResponse(newAccessToken, newRefreshToken)
         val baseResponse = BaseResponse("SUCCESS", "Success", loginResult)
         coEvery { authService.refreshToken(oldRefreshToken) } returns
                 RetrofitResponse.success(baseResponse)

@@ -4,7 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.scrap2025.scrap2025.data.model.ScrapMemoDto
+import com.scrap2025.scrap2025.data.remote.dto.ScrapMemoDto
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.navigation.EditMemo
 import com.scrap2025.scrap2025.repository.ScrapRepository

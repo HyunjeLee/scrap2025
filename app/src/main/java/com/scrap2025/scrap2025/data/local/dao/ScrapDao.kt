@@ -52,4 +52,7 @@ interface ScrapDao {
 
     @Query("UPDATE scraps SET description = :description, memo = :memo WHERE id = :id")
     suspend fun updateScrapDetails(id: String, description: String, memo: String?)
+
+    @Query("SELECT * FROM scraps WHERE remoteId = :remoteId")
+    suspend fun getScrapByRemoteId(remoteId: Int): ScrapEntity?
 }

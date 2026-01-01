@@ -2,7 +2,7 @@ package com.scrap2025.scrap2025.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.scrap2025.scrap2025.data.model.MyPageResult
+import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
 import com.scrap2025.scrap2025.repository.AuthRepository
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.MyPageRepository
@@ -31,7 +31,7 @@ constructor(
     sealed interface MyPageUiState {
         data object Loading : MyPageUiState
         data class Success(
-            val myPageInfo: MyPageResult,
+            val myPageInfo: MyPageResponse,
             val scrapCount: Int,
             val categoryCount: Int
         ) : MyPageUiState
