@@ -47,8 +47,8 @@ interface ScrapDao {
     @Upsert
     suspend fun upsertScraps(scraps: List<ScrapEntity>)
 
-    @Query("UPDATE scraps SET remoteId = :remoteId, syncStatus = :status WHERE id = :id")
-    suspend fun updateScrapRemoteId(id: String, remoteId: Int, status: SyncStatus)
+    @Query("UPDATE scraps SET remoteId = :remoteId, isFavorite = :isFavorite, syncStatus = :status WHERE id = :id")
+    suspend fun updateScrapRemoteId(id: String, remoteId: Int, isFavorite: Boolean, status: SyncStatus)
 
     @Query("UPDATE scraps SET description = :description, memo = :memo WHERE id = :id")
     suspend fun updateScrapDetails(id: String, description: String, memo: String?)

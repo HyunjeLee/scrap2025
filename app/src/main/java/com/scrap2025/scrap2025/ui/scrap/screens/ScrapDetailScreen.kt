@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Share
@@ -58,6 +59,7 @@ import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
+import com.scrap2025.scrap2025.ui.theme.FavoriteColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
@@ -138,7 +140,7 @@ fun ScrapDetailScreen(
                     onDelete = { viewModel.showDeleteDialog() },
                     onToggleFavorite = {
                         viewModel.toggleFavorite(
-                            onSuccess = { Toast.makeText(context, "즐겨찾기 성공", Toast.LENGTH_SHORT).show() },
+                            onSuccess = { },
                             onFailure = { Toast.makeText(context, "즐겨찾기 실패", Toast.LENGTH_SHORT).show() }
                         )
                     }
@@ -165,8 +167,8 @@ fun ScrapDetailContent(
         topBar = { DetailTopBar(title = scrapItem.title, onBackClick = onBack) },
         bottomBar = {
             DetailBottomBar(
+                isFavorite = scrapItem.isFavorite,
                 onDelete = onDelete,
-                scrapId = scrapItem.id,
                 initialMemo = scrapItem.memo,
                 onEditMemo = onEditMemo,
                 onShare = onShare,
@@ -393,8 +395,8 @@ fun DetailTopBar(title: String, onBackClick: () -> Unit, modifier: Modifier = Mo
 
 @Composable
 fun DetailBottomBar(
+    isFavorite: Boolean,
     onDelete: () -> Unit,
-    scrapId: String,
     initialMemo: String,
     onEditMemo: (String) -> Unit,
     onShare: () -> Unit,
@@ -438,7 +440,8 @@ fun DetailBottomBar(
                 onClick = onMove
             )
             BottomNavItem(
-                icon = Icons.Outlined.StarBorder,
+                icon = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                iconTint = if (isFavorite) FavoriteColor else Color.Black,
                 label = "즐겨찾기",
                 onClick = onToggleFavorite
             )

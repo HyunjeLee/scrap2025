@@ -222,8 +222,12 @@ constructor(
         //            Result.Error(e, "즐겨찾기 토글 실패")
         //        }
         try {
-            val scrapRemoteId = scrapDao.getScrapById(scrapId)?.remoteId
-            val response = authService.updateScrapFavorite(scrapRemoteId!!.toLong())
+            val scrapLocal = scrapDao.getScrapById(scrapId)
+            // local update
+            scrapDao.updateIsFavorite(scrapId, !(scrapLocal?.isFavorite ?: false))
+
+            // server update
+            val response = authService.updateScrapFavorite(scrapLocal?.remoteId!!.toLong())
 
             return if (response.isSuccessful) {
                 Result.Success(Unit)
@@ -298,22 +302,23 @@ constructor(
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
                 val localScraps = scrapDao.getAllScrapsByCategoryId(categoryId).first()
 
-                val localScrapMap = localScraps.associateBy { it.title }
+                val localScrapMap = localScraps.associateBy { it.remoteId }
 
                 val toInsert = mutableListOf<ScrapEntity>()
 
                 for (remoteScrap in remoteScraps) {
-                    val existingLocal = localScrapMap[remoteScrap.scrapTitle]
+                    val existingLocal = localScrapMap[remoteScrap.scrapRemoteId]
 
                     if (existingLocal != null) {
                         // Match found! Update remoteId of existing local scrap
                         // Preserve local ID (UUID)
-                        // Update remoteId and syncStatus
+                        // Update remoteId, isFavorite and syncStatus
                         if (existingLocal.remoteId != remoteScrap.scrapRemoteId) {
                             scrapDao.updateScrapRemoteId(
-                                existingLocal.id,
-                                remoteScrap.scrapRemoteId,
-                                SyncStatus.SYNCED
+                                id = existingLocal.id,
+                                remoteId = remoteScrap.scrapRemoteId,
+                                isFavorite = remoteScrap.isFavorite,
+                                status = SyncStatus.SYNCED
                             )
                         }
                     } else {
