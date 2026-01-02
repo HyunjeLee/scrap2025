@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -73,9 +71,9 @@ fun LoginScreenContent(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "스크랩하기_", style = MainTextStyle)
                 Icon(
-                    imageVector = Icons.Outlined.AttachFile,
-                    contentDescription = "첨부 아이콘",
-                    modifier = Modifier.size(24.dp)
+                    painter = painterResource(R.drawable.ic_scrap),
+                    contentDescription = "스크랩 아이콘",
+                    modifier = Modifier.size(30.dp)
                 )
             }
         }
