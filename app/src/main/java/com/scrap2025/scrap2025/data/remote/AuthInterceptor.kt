@@ -27,7 +27,7 @@ class AuthInterceptor
         val newRequest = if (!token.isNullOrBlank()) {
             originalRequest.newBuilder()
                 .header("Accept", "application/json")
-                .header("Authorization", token)
+                .header("Authorization", "Bearer $token")
                 .build()
         } else {
             originalRequest
