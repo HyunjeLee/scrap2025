@@ -6,16 +6,16 @@ import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryRequest
 import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryResponse
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapResponse
-import com.scrap2025.scrap2025.data.remote.dto.FavoriteListToggleRequest
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListResponse
+import com.scrap2025.scrap2025.data.remote.dto.FavoriteListToggleRequest
 import com.scrap2025.scrap2025.data.remote.dto.LoginResponse
 import com.scrap2025.scrap2025.data.remote.dto.MoveScrapListRequest
 import com.scrap2025.scrap2025.data.remote.dto.MoveScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
 import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryRequest
 import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryResponse
-import com.scrap2025.scrap2025.data.remote.dto.ScrapListResponse
 import com.scrap2025.scrap2025.data.remote.dto.ScrapDetailResponse
+import com.scrap2025.scrap2025.data.remote.dto.ScrapListResponse
 import com.scrap2025.scrap2025.data.remote.dto.ScrapMemoDto
 import com.scrap2025.scrap2025.data.remote.dto.SearchFavoriteResponse
 import com.scrap2025.scrap2025.data.remote.dto.SearchListResponse
@@ -55,7 +55,7 @@ interface AuthService {
     @PATCH("/auth/logout")
     suspend fun logout(): Response<BaseResponse<Unit?>>
 
-    @PATCH("/auth/signout")
+    @DELETE("/auth/signout")
     suspend fun withdraw(): Response<BaseResponse<Unit?>>
 
     @GET("/auth/categories")
