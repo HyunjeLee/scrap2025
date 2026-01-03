@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AttachFile
-import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,7 +23,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
@@ -124,7 +123,7 @@ fun MyPageScreenContent(
                 ) {
                     // Scrap Stat
                     StatItem(
-                        icon = Icons.Outlined.AttachFile,
+                        icon = painterResource(R.drawable.ic_clip),
                         count = "${uiState.scrapCount}개",
                         label = "스크랩"
                     )
@@ -133,7 +132,7 @@ fun MyPageScreenContent(
 
                     // Category Stat
                     StatItem(
-                        icon = Icons.Outlined.Folder,
+                        icon = painterResource(R.drawable.ic_folder),
                         count = "${uiState.categoryCount - 1}개", // default category 제외
                         label = "카테고리"
                     )
@@ -164,10 +163,10 @@ fun MyPageScreenContent(
 }
 
 @Composable
-fun StatItem(icon: ImageVector, count: String, label: String) {
+fun StatItem(icon: Painter, count: String, label: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
-            imageVector = icon,
+            painter = icon,
             contentDescription = label,
             modifier = Modifier.size(32.dp),
             tint = Color.Black
