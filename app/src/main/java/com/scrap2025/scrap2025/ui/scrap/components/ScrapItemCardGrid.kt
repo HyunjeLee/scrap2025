@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -41,7 +38,6 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.ui.theme.FavoriteColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
-import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -198,11 +194,12 @@ fun ScrapItemCardGrid(
                             .align(Alignment.Center)
                     )
                     Icon(
-                        imageVector = if (isSelected) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                        painter =
+                            if (isSelected) painterResource(R.drawable.ic_check_filled)
+                            else painterResource(R.drawable.ic_check_unfilled),
                         contentDescription = if (isSelected) "선택됨" else "선택 안됨",
-                        tint = if (isSelected) MainColorDeep else GrayColor,
-                        modifier = Modifier
-                            .fillMaxSize()
+                        tint = Color.Unspecified,
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }

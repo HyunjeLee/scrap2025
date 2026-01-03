@@ -30,8 +30,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.rounded.Add
@@ -524,7 +522,6 @@ private fun TopBarEditMode(
 
     // === 유효성 검사: 1자 이상 21자 이하 ===
     val isCategoryTitleValid = textFieldState.text.length in 1..21
-    val saveButtonColor = if (isCategoryTitleValid) MainColorDeep else WarningColor
 
     // === 포커스 관리 ===
     val focusRequester = remember { FocusRequester() }
@@ -571,9 +568,12 @@ private fun TopBarEditMode(
                 .size(28.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.CheckCircle,
+                painter = painterResource(
+                    if (isCategoryTitleValid) R.drawable.ic_check_filled
+                    else R.drawable.ic_check_err
+                ),
                 contentDescription = "저장",
-                tint = saveButtonColor,
+                tint = Color.Unspecified,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -702,19 +702,14 @@ fun SelectionTopBar(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
-                            imageVector =
+                            painter =
                                 if (selectedCount == totalCount) {
-                                    Icons.Filled.CheckCircle
+                                    painterResource(R.drawable.ic_check_filled)
                                 } else {
-                                    Icons.Outlined.Circle
+                                    painterResource(R.drawable.ic_check_unfilled)
                                 },
                             contentDescription = "전체 선택",
-                            tint =
-                                if (selectedCount == totalCount) {
-                                    MainColorDeep
-                                } else {
-                                    GrayColor
-                                },
+                            tint = Color.Unspecified,
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
@@ -925,7 +920,12 @@ fun TopBarDefaultPreview() {
 @Preview(showBackground = true)
 @Composable
 fun TopBarEditModePreview() {
-    Scrap2025Theme { TopBarEditMode(categoryTitle = "분류되지 않음", onSave = {}, onCancel = {}) }
+    Scrap2025Theme {
+        TopBarEditMode(
+            categoryTitle = "toomanyletter-toomanyletter-toomanyletter-toomanyletter",
+            onSave = {},
+            onCancel = {})
+    }
 }
 
 @Preview(showBackground = true)
