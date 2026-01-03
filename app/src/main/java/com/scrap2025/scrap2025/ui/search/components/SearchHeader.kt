@@ -21,8 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -32,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -45,7 +44,6 @@ import com.scrap2025.scrap2025.ui.theme.Duotone
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LineGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
-import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
@@ -227,9 +225,9 @@ fun SearchRangeItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier.clickable { onClick() }
     ) {
         Icon(
-            imageVector = if (isSelected) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+            painter = if (isSelected) painterResource(R.drawable.ic_check_filled) else painterResource(R.drawable.ic_check_unfilled),
             contentDescription = label,
-            tint = if (isSelected) MainColorDeep else GrayColor,
+            tint = Color.Unspecified,
             modifier = Modifier.size(20.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
@@ -254,7 +252,7 @@ fun CategoryChip(label: String, onRemove: () -> Unit) {
         )
         Spacer(modifier = Modifier.width(4.dp))
         Icon(
-            imageVector = Icons.Default.Cancel,
+            imageVector = Icons.Filled.Cancel,
             contentDescription = "삭제",
             modifier = Modifier
                 .size(16.dp)
