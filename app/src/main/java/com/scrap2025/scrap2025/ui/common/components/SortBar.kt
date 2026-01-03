@@ -11,11 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowCircleDown
-import androidx.compose.material.icons.outlined.ArrowCircleUp
-import androidx.compose.material.icons.outlined.GridView
-import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -23,11 +18,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.model.SortDirection
 import com.scrap2025.scrap2025.model.SortType
 import com.scrap2025.scrap2025.model.ViewMode
@@ -70,10 +67,10 @@ fun SortBar(
             // 정렬 아이콘 (클릭 시 오름차순/내림차순 토글)
             IconButton(onClick = onSortDirectionToggle, modifier = Modifier.size(20.dp)) {
                 Icon(
-                    imageVector =
+                    painter =
                         when (sortDirection) {
-                            SortDirection.ASC -> Icons.Outlined.ArrowCircleUp
-                            SortDirection.DESC -> Icons.Outlined.ArrowCircleDown
+                            SortDirection.ASC -> painterResource(R.drawable.ic_sort_up)
+                            SortDirection.DESC -> painterResource(R.drawable.ic_sort_down)
                         },
                     contentDescription = "정렬 방향",
                     tint = Color.Black,
@@ -105,10 +102,10 @@ fun SortBar(
             // 뷰모드 전환
             IconButton(onClick = onViewModeToggle, modifier = Modifier.size(20.dp)) {
                 Icon(
-                    imageVector =
+                    painter =
                         when (viewMode) {
-                            ViewMode.LIST -> Icons.Outlined.ViewAgenda
-                            ViewMode.GRID -> Icons.Outlined.GridView
+                            ViewMode.LIST -> painterResource(R.drawable.ic_list_view)
+                            ViewMode.GRID -> painterResource(R.drawable.ic_grid_view)
                         },
                     contentDescription = "뷰모드 전환",
                     tint = Color.Black,
