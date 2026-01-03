@@ -10,7 +10,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreenContent
-import com.scrap2025.scrap2025.ui.scrap.screens.SelectionActionBar
+import com.scrap2025.scrap2025.ui.scrap.screens.SelectionBottomBar
 import com.scrap2025.scrap2025.viewmodel.FavoriteViewModel
 
 @Composable
@@ -29,7 +29,7 @@ fun FavoriteScreen(
     val queryState by viewModel.queryState.collectAsState()
 
     val selectionBottomBar: @Composable () -> Unit = {
-        SelectionActionBar(
+        SelectionBottomBar(
             onDelete = { viewModel.deleteSelectedItems() },
             onMove = { /* todo */ },
             onShare = { /* todo */ },

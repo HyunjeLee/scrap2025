@@ -29,16 +29,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
-import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Circle
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -63,6 +58,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -73,6 +69,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.data.local.ScrapDummyData
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
@@ -127,7 +124,7 @@ fun ScrapScreen(
 
     val selectionBottomBar: @Composable () -> Unit = {
         // 이전에 정의된 SelectionActionBar 컴포저블을 호출합니다.
-        SelectionActionBar(
+        SelectionBottomBar(
                 onDelete = { scrapViewModel.deleteSelectedItems() },
                 onMove = { /* todo */},
                 onShare = { /* todo */},
@@ -480,12 +477,12 @@ private fun TopBarDefault(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .padding(end = 22.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 // 편집 버튼
                 IconButton(onClick = onEditClick, modifier = Modifier.size(28.dp)) {
                     Icon(
-                            imageVector = Icons.Outlined.Edit,
+                        painter = painterResource(R.drawable.ic_edit),
                             contentDescription = "편집",
                             tint = Color.Black,
                             modifier = Modifier.size(24.dp)
@@ -495,7 +492,7 @@ private fun TopBarDefault(
                 // 삭제 버튼
                 IconButton(onClick = { onDeleteClick() }, modifier = Modifier.size(28.dp)) {
                     Icon(
-                            imageVector = Icons.Outlined.Delete,
+                        painter = painterResource(R.drawable.ic_trash),
                             contentDescription = "삭제",
                             tint = WarningColor,
                             modifier = Modifier.size(24.dp)
@@ -741,9 +738,9 @@ fun SelectionTopBar(
     }
 }
 
-/** SelectionActionBar - 선택 모드일 때 하단 액션 바 삭제, 이동, 공유, 즐겨찾기 버튼 */
+/** SelectionBottomBar - 선택 모드일 때 하단 바텀 바의 삭제, 이동, 공유, 즐겨찾기 버튼 */
 @Composable
-fun SelectionActionBar(
+fun SelectionBottomBar(
     onDelete: () -> Unit,
     onMove: () -> Unit,
     onShare: () -> Unit,
@@ -777,7 +774,7 @@ fun SelectionActionBar(
             modifier = Modifier.clickable { onDelete() }
         ) {
             Icon(
-                imageVector = Icons.Outlined.Delete,
+                painter = painterResource(R.drawable.ic_trash),
                 contentDescription = "삭제",
                 tint = WarningColor,
                 modifier = Modifier.size(30.dp)
@@ -796,7 +793,7 @@ fun SelectionActionBar(
             modifier = Modifier.clickable { onShare() }
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                painter = painterResource(R.drawable.ic_share),
                 contentDescription = "공유",
                 tint = Color.Black,
                 modifier = Modifier.size(30.dp)
@@ -815,7 +812,7 @@ fun SelectionActionBar(
             modifier = Modifier.clickable { onMove() }
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Outlined.DriveFileMove,
+                painter = painterResource(R.drawable.ic_folder_move),
                 contentDescription = "이동",
                 tint = Color.Black,
                 modifier = Modifier.size(30.dp)
@@ -834,7 +831,7 @@ fun SelectionActionBar(
             modifier = Modifier.clickable { onFavorite() }
         ) {
             Icon(
-                imageVector = Icons.Outlined.StarBorder,
+                painter = painterResource(R.drawable.ic_fav_false),
                 contentDescription = "즐겨찾기",
                 tint = Color.Black,
                 modifier = Modifier.size(30.dp)
@@ -851,8 +848,8 @@ fun SelectionActionBar(
 
 @Preview(showBackground = true)
 @Composable
-fun SelectionActionBarPreview() {
-    Scrap2025Theme { SelectionActionBar(onDelete = {}, onMove = {}, onShare = {}, onFavorite = {}) }
+fun SelectionBottomBarPreview() {
+    Scrap2025Theme { SelectionBottomBar(onDelete = {}, onMove = {}, onShare = {}, onFavorite = {}) }
 }
 
 @Preview(showBackground = true)
@@ -913,19 +910,6 @@ fun ScrapScreenContentSelectionModePreview() {
             onDeleteCategory = {},
             query = "",
             onQueryChange = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun TopBarWithTitlePreview() {
-    Scrap2025Theme {
-        TopBarWithTitle(
-            categoryId = "1",
-            categoryTitle = "분류되지 않음",
-            onUpdateCategory = { dummy1, dummy2 -> },
-            onDeleteCategory = {}
         )
     }
 }
