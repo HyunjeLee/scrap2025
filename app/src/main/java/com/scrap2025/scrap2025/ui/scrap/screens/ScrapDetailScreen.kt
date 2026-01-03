@@ -20,14 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.DriveFileMove
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,9 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gigamole.composeshadowsplus.common.ShadowsPlusType
 import com.gigamole.composeshadowsplus.common.shadowsPlus
+import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
@@ -246,8 +241,8 @@ fun ScrapDetailContent(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
-                                imageVector = Icons.Default.ContentCopy,
-                                contentDescription = "복사",
+                                painter = painterResource(R.drawable.ic_clipboard),
+                                contentDescription = "클립보드 복사",
                                 tint = Color.Black,
                                 modifier =
                                     Modifier
@@ -427,20 +422,27 @@ fun DetailBottomBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             BottomNavItem(
-                icon = Icons.Outlined.Delete,
+                icon = painterResource(R.drawable.ic_trash),
                 iconTint = WarningColor,
                 label = "삭제",
                 onClick = onDelete
             )
-            BottomNavItem(icon = Icons.Outlined.Edit, label = "메모 수정", onClick = { onEditMemo(initialMemo) })
-            BottomNavItem(icon = Icons.Outlined.Share, label = "공유", onClick = onShare)
             BottomNavItem(
-                icon = Icons.AutoMirrored.Outlined.DriveFileMove,
+                icon = painterResource(R.drawable.ic_edit),
+                label = "메모 수정",
+                onClick = { onEditMemo(initialMemo) })
+            BottomNavItem(
+                icon = painterResource(R.drawable.ic_share),
+                label = "공유",
+                onClick = onShare
+            )
+            BottomNavItem(
+                icon = painterResource(R.drawable.ic_folder_move),
                 label = "이동",
                 onClick = onMove
             )
             BottomNavItem(
-                icon = if (isFavorite) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                icon = painterResource(if (isFavorite) R.drawable.ic_fav_true else R.drawable.ic_fav_false),
                 iconTint = if (isFavorite) FavoriteColor else Color.Black,
                 label = "즐겨찾기",
                 onClick = onToggleFavorite
@@ -451,7 +453,7 @@ fun DetailBottomBar(
 
 @Composable
 fun BottomNavItem(
-    icon: ImageVector,
+    icon: Painter,
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -465,7 +467,7 @@ fun BottomNavItem(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = icon,
+            painter = icon,
             contentDescription = label,
             tint = iconTint,
             modifier = Modifier.size(25.dp)
