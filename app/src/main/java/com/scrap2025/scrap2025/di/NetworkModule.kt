@@ -19,8 +19,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://211.188.63.252:8090"
-
+    private const val DEVELOP_URL = "https://teamscrap.co.kr:8080/"
+    private const val RELEASE_URL = "https://teamscrap.co.kr/"
     @Provides
     @Singleton
     fun provideOkHttpClient(
@@ -46,7 +46,7 @@ object NetworkModule {
         }
 
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(DEVELOP_URL)
             .client(okHttpClient)
             .addConverterFactory(
                 json.asConverterFactory(
