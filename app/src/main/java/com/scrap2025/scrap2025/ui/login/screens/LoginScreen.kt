@@ -7,6 +7,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.scrap2025.scrap2025.ui.common.components.ErrorScreen
+import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.common.utils.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.login.components.LoginScreenContent
 import com.scrap2025.scrap2025.viewmodel.LoginUiState
@@ -29,12 +31,22 @@ fun LoginScreen(
 
     BackPressToExitHandler()
 
-    LoginScreenContent(
-        onLoginClick = { snsType ->
-            viewModel.login(snsType) { provider ->
-                provider.login(context)
-            }
-        },
-        modifier = modifier
-    )
+    when (uiState) {
+        LoginUiState.Idle -> {
+            LoginScreenContent(
+                onLoginClick = { snsType ->
+                    viewModel.login(snsType) { provider ->
+                        provider.login(context)
+                    }
+                },
+                modifier = modifier
+            )
+        }
+        LoginUiState.Loading, LoginUiState.Success  -> {
+            LoadingScreen()
+        }
+        is LoginUiState.Error -> {
+            ErrorScreen((uiState as LoginUiState.Error).message)
+        }
+    }
 }
