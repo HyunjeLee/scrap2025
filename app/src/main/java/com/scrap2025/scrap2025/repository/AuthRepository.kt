@@ -5,6 +5,7 @@ import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.DatabaseInitializer
 import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.model.SnsType
 import javax.inject.Inject
 
 class AuthRepository
@@ -15,29 +16,31 @@ constructor(
     private val database: AppDatabase,
     private val databaseInitializer: DatabaseInitializer
 ) {
-    suspend fun loginWithNaver(token: String): Result<Unit> {
+    companion object {
+        private const val TAG = "AuthRepository"
+    }
+
+    suspend fun loginToServer(snsType: SnsType, socialToken: String): Result<Unit> {
         return try {
-            val response = authService.login(sns = "naver", token = token)
+            val response = authService.login(sns = snsType.value, token = socialToken)
             if (response.isSuccessful) {
                 response.body()?.result?.let { loginResult ->
                     tokenManager.saveTokens(
-                            accessToken = loginResult.accessToken,
-                            refreshToken = loginResult.refreshToken
+                        accessToken = loginResult.accessToken,
+                        refreshToken = loginResult.refreshToken
                     )
-                    Log.d("AuthRepository", "Tokens saved successfully")
+                    Log.d(TAG, "Tokens saved successfully")
                 }
                 Result.success(Unit)
             } else {
-                Log.e(
-                        "AuthRepository",
-                        "Login failed: ${response.code()} ${response.body()?.message}"
-                )
+                Log.e(TAG, "Login failed: ${response.code()} ${response.body()?.message}")
+
                 Result.failure(
-                        Exception("Login failed: ${response.body()?.message ?: "Unknown error"}")
+                    Exception("Login failed: ${response.body()?.message ?: "Unknown error"}")
                 )
             }
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Login exception", e)
+            Log.e(TAG, "Login exception", e)
             Result.failure(e)
         }
     }

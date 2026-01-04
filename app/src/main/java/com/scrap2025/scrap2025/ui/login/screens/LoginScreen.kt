@@ -9,28 +9,32 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.ui.common.utils.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.login.components.LoginScreenContent
+import com.scrap2025.scrap2025.viewmodel.LoginUiState
 import com.scrap2025.scrap2025.viewmodel.LoginViewModel
-
 
 @Composable
 fun LoginScreen(
-    onLoginClick: () -> Unit,
+    navigateToMain: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    BackPressToExitHandler()
+    val uiState by viewModel.uiState.collectAsState()
 
-    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
-
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) {
-            onLoginClick()
+    LaunchedEffect(uiState) {
+        if (uiState == LoginUiState.Success) {
+            navigateToMain()
         }
     }
 
+    BackPressToExitHandler()
+
     LoginScreenContent(
-        onLoginClick = { viewModel.loginWithNaver(context) },
+        onLoginClick = { snsType ->
+            viewModel.login(snsType) { provider ->
+                provider.login(context)
+            }
+        },
         modifier = modifier
     )
 }

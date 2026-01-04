@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.R
+import com.scrap2025.scrap2025.model.SnsType
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
@@ -41,7 +42,7 @@ private val ButtonTextStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeigh
 
 @Composable
 fun LoginScreenContent(
-    onLoginClick: () -> Unit,
+    onLoginClick: (SnsType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -105,7 +106,7 @@ fun LoginScreenContent(
             }
             Spacer(modifier = Modifier.height(12.dp))
             NaverLoginButton {
-                onLoginClick()
+                onLoginClick(SnsType.NAVER)
             }
             Spacer(modifier = Modifier.height(20.dp))
         }
