@@ -19,7 +19,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val DEVELOP_URL = "https://teamscrap.co.kr:8080/"
+    private const val DEVELOP_URL = "https://dev.teamscrap.co.kr"
     private const val RELEASE_URL = "https://teamscrap.co.kr/"
     @Provides
     @Singleton
