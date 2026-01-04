@@ -100,7 +100,7 @@ fun CategorySelectionScreen(
         }
 
         is Result.Error -> {
-            ErrorScreen(errorText = "카테고리를 불러올 수 없습니다", errorState = state)
+            ErrorScreen(errorText = state.message ?: "카테고리를 불러올 수 없습니다.")
         }
 
         is Result.Success -> {

@@ -113,8 +113,7 @@ fun CategoryScreenContent(
                 }
                 is Result.Error -> {
                     ErrorScreen(
-                        errorText = "카테고리를 불러올 수 없습니다.",
-                        errorState = uiState
+                        errorText = uiState.message ?: "카테고리를 불러올 수 없습니다."
                     )
                 }
                 is Result.Success -> {
