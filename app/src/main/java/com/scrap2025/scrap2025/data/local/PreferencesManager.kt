@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "scrap_preferences")
 
-class PreferencesManager(private val context: Context) {
+class PreferencesManager(context: Context) {
     private val dataStore: DataStore<Preferences> = context.dataStore
 
     companion object {
