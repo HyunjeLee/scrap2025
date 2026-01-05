@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
-import com.scrap2025.scrap2025.model.SortDirection
-import com.scrap2025.scrap2025.model.SortType
-import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.model.enums.SortDirection
+import com.scrap2025.scrap2025.model.enums.SortType
+import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

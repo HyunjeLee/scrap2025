@@ -72,9 +72,9 @@ import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
-import com.scrap2025.scrap2025.model.SortDirection
-import com.scrap2025.scrap2025.model.SortType
-import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.model.enums.SortDirection
+import com.scrap2025.scrap2025.model.enums.SortType
+import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.SortBar
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapListContent

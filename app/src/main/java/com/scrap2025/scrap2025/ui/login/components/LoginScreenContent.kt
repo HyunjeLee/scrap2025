@@ -30,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.R
-import com.scrap2025.scrap2025.model.SnsType
+import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme

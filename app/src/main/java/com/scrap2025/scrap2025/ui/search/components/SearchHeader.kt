@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.model.CategoryItem
-import com.scrap2025.scrap2025.model.SearchScope
+import com.scrap2025.scrap2025.model.enums.SearchScope
 import com.scrap2025.scrap2025.ui.theme.Duotone
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LineGrayColor

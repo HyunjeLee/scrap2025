@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
-import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 

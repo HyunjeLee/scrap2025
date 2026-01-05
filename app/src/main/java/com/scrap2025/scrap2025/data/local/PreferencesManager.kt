@@ -6,9 +6,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.scrap2025.scrap2025.model.SortDirection
-import com.scrap2025.scrap2025.model.SortType
-import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.model.enums.SortDirection
+import com.scrap2025.scrap2025.model.enums.SortType
+import com.scrap2025.scrap2025.model.enums.ViewMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 

@@ -1,6 +1,6 @@
 package com.scrap2025.scrap2025.di
 
-import com.scrap2025.scrap2025.model.SnsType
+import com.scrap2025.scrap2025.model.enums.SnsType
 import dagger.MapKey
 
 @MapKey

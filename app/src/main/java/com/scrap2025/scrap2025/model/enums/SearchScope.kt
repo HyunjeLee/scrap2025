@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.model
+package com.scrap2025.scrap2025.model.enums
 
 enum class SearchScope(val value: String, val label: String) {
     TITLE("title", "제목"),

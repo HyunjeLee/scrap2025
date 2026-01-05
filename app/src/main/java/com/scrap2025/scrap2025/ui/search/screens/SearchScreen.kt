@@ -35,7 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.scrap2025.scrap2025.model.ViewMode
+import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.SortBar
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDateRangePickerDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapListContent
