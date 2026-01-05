@@ -55,4 +55,7 @@ interface ScrapDao {
 
     @Query("SELECT * FROM scraps WHERE remoteId = :remoteId")
     suspend fun getScrapByRemoteId(remoteId: Int): ScrapEntity?
+
+    @Query("DELETE FROM scraps")
+    suspend fun deleteAll()
 }

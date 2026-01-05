@@ -10,14 +10,14 @@ import java.time.LocalDateTime
 
 @Entity(
     tableName = "scraps",
-    foreignKeys = [
-        ForeignKey(
-            entity = CategoryEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["categoryId"],
-            onDelete = ForeignKey.SET_NULL // 카테고리 삭제 시 스크랩은 유지하되 카테고리만 null/기본값 처리 등을 고려해야 함. 일단 SET_NULL
-        )
-    ],
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = CategoryEntity::class,
+                parentColumns = ["id"],
+                childColumns = ["categoryId"],
+                onDelete = ForeignKey.RESTRICT
+            )],
     indices = [Index(value = ["categoryId"])]
 )
 data class ScrapEntity(

@@ -66,4 +66,7 @@ interface CategoryDao {
     // 순서 변경을 위한 개별 업데이트
     @Query("UPDATE categories SET orderIndex = :orderIndex WHERE id = :id")
     suspend fun updateCategoryOrder(id: String, orderIndex: Int)
+
+    @Query("DELETE FROM categories")
+    suspend fun deleteAll()
 }
