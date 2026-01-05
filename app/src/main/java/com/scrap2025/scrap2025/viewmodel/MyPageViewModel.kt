@@ -3,6 +3,7 @@ package com.scrap2025.scrap2025.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.remote.auth.SocialLoginProvider
 import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
 import com.scrap2025.scrap2025.model.enums.SnsType
@@ -28,6 +29,7 @@ constructor(
     categoryRepository: CategoryRepository,
     private val authRepository: AuthRepository,
     private val myPageRepository: MyPageRepository,
+    tokenManager: TokenManager,
     private val socialLoginProviders: Map<SnsType, @JvmSuppressWildcards SocialLoginProvider>,
 ) : ViewModel() {
 
@@ -37,7 +39,8 @@ constructor(
         data class Success(
             val myPageInfo: MyPageResponse,
             val scrapCount: Int,
-            val categoryCount: Int
+            val categoryCount: Int,
+            val snsType: SnsType
         ) : MyPageUiState
     }
 
@@ -49,15 +52,17 @@ constructor(
         combine(
             myPageRepository.myPageData,
             scrapRepository.getScrapCount(),
-            categoryRepository.getCategoryCount()
-        ) { myPageInfo, scrapCount, categoryCount ->
+            categoryRepository.getCategoryCount(),
+            tokenManager.snsType
+        ) { myPageInfo, scrapCount, categoryCount, snsType ->
             if (myPageInfo == null) {
                 MyPageUiState.Loading
             } else {
                 MyPageUiState.Success(
                     myPageInfo = myPageInfo,
                     scrapCount = scrapCount,
-                    categoryCount = categoryCount
+                    categoryCount = categoryCount,
+                    snsType = snsType ?: SnsType.NAVER // 기본값 설정
                 )
             }
         }
@@ -135,8 +140,9 @@ constructor(
         snsType: SnsType,
         callback: suspend (SocialLoginProvider) -> Result<Unit>
     ): Result<Unit> {
-        val provider = socialLoginProviders[snsType]
-            ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
+        val provider =
+            socialLoginProviders[snsType]
+                ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
 
         return callback(provider)
     }
@@ -158,8 +164,9 @@ constructor(
         snsType: SnsType,
         callback: suspend (SocialLoginProvider) -> Result<Unit>
     ): Result<Unit> {
-        val provider = socialLoginProviders[snsType]
-            ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
+        val provider =
+            socialLoginProviders[snsType]
+                ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
 
         return callback(provider)
     }

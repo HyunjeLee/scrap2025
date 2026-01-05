@@ -29,7 +29,8 @@ constructor(
                         accessToken = loginResult.accessToken,
                         refreshToken = loginResult.refreshToken
                     )
-                    Log.d(TAG, "Tokens saved successfully")
+                    tokenManager.saveSnsType(snsType)
+                    Log.d(TAG, "Tokens and SnsType saved successfully")
                 }
                 Result.success(Unit)
             } else {
