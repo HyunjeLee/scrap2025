@@ -1,6 +1,7 @@
-package com.scrap2025.scrap2025.data.remote
+package com.scrap2025.scrap2025.data.remote.auth
 
 import com.scrap2025.scrap2025.data.local.TokenManager
+import com.scrap2025.scrap2025.data.remote.api.AuthService
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator

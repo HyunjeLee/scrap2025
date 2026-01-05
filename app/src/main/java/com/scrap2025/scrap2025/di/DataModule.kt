@@ -2,10 +2,10 @@ package com.scrap2025.scrap2025.di
 
 import android.content.Context
 import com.scrap2025.scrap2025.data.local.PreferencesManager
-import com.scrap2025.scrap2025.data.remote.auth.GoogleLoginProvider
-import com.scrap2025.scrap2025.data.remote.auth.KakaoLoginProvider
-import com.scrap2025.scrap2025.data.remote.auth.NaverLoginProvider
-import com.scrap2025.scrap2025.data.remote.auth.SocialLoginProvider
+import com.scrap2025.scrap2025.data.remote.auth.social.GoogleLoginProvider
+import com.scrap2025.scrap2025.data.remote.auth.social.KakaoLoginProvider
+import com.scrap2025.scrap2025.data.remote.auth.social.NaverLoginProvider
+import com.scrap2025.scrap2025.data.remote.auth.social.SocialLoginProvider
 import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.CategoryRepositoryImpl

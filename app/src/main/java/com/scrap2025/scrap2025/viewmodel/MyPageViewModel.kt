@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.TokenManager
-import com.scrap2025.scrap2025.data.remote.auth.SocialLoginProvider
+import com.scrap2025.scrap2025.data.remote.auth.social.SocialLoginProvider
 import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
 import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.repository.AuthRepository

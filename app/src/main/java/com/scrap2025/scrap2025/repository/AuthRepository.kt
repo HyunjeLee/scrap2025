@@ -4,7 +4,7 @@ import android.util.Log
 import com.scrap2025.scrap2025.data.local.AppDatabase
 import com.scrap2025.scrap2025.data.local.DatabaseInitializer
 import com.scrap2025.scrap2025.data.local.TokenManager
-import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.data.remote.api.AuthService
 import com.scrap2025.scrap2025.model.enums.SnsType
 import javax.inject.Inject
 

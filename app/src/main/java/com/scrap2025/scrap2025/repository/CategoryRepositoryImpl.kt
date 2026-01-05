@@ -6,7 +6,7 @@ import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import com.scrap2025.scrap2025.data.model.SyncStatus
-import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.data.remote.api.CategoryService
 import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryRequest
 import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryResponse
 import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryRequest
@@ -15,10 +15,10 @@ import com.scrap2025.scrap2025.data.remote.dto.SequenceCategoryRequest
 import com.scrap2025.scrap2025.data.remote.dto.SequenceCategoryResponse
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 /** CategoryRepositoryImpl - CategoryRepository 구현체 Room DB(CategoryDao)를 사용하여 데이터 관리 */
 @Singleton
@@ -28,7 +28,7 @@ constructor(
     private val categoryDao: CategoryDao,
     private val scrapDao: ScrapDao,
     private val db: AppDatabase,
-    private val authService: AuthService
+    private val categoryService: CategoryService
 ) : CategoryRepository {
 
     override fun getCategoryCount(): Flow<Int> = categoryDao.getCategoryCount()
@@ -171,7 +171,7 @@ constructor(
 
     override suspend fun syncCategories(): Result<Unit> {
         return try {
-            val response = authService.getCategories()
+            val response = categoryService.getCategories()
             if (response.isSuccessful) {
                 val remoteCategories = response.body()?.result?.categories ?: emptyList()
                 val localCategories = categoryDao.getAllCategoriesSnapshot()
@@ -238,19 +238,16 @@ constructor(
                 updateCategorySequenceRemote(categoryRemoteIds)
             }
 
-
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 순서 변경 실패")
         }
     }
 
-    private suspend fun createCategoryRemote(
-        title: String
-    ): Result<CreateCategoryResponse> {
+    private suspend fun createCategoryRemote(title: String): Result<CreateCategoryResponse> {
         return try {
             val request = CreateCategoryRequest(categoryTitle = title)
-            val response = authService.createCategory(request)
+            val response = categoryService.createCategory(request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {
@@ -272,7 +269,7 @@ constructor(
     ): Result<RenameCategoryResponse> {
         return try {
             val request = RenameCategoryRequest(newCategoryTitle = newTitle)
-            val response = authService.renameCategory(categoryId, request)
+            val response = categoryService.renameCategory(categoryId, request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {
@@ -290,7 +287,7 @@ constructor(
 
     private suspend fun deleteCategoryRemote(categoryId: Int): Result<Unit> {
         return try {
-            val response = authService.deleteCategory(categoryId)
+            val response = categoryService.deleteCategory(categoryId)
             if (response.isSuccessful) {
                 Result.Success(Unit)
             } else {
@@ -306,7 +303,7 @@ constructor(
     ): Result<SequenceCategoryResponse> {
         return try {
             val request = SequenceCategoryRequest(categoryIdList = categoryRemoteIds)
-            val response = authService.updateCategorySequence(request)
+            val response = categoryService.updateCategorySequence(request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {

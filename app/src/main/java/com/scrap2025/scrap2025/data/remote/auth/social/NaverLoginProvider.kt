@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.data.remote.auth
+package com.scrap2025.scrap2025.data.remote.auth.social
 
 import android.content.Context
 import com.navercorp.nid.NidOAuth

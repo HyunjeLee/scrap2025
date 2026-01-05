@@ -8,7 +8,7 @@ import androidx.work.WorkManager
 import com.scrap2025.scrap2025.data.local.dao.MyPageDao
 import com.scrap2025.scrap2025.data.local.entity.MyPageEntity
 import com.scrap2025.scrap2025.data.model.SyncStatus
-import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.data.remote.api.UserService
 import com.scrap2025.scrap2025.data.remote.dto.MemberInfo
 import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
 import com.scrap2025.scrap2025.data.remote.dto.Statistics
@@ -22,7 +22,7 @@ class MyPageRepository
 @Inject
 constructor(
     private val myPageDao: MyPageDao,
-    private val authService: AuthService,
+    private val userService: UserService,
     private val workManager: WorkManager
 ) {
 
@@ -36,7 +36,7 @@ constructor(
     // Returns true if sync successful, false otherwise.
     suspend fun invokeMyPageSync(): Boolean {
         return try {
-            val response = authService.getMyPage()
+            val response = userService.getMyPage()
             if (response.isSuccessful) {
                 response.body()?.result?.let { remoteData ->
                     // Save to Local DB -> Triggers myPageData Flow -> UI Updates automatically
@@ -78,10 +78,7 @@ constructor(
         return MyPageResponse(
             memberInfo = MemberInfo(name = this.name),
             statistics =
-                Statistics(
-                    totalCategory = this.totalCategory,
-                    totalScrap = this.totalScrap
-                )
+                Statistics(totalCategory = this.totalCategory, totalScrap = this.totalScrap)
         )
     }
 

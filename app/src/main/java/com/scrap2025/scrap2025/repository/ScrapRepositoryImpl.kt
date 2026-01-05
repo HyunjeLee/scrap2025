@@ -6,7 +6,7 @@ import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
 import com.scrap2025.scrap2025.data.model.SyncStatus
-import com.scrap2025.scrap2025.data.remote.AuthService
+import com.scrap2025.scrap2025.data.remote.api.ScrapService
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapResponse
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListToggleRequest
@@ -31,7 +31,7 @@ constructor(
     private val appDatabase: AppDatabase,
     private val scrapDao: ScrapDao,
     private val categoryDao: CategoryDao,
-    private val authService: AuthService,
+    private val scrapService: ScrapService,
 ) : ScrapRepository {
 
     override fun getScrapItems(categoryId: String?): Flow<Result<List<ScrapItem>>> {
@@ -55,20 +55,20 @@ constructor(
         emit(Result.Loading)
 
         try {
-            val response = authService.getFavoriteScraps()
+            val response = scrapService.getFavoriteScraps()
 
             if (response.isSuccessful) {
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
 
+                val domainItems =
+                    remoteScraps.map { remoteScrap ->
+                        val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
 
-                val domainItems = remoteScraps.map { remoteScrap ->
-                    val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
-
-                    remoteScrap.toDomainModel(
-                        scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                        categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
-                    )
-                }
+                        remoteScrap.toDomainModel(
+                            scrapLocalId = localScrap?.id ?: "NO_LOCAL",
+                            categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
+                        )
+                    }
 
                 emit(Result.Success(domainItems))
             } else {
@@ -135,7 +135,7 @@ constructor(
                     categoryDao.decrementScrapCount(existing.categoryId) // 카테고리 카운트 감소
                 }
 
-                authService.deleteScrap(existing.remoteId!!.toLong())
+                scrapService.deleteScrap(existing.remoteId!!.toLong())
 
                 Result.Success(Unit)
             } else {
@@ -148,7 +148,7 @@ constructor(
 
     override suspend fun deleteScrapBulk(idBulk: List<Long>): Result<Unit> {
         return try {
-            authService.deleteScrapBulk(idBulk)
+            scrapService.deleteScrapBulk(idBulk)
 
             Result.Success(Unit)
         } catch (e: Exception) {
@@ -189,7 +189,7 @@ constructor(
                     categoryDao.incrementScrapCount(categoryId)
                 }
 
-                authService.moveScrap(
+                scrapService.moveScrap(
                     existing.remoteId!!.toLong(),
                     MoveScrapRequest(categoryRemoteId.toLong())
                 )
@@ -227,7 +227,7 @@ constructor(
             scrapDao.updateIsFavorite(scrapId, !(scrapLocal?.isFavorite ?: false))
 
             // server update
-            val response = authService.updateScrapFavorite(scrapLocal?.remoteId!!.toLong())
+            val response = scrapService.updateScrapFavorite(scrapLocal?.remoteId!!.toLong())
 
             return if (response.isSuccessful) {
                 Result.Success(Unit)
@@ -249,7 +249,7 @@ constructor(
                     scrapDao.getScrapById(scrapId)?.remoteId!!.toLong()
                 }
             val response =
-                authService.updateScrapBulkFavorite(
+                scrapService.updateScrapBulkFavorite(
                     FavoriteListToggleRequest(scrapIdList = scrapRemoteIdBulk)
                 )
 
@@ -277,7 +277,7 @@ constructor(
                 categoryDao.updateScrapCount(toId, movedCount)
             }
 
-            authService.moveScrapList(
+            scrapService.moveScrapList(
                 MoveScrapListRequest(
                     scrapIds = listOf(), // todo: 실제 스크랩 ID 리스트로 대체
                     moveCategoryId = categoryDao.getCategoryById(toId)!!.remoteId!!.toLong()
@@ -297,7 +297,7 @@ constructor(
         categoryRemoteId: Int
     ): Result<Unit> {
         return try {
-            val response = authService.getAllScrapsByCategoryId(categoryRemoteId)
+            val response = scrapService.getAllScrapsByCategoryId(categoryRemoteId)
             if (response.isSuccessful) {
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
                 val localScraps = scrapDao.getAllScrapsByCategoryId(categoryId).first()
@@ -348,7 +348,7 @@ constructor(
                     ?: return Result.Error(NoSuchElementException(), "스크랩을 찾을 수 없습니다")
             val remoteId = existing.remoteId ?: return Result.Success(Unit)
 
-            val response = authService.getScrapById(remoteId)
+            val response = scrapService.getScrapById(remoteId)
             if (response.isSuccessful) {
                 val remoteScrap =
                     response.body()?.result
@@ -383,7 +383,7 @@ constructor(
             val request = SearchRequest(searchScope, categoryRemoteIds, startDate, endDate)
 
             val response =
-                authService.searchScraps(
+                scrapService.searchScraps(
                     query = query,
                     sort = sortType,
                     direction = sortDirection,
@@ -395,14 +395,16 @@ constructor(
             if (response.isSuccessful) {
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
                 // 도메인 모델로 변환 (categoryId가 서버에서 이름으로 오므로 적절한 처리 필요)
-                val domainItems = remoteScraps.map {remoteScrap ->
-                    val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
+                val domainItems =
+                    remoteScraps.map { remoteScrap ->
+                        val localScrap =
+                            scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
 
-                    remoteScrap.toDomainModel(
-                        scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                        categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
-                    )
-                }
+                        remoteScrap.toDomainModel(
+                            scrapLocalId = localScrap?.id ?: "NO_LOCAL",
+                            categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
+                        )
+                    }
                 Result.Success(domainItems)
             } else {
                 Result.Error(Exception("Search failed"))
@@ -418,7 +420,7 @@ constructor(
     ): Result<List<ScrapItem>> =
         try {
             val response =
-                authService.favoriteSearch(
+                scrapService.favoriteSearch(
                     query = query,
                     sort = sortType,
                     direction = sortDirection,
@@ -426,16 +428,24 @@ constructor(
 
             if (response.isSuccessful) {
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
-                val domainItems = remoteScraps.map { remoteScrap ->
-                    val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
-                    val categoryTitle = categoryDao.getCategoryById(localScrap?.categoryId ?: "NO_LOCAL")?.name.orEmpty()
+                val domainItems =
+                    remoteScraps.map { remoteScrap ->
+                        val localScrap =
+                            scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
+                        val categoryTitle =
+                            categoryDao
+                                .getCategoryById(
+                                    localScrap?.categoryId ?: "NO_LOCAL"
+                                )
+                                ?.name
+                                .orEmpty()
 
-                    remoteScrap.toDomainModel(
-                        scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                        categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL",
-                        categoryTitle = categoryTitle,
-                    )
-                }
+                        remoteScrap.toDomainModel(
+                            scrapLocalId = localScrap?.id ?: "NO_LOCAL",
+                            categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL",
+                            categoryTitle = categoryTitle,
+                        )
+                    }
                 Result.Success(domainItems)
             } else {
                 Result.Error(Exception("Favorite Search failed"))
@@ -452,7 +462,7 @@ constructor(
     ): Result<List<ScrapItem>> =
         try {
             val response =
-                authService.searchScrapsByCategory(
+                scrapService.searchScrapsByCategory(
                     categoryRemoteId = categoryRemoteId,
                     query = query,
                     sort = sortType,
@@ -461,14 +471,16 @@ constructor(
 
             if (response.isSuccessful) {
                 val remoteScraps = response.body()?.result?.scraps ?: emptyList()
-                val domainItems = remoteScraps.map { remoteScrap ->
-                    val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
+                val domainItems =
+                    remoteScraps.map { remoteScrap ->
+                        val localScrap =
+                            scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
 
-                    remoteScrap.toDomainModel(
-                        scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                        categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
-                    )
-                }
+                        remoteScrap.toDomainModel(
+                            scrapLocalId = localScrap?.id ?: "NO_LOCAL",
+                            categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
+                        )
+                    }
                 Result.Success(domainItems)
             } else {
                 Result.Error(Exception("Category Search failed"))
@@ -501,7 +513,7 @@ constructor(
                 )
 
             // 3. remoteId가 확실히 있을 때만 호출
-            val response = authService.createScrap(categoryRemoteId, request)
+            val response = scrapService.createScrap(categoryRemoteId, request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {
@@ -521,7 +533,7 @@ constructor(
         return try {
             val request = ScrapMemoDto(memo = memo)
 
-            val response = authService.updateScrapMemo(remoteId, request)
+            val response = scrapService.updateScrapMemo(remoteId, request)
             if (response.isSuccessful) {
                 val result = response.body()?.result
                 if (result != null) {

@@ -3,13 +3,14 @@
 package com.scrap2025.scrap2025.data.remote
 
 import com.scrap2025.scrap2025.data.local.TokenManager
+import com.scrap2025.scrap2025.data.remote.api.AuthService
+import com.scrap2025.scrap2025.data.remote.auth.TokenAuthenticator
 import com.scrap2025.scrap2025.data.remote.dto.BaseResponse
 import com.scrap2025.scrap2025.data.remote.dto.LoginResponse
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import javax.inject.Provider
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import okhttp3.Protocol
@@ -20,6 +21,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
+import javax.inject.Provider
 import retrofit2.Response as RetrofitResponse
 
 class TokenAuthenticatorTest {
