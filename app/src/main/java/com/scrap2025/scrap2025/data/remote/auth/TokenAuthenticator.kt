@@ -53,7 +53,7 @@ constructor(
             null
         }
 
-        return newToken?.let { response.request.newBuilder().header("Authorization", it).build() }
+        return newToken?.let { response.request.newBuilder().header("Authorization", "Bearer $it").build() }
     }
 
     private fun responseCount(response: Response): Int {
