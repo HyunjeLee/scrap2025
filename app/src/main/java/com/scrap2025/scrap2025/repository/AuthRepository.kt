@@ -45,7 +45,7 @@ constructor(
         }
     }
 
-    suspend fun logout(): Result<Unit> {
+    suspend fun logoutToServer(): Result<Unit> {
         return try {
             val response = authService.logout()
             if (response.isSuccessful) {
@@ -59,7 +59,7 @@ constructor(
         }
     }
 
-    suspend fun withdraw(): Result<Unit> {
+    suspend fun withdrawToServer(): Result<Unit> {
         return try {
             val response = authService.withdraw()
             if (response.isSuccessful) {

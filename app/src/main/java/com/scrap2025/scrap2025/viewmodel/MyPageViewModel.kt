@@ -1,8 +1,11 @@
 package com.scrap2025.scrap2025.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scrap2025.scrap2025.data.remote.auth.SocialLoginProvider
 import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
+import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.repository.AuthRepository
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.MyPageRepository
@@ -21,10 +24,11 @@ import javax.inject.Inject
 class MyPageViewModel
 @Inject
 constructor(
+    scrapRepository: ScrapRepository,
+    categoryRepository: CategoryRepository,
     private val authRepository: AuthRepository,
     private val myPageRepository: MyPageRepository,
-    scrapRepository: ScrapRepository,
-    categoryRepository: CategoryRepository
+    private val socialLoginProviders: Map<SnsType, @JvmSuppressWildcards SocialLoginProvider>,
 ) : ViewModel() {
 
     // Define UI State
@@ -63,6 +67,10 @@ constructor(
                 initialValue = MyPageUiState.Loading
             )
 
+    companion object {
+        private const val TAG = "MyPageViewModel"
+    }
+
     init {
         fetchMyPageInfo()
     }
@@ -79,13 +87,93 @@ constructor(
         _showWithdrawDialog.value = false
     }
 
-    fun logout() {
-        viewModelScope.launch { authRepository.logout() }
+    fun logout(
+        snsType: SnsType,
+        socialLogoutCallback: suspend (SocialLoginProvider) -> Result<Unit>
+    ) {
+        viewModelScope.launch {
+            // 소셜 로그아웃
+            val socialResult = requestSocialLogout(snsType, socialLogoutCallback)
+
+            socialResult
+                .onSuccess {
+                    Log.d(TAG, "소셜 로그아웃 성공")
+                    // 서버 로그아웃
+                    requestServerLogout()
+                }
+                .onFailure { exception ->
+                    val errorMsg = "소셜 로그아웃 실패: ${exception.message}"
+//                    _uiState.value = uiState.Error(errorMsg)
+                    Log.e(TAG, errorMsg)
+                }
+        }
     }
 
-    fun withdraw() {
+    fun withdraw(
+        snsType: SnsType,
+        socialWithdrawCallback: suspend (SocialLoginProvider) -> Result<Unit>
+    ) {
         viewModelScope.launch {
-            authRepository.withdraw().onSuccess { _showWithdrawDialog.value = false }
+            // 소셜 연동 해제 (회원 탈퇴)
+            val socialResult = requestSocialWithdraw(snsType, socialWithdrawCallback)
+
+            socialResult
+                .onSuccess {
+                    Log.d(TAG, "소셜 연동해제 성공")
+                    // 서버 회원 탈퇴
+                    requestServerWithdraw()
+                }
+                .onFailure { exception ->
+                    val errorMsg = "소셜 연동해제 실패: ${exception.message}"
+//                    _uiState.value = uiState.Error(errorMsg)
+                    Log.e(TAG, errorMsg)
+                }
         }
+    }
+
+    private suspend fun requestSocialLogout(
+        snsType: SnsType,
+        callback: suspend (SocialLoginProvider) -> Result<Unit>
+    ): Result<Unit> {
+        val provider = socialLoginProviders[snsType]
+            ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
+
+        return callback(provider)
+    }
+
+    private suspend fun requestServerLogout() {
+        authRepository.logoutToServer()
+            .onSuccess {
+//                _uiState.value = LoginUiState.Success
+                Log.d(TAG, "서버 로그아웃 성공")
+            }
+            .onFailure { exception ->
+                val errorMsg = "서버 로그아웃 실패: ${exception.message}"
+//                _uiState.value = LoginUiState.Error(errorMsg)
+                Log.e(TAG, errorMsg)
+            }
+    }
+
+    private suspend fun requestSocialWithdraw(
+        snsType: SnsType,
+        callback: suspend (SocialLoginProvider) -> Result<Unit>
+    ): Result<Unit> {
+        val provider = socialLoginProviders[snsType]
+            ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
+
+        return callback(provider)
+    }
+
+    private suspend fun requestServerWithdraw() {
+        authRepository.withdrawToServer()
+            .onSuccess {
+//                _uiState.value = LoginUiState.Success
+                Log.d(TAG, "서버 회원탈퇴 성공")
+            }
+            .onFailure { exception ->
+                val errorMsg = "서버 회원탈퇴 실패: ${exception.message}"
+//                _uiState.value = LoginUiState.Error(errorMsg)
+                Log.e(TAG, errorMsg)
+            }
     }
 }

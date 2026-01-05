@@ -46,6 +46,7 @@ constructor(
 
             socialResult
                 .onSuccess { socialToken ->
+                    Log.d(TAG, "소셜 로그인 성공")
                     // 서버 로그인
                     requestServerLogin(snsType, socialToken)
                 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.R
+import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
@@ -52,9 +53,17 @@ fun MyPageScreen(
     MyPageScreenContent(
         uiState = uiState,
         showWithdrawDialog = showWithdrawDialog,
-        onLogout = { viewModel.logout() },
+        onLogout = { snsType ->
+            viewModel.logout(
+                snsType = snsType,
+                socialLogoutCallback = { provider -> provider.logout() }
+            ) },
         onWithdrawClick = { viewModel.showWithdrawalDialog() },
-        onWithdrawConfirm = { viewModel.withdraw() },
+        onWithdrawConfirm = { snsType ->
+            viewModel.withdraw(
+                snsType = snsType,
+                socialWithdrawCallback = { provider -> provider.disconnect() }
+            ) },
         onWithdrawDismiss = { viewModel.dismissWithdrawalDialog() },
         modifier = modifier
     )
@@ -65,9 +74,9 @@ fun MyPageScreen(
 fun MyPageScreenContent(
     uiState: MyPageViewModel.MyPageUiState,
     showWithdrawDialog: Boolean,
-    onLogout: () -> Unit,
+    onLogout: (SnsType) -> Unit,
     onWithdrawClick: () -> Unit,
-    onWithdrawConfirm: () -> Unit,
+    onWithdrawConfirm: (SnsType) -> Unit,
     onWithdrawDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -144,7 +153,7 @@ fun MyPageScreenContent(
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
                 MenuItem(text = "고객센터") {}
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-                MenuItem(text = "로그아웃") { onLogout() }
+                MenuItem(text = "로그아웃") { onLogout(SnsType.NAVER) }  // todo: 로컬에서 가져올 것
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
                 MenuItem(text = "회원탈퇴") { onWithdrawClick() }
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
@@ -156,7 +165,7 @@ fun MyPageScreenContent(
         CommonDeleteDialog(
             title = "정말 회원탈퇴 하시겠습니까?",
             confirmText = "회원탈퇴",
-            onConfirm = onWithdrawConfirm,
+            onConfirm = { onWithdrawConfirm(SnsType.NAVER) }, // todo: 로컬에서 가져올 것
             onDismiss = onWithdrawDismiss,
         )
     }

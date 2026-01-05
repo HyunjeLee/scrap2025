@@ -12,4 +12,8 @@ class GoogleLoginProvider @Inject constructor() : SocialLoginProvider {
     override suspend fun logout(): Result<Unit> {
         return Result.success(Unit)
     }
+
+    override suspend fun disconnect(): Result<Unit> {
+        return Result.success(Unit)
+    }
 }

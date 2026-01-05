@@ -54,4 +54,22 @@ class NaverLoginProvider @Inject constructor() : SocialLoginProvider {
             }
         NidOAuth.logout(callback)
     }
+
+    override suspend fun disconnect(): Result<Unit> = suspendCancellableCoroutine { continuation ->
+        val callback =
+            object : NidOAuthCallback {
+                override fun onSuccess() {
+                    continuation.resume(Result.success(Unit))
+                }
+
+                override fun onFailure(errorCode: String, errorDesc: String) {
+                    continuation.resume(
+                        Result.failure(
+                            Exception("Naver Disconnect Failed: $errorDesc ($errorCode)")
+                        )
+                    )
+                }
+            }
+        NidOAuth.disconnect(callback)
+    }
 }
