@@ -44,7 +44,7 @@ fun ScrapListContent(
     onItemSelectionToggle: (String) -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
     gridState: LazyGridState = rememberLazyGridState(),
-    showCategory: Boolean,
+    showCategory: Boolean = false,
 ) {
     when (val result = scrapItemsResult) {
         is Result.Loading -> {
