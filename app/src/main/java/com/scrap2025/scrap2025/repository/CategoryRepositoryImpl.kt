@@ -6,29 +6,22 @@ import com.scrap2025.scrap2025.data.local.dao.CategoryDao
 import com.scrap2025.scrap2025.data.local.dao.ScrapDao
 import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
 import com.scrap2025.scrap2025.data.model.SyncStatus
-import com.scrap2025.scrap2025.data.remote.api.CategoryService
-import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryRequest
-import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryResponse
-import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryRequest
-import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryResponse
-import com.scrap2025.scrap2025.data.remote.dto.SequenceCategoryRequest
-import com.scrap2025.scrap2025.data.remote.dto.SequenceCategoryResponse
+import com.scrap2025.scrap2025.data.remote.datasource.CategoryRemoteDataSource
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.Result
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /** CategoryRepositoryImpl - CategoryRepository 구현체 Room DB(CategoryDao)를 사용하여 데이터 관리 */
 @Singleton
 class CategoryRepositoryImpl
-@Inject
-constructor(
+@Inject constructor(
     private val categoryDao: CategoryDao,
     private val scrapDao: ScrapDao,
     private val db: AppDatabase,
-    private val categoryService: CategoryService
+    private val categoryRemoteDataSource: CategoryRemoteDataSource
 ) : CategoryRepository {
 
     override fun getCategoryCount(): Flow<Int> = categoryDao.getCategoryCount()
@@ -53,8 +46,7 @@ constructor(
                 Result.Success(entity.toDomainModel())
             } else {
                 Result.Error(
-                    NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."),
-                    "카테고리를 찾을 수 없습니다"
+                    NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."), "카테고리를 찾을 수 없습니다"
                 )
             }
         } catch (e: Exception) {
@@ -69,7 +61,7 @@ constructor(
             categoryDao.insertCategory(entity)
 
             // 2. Remote Sync
-            val remoteResult = createCategoryRemote(item.name)
+            val remoteResult = categoryRemoteDataSource.createCategory(item.name)
             if (remoteResult is Result.Success) {
                 // 3. Trigger Sync to get the remoteId
                 // Since the creation API doesn't return the ID, we must fetch the list
@@ -86,18 +78,14 @@ constructor(
 
     override suspend fun deleteCategory(id: String): Result<Unit> {
         return try {
-            val existing =
-                categoryDao.getCategoryById(id)
-                    ?: return Result.Error(
-                        NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."),
-                        "카테고리를 찾을 수 없습니다"
-                    )
+            val existing = categoryDao.getCategoryById(id) ?: return Result.Error(
+                NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."), "카테고리를 찾을 수 없습니다"
+            )
 
             // "분류되지 않음" (기본) 카테고리는 삭제 불가
             if (existing.isDefault) {
                 return Result.Error(
-                    IllegalArgumentException("기본 카테고리는 삭제할 수 없습니다."),
-                    "기본 카테고리는 삭제할 수 없습니다"
+                    IllegalArgumentException("기본 카테고리는 삭제할 수 없습니다."), "기본 카테고리는 삭제할 수 없습니다"
                 )
             }
 
@@ -123,7 +111,7 @@ constructor(
             if (remoteId != null) {
                 // Remote failure shouldn't rollback local deletion (Local First)
                 // But we might want to log it or schedule a retry
-                val remoteResult = deleteCategoryRemote(remoteId)
+                val remoteResult = categoryRemoteDataSource.deleteCategory(remoteId)
                 if (remoteResult is Result.Error) {
                     // TODO: Handle sync failure (e.g., job scheduler)
                     // For now, we consider the operation successful if local part is done
@@ -138,18 +126,14 @@ constructor(
 
     override suspend fun updateCategory(id: String, name: String): Result<Unit> {
         return try {
-            val existing =
-                categoryDao.getCategoryById(id)
-                    ?: return Result.Error(
-                        NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."),
-                        "카테고리를 찾을 수 없습니다"
-                    )
+            val existing = categoryDao.getCategoryById(id) ?: return Result.Error(
+                NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."), "카테고리를 찾을 수 없습니다"
+            )
 
             // "분류되지 않음" (기본) 카테고리는 수정 불가
             if (existing.isDefault) {
                 return Result.Error(
-                    IllegalArgumentException("기본 카테고리는 수정할 수 없습니다."),
-                    "기본 카테고리는 수정할 수 없습니다"
+                    IllegalArgumentException("기본 카테고리는 수정할 수 없습니다."), "기본 카테고리는 수정할 수 없습니다"
                 )
             }
 
@@ -160,7 +144,7 @@ constructor(
             val remoteId = existing.remoteId
             if (remoteId != null && remoteId != 0 && remoteId != -1) {
                 // If remoteId is 0 or -1, it means it's not synced yet.
-                updateCategoryRemote(remoteId, name)
+                categoryRemoteDataSource.renameCategory(remoteId, name)
                 // We ignore remote failure for now, following local-first principle
             }
             Result.Success(Unit)
@@ -171,9 +155,9 @@ constructor(
 
     override suspend fun syncCategories(): Result<Unit> {
         return try {
-            val response = categoryService.getCategories()
-            if (response.isSuccessful) {
-                val remoteCategories = response.body()?.result?.categories ?: emptyList()
+            val result = categoryRemoteDataSource.getCategories()
+            if (result is Result.Success) {
+                val remoteCategories = result.data.categories
                 val localCategories = categoryDao.getAllCategoriesSnapshot()
 
                 // Map local categories by name for easy lookup
@@ -213,7 +197,8 @@ constructor(
 
                 Result.Success(Unit)
             } else {
-                Result.Error(Exception("Sync failed code: ${response.code()}"), "카테고리 동기화 실패")
+                result as Result.Error
+                Result.Error(result.exception, result.message)
             }
         } catch (e: Exception) {
             Result.Error(e, "카테고리 동기화 중 오류 발생")
@@ -235,87 +220,12 @@ constructor(
 
             val categoryRemoteIds = categoryItems.mapNotNull { it.remoteId }
             if (categoryRemoteIds.isNotEmpty()) {
-                updateCategorySequenceRemote(categoryRemoteIds)
+                categoryRemoteDataSource.updateCategorySequence(categoryRemoteIds)
             }
 
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e, "카테고리 순서 변경 실패")
-        }
-    }
-
-    private suspend fun createCategoryRemote(title: String): Result<CreateCategoryResponse> {
-        return try {
-            val request = CreateCategoryRequest(categoryTitle = title)
-            val response = categoryService.createCategory(request)
-            if (response.isSuccessful) {
-                val result = response.body()?.result
-                if (result != null) {
-                    Result.Success(result)
-                } else {
-                    Result.Error(Exception("Response body is null"), "카테고리 생성 응답 오류")
-                }
-            } else {
-                Result.Error(Exception("Create failed code: ${response.code()}"), "카테고리 생성 실패")
-            }
-        } catch (e: Exception) {
-            Result.Error(e, "카테고리 생성 중 오류 발생")
-        }
-    }
-
-    private suspend fun updateCategoryRemote(
-        categoryId: Int,
-        newTitle: String
-    ): Result<RenameCategoryResponse> {
-        return try {
-            val request = RenameCategoryRequest(newCategoryTitle = newTitle)
-            val response = categoryService.renameCategory(categoryId, request)
-            if (response.isSuccessful) {
-                val result = response.body()?.result
-                if (result != null) {
-                    Result.Success(result)
-                } else {
-                    Result.Error(Exception("Response body is null"), "카테고리 이름 수정 응답 오류")
-                }
-            } else {
-                Result.Error(Exception("Rename failed code: ${response.code()}"), "카테고리 이름 수정 실패")
-            }
-        } catch (e: Exception) {
-            Result.Error(e, "카테고리 이름 수정 중 오류 발생")
-        }
-    }
-
-    private suspend fun deleteCategoryRemote(categoryId: Int): Result<Unit> {
-        return try {
-            val response = categoryService.deleteCategory(categoryId)
-            if (response.isSuccessful) {
-                Result.Success(Unit)
-            } else {
-                Result.Error(Exception("Delete failed code: ${response.code()}"), "카테고리 삭제 실패")
-            }
-        } catch (e: Exception) {
-            Result.Error(e, "카테고리 삭제 중 오류 발생")
-        }
-    }
-
-    private suspend fun updateCategorySequenceRemote(
-        categoryRemoteIds: List<Int>
-    ): Result<SequenceCategoryResponse> {
-        return try {
-            val request = SequenceCategoryRequest(categoryIdList = categoryRemoteIds)
-            val response = categoryService.updateCategorySequence(request)
-            if (response.isSuccessful) {
-                val result = response.body()?.result
-                if (result != null) {
-                    Result.Success(result)
-                } else {
-                    Result.Error(Exception("Response body is null"), "카테고리 순서 변경 응답 오류")
-                }
-            } else {
-                Result.Error(Exception("Reorder failed code: ${response.code()}"), "카테고리 순서 변경 실패")
-            }
-        } catch (e: Exception) {
-            Result.Error(e, "카테고리 순서 변경 중 오류 발생")
         }
     }
 }
