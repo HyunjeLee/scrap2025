@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.model.CategoryItem
+import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.SortDirection
@@ -12,7 +13,6 @@ import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class ScrapViewModel
@@ -88,9 +89,29 @@ constructor(
             initialValue = ViewMode.LIST
         )
 
+    // Quartic 헬퍼 클래스 (4개 파라미터 combine용)
+    data class Quartic<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
+
+    /** ScrapUiState - UI에 필요한 모든 상태를 하나의 객체로 관리 */
+    data class ScrapUiState(
+        val scrapItemsResult: Result<List<ScrapItem>> = Result.Loading,
+        val categoryId: String = CategoryItem.DEFAULT_ID,
+        val categoryName: String = CategoryItem.DEFAULT_NAME,
+        val viewMode: ViewMode = ViewMode.LIST,
+        val sortType: SortType = SortType.SCRAP_DATE,
+        val sortDirection: SortDirection = SortDirection.ASC,
+        val isSelectionMode: Boolean = false,
+        val selectedScrapIds: Set<String> = emptySet(),
+        val isPreferencesLoaded: Boolean = false,
+        val query: String = ""
+    )
+
     // 정렬된 스크랩 아이템 목록 (Repository, sortType, sortDirection, selectedCategory 조합)
     val sortedScrapItems: StateFlow<Result<List<ScrapItem>>> = combine(
-        _selectedCategoryId, queryState, sortType, sortDirection
+        _selectedCategoryId,
+        queryState,
+        sortType,
+        sortDirection
     ) { categoryId, query, type, direction ->
         Quartic(categoryId, query, type, direction)
     }
@@ -116,18 +137,21 @@ constructor(
                     if (categoryResult is Result.Success) {
                         val remoteId = categoryResult.data.remoteId?.toLong()
                         if (remoteId != null) {
-                            val searchResult = scrapRepository.searchScrapsByCategory(
-                                categoryRemoteId = remoteId,
-                                query = query,
-                                sortType = type.name,
-                                sortDirection = direction.name
-                            )
+                            val searchResult =
+                                scrapRepository.searchScrapsByCategory(
+                                    categoryRemoteId = remoteId,
+                                    query = query,
+                                    sortType = type.name,
+                                    sortDirection = direction.name
+                                )
                             when (searchResult) {
                                 is Result.Success -> {
                                     emit(
                                         Result.Success(
                                             sortScrapItems(
-                                                searchResult.data, type, direction
+                                                searchResult.data,
+                                                type,
+                                                direction
                                             )
                                         )
                                     )
@@ -144,14 +168,57 @@ constructor(
                     }
                 }
             }
-        }.stateIn(
+        }
+        .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = Result.Loading
         )
 
-    // Quartic 헬퍼 클래스 (4개 파라미터 combine용)
-    private data class Quartic<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
+    val categoryFlow = combine(
+        GlobalUiState.selectedCategoryId,
+        GlobalUiState.selectedCategoryName
+    ) { id, name -> id to name }
+
+    val preferenceFlow = combine(
+        viewMode,
+        sortType,
+        sortDirection,
+        isPreferencesLoaded
+    ) { mode, type, dir, loaded -> Quartic(mode, type, dir, loaded) }
+
+    val selectionFlow = combine(
+        isSelectionMode,
+        selectedScrapIds
+    ) { selection, selectedIds -> selection to selectedIds }
+
+
+    /** uiState - 모든 상태를 관찰하여 UI 레이어로 전달 (8개 이상의 Flow를 위해 그룹화) */
+    val uiState: StateFlow<ScrapUiState> = combine(
+        sortedScrapItems,
+        categoryFlow,
+        preferenceFlow,
+        selectionFlow,
+        queryState
+    ) { items, category, prefs, selection, query ->
+        ScrapUiState(
+            scrapItemsResult = items,
+            categoryId = category.first,
+            categoryName = category.second,
+            viewMode = prefs.a,
+            sortType = prefs.b,
+            sortDirection = prefs.c,
+            isPreferencesLoaded = prefs.d,
+            isSelectionMode = selection.first,
+            selectedScrapIds = selection.second,
+            query = query
+        )
+    }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ScrapUiState()
+        )
 
     init {
         // DataStore에서 모든 preference가 로드되면 isPreferencesLoaded를 true로 설정
@@ -338,7 +405,10 @@ constructor(
         viewModelScope.launch {
             _categoryDeleteEvent.emit(Result.Loading)
             // Repository 내에서 트랜잭션으로 처리 (스크랩 이동 + 카테고리 삭제)
-            val result = categoryRepository.deleteCategory(id = id,)
+            val result =
+                categoryRepository.deleteCategory(
+                    id = id,
+                )
             _categoryDeleteEvent.emit(result)
         }
     }
