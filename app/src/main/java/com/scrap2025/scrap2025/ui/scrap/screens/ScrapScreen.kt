@@ -26,7 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.enums.SortDirection
 import com.scrap2025.scrap2025.model.enums.SortType
 import com.scrap2025.scrap2025.model.enums.ViewMode
@@ -42,6 +41,7 @@ import com.scrap2025.scrap2025.ui.scrap.components.SelectionTopBar
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.utils.isScrolled
+import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
 
 @Stable
@@ -75,10 +75,9 @@ fun rememberScrapScreenState(
     listState: LazyListState = rememberLazyListState(),
     gridState: LazyGridState = rememberLazyGridState(),
 ): ScrapScreenState {
-    val screenState =
-        remember(listState, gridState, viewMode) {
-            ScrapScreenState(listState, gridState, viewMode, categoryName)
-        }
+    val screenState = remember(listState, gridState, viewMode) {
+        ScrapScreenState(listState, gridState, viewMode, categoryName)
+    }
 
     // 카테고리가 달라지면 타이틀 업데이트
     LaunchedEffect(categoryName) { screenState.updateCategoryTitle(categoryName) }
@@ -96,8 +95,7 @@ fun ScrapScreen(
 ) {
     val uiState by scrapViewModel.uiState.collectAsState()
     val screenState = rememberScrapScreenState(
-        viewMode = uiState.viewMode,
-        categoryName = uiState.categoryName
+        viewMode = uiState.viewMode, categoryName = uiState.categoryName
     )
 
     SyncCategory(uiState.categoryId, scrapViewModel)
@@ -105,100 +103,89 @@ fun ScrapScreen(
     HandleCategoryDeleteEvents(
         scrapViewModel = scrapViewModel,
         onDeleteSuccess = navigateToCategory,
-        onLoadingToggle = { screenState.isCategoryDeleting = it }
-    )
+        onLoadingToggle = { screenState.isCategoryDeleting = it })
     BackHandler(enabled = uiState.isSelectionMode) { scrapViewModel.exitSelectionMode() }
 
-    when (screenState.isCategoryDeleting) {
-        true -> LoadingScreen()
-        false -> ScrapScreenContent(
-                topBar = {
-                    if (uiState.isSelectionMode) {
-                        val totalCount =
-                            when (val result = uiState.scrapItemsResult) {
-                                is Result.Success -> result.data.size
-                                else -> 0
-                            }
-                        SelectionTopBar(
-                            categoryTitle = screenState.categoryTitle,
-                            selectedCount = uiState.selectedScrapIds.size,
-                            totalCount = totalCount,
-                            onSelectAll = { scrapViewModel.selectAllScrapItems() },
-                            onDeselectAll = { scrapViewModel.deselectAllScrapItems() }
+    when {
+        screenState.isCategoryDeleting -> LoadingScreen()
+        else -> ScrapScreenContent(
+            topBar = {
+            if (uiState.isSelectionMode) {
+                val totalCount = when (val state = uiState.scrapItemsState) {
+                    is ScrapUiState.Success -> state.items.size
+                    else -> 0
+                }
+                SelectionTopBar(
+                    categoryTitle = screenState.categoryTitle,
+                    selectedCount = uiState.selectedScrapIds.size,
+                    totalCount = totalCount,
+                    onSelectAll = { scrapViewModel.selectAllScrapItems() },
+                    onDeselectAll = { scrapViewModel.deselectAllScrapItems() })
+            } else {
+                ScrapTopBar(
+                    categoryId = uiState.categoryId,
+                    categoryTitle = screenState.categoryTitle,
+                    onUpdateCategory = { categoryId, newTitle ->
+                        scrapViewModel.updateCategoryTitle(
+                            id = categoryId, newTitle = newTitle
                         )
-                    } else {
-                        ScrapTopBar(
-                            categoryId = uiState.categoryId,
-                            categoryTitle = screenState.categoryTitle,
-                            onUpdateCategory = { categoryId, newTitle ->
-                                scrapViewModel.updateCategoryTitle(
-                                    id = categoryId,
-                                    newTitle = newTitle
-                                )
-                                GlobalUiState.setCategory(categoryId, newTitle)
-                            },
-                            onDeleteCategory = { screenState.showDeleteDialog = true }
-                        )
-                        ScrapSearchBar(uiState.query, { scrapViewModel.onQueryChange(it) })
-                        SortBar(
-                            sortType = uiState.sortType,
-                            sortDirection = uiState.sortDirection,
-                            viewMode = uiState.viewMode,
-                            onSortTypeToggle = { scrapViewModel.toggleSortType() },
-                            onSortDirectionToggle = {
-                                scrapViewModel.toggleSortDirection()
-                            },
-                            onViewModeToggle = { scrapViewModel.toggleViewMode() }
-                        )
-                    }
+                        GlobalUiState.setCategory(categoryId, newTitle)
+                    },
+                    onDeleteCategory = { screenState.showDeleteDialog = true })
+                ScrapSearchBar(uiState.query, { scrapViewModel.onQueryChange(it) })
+                SortBar(
+                    sortType = uiState.sortType,
+                    sortDirection = uiState.sortDirection,
+                    viewMode = uiState.viewMode,
+                    onSortTypeToggle = { scrapViewModel.toggleSortType() },
+                    onSortDirectionToggle = {
+                        scrapViewModel.toggleSortDirection()
+                    },
+                    onViewModeToggle = { scrapViewModel.toggleViewMode() })
+            }
+        }, content = { contentModifier ->
+            ScrapListContent(
+                scrapItemsState = uiState.scrapItemsState,
+                viewMode = uiState.viewMode,
+                isPreferencesLoaded = uiState.isPreferencesLoaded,
+                isSelectionMode = uiState.isSelectionMode,
+                selectedScrapIds = uiState.selectedScrapIds,
+                onItemClick = { scrapId -> navigateToScrapDetail(scrapId) },
+                onItemLongClick = { itemId ->
+                    scrapViewModel.enterSelectionMode(itemId)
                 },
-                content = { contentModifier ->
-                    ScrapListContent(
-                        scrapItemsResult = uiState.scrapItemsResult,
-                        viewMode = uiState.viewMode,
-                        isPreferencesLoaded = uiState.isPreferencesLoaded,
-                        isSelectionMode = uiState.isSelectionMode,
-                        selectedScrapIds = uiState.selectedScrapIds,
-                        onItemClick = { scrapId -> navigateToScrapDetail(scrapId) },
-                        onItemLongClick = { itemId ->
-                            scrapViewModel.enterSelectionMode(itemId)
-                        },
-                        onItemSelectionToggle = { itemId ->
-                            scrapViewModel.toggleScrapItemSelection(itemId)
-                        },
-                        listState = screenState.listState,
-                        gridState = screenState.gridState,
-                        modifier = contentModifier
-                    )
+                onItemSelectionToggle = { itemId ->
+                    scrapViewModel.toggleScrapItemSelection(itemId)
                 },
-                floatingActionButton = { modifier ->
-                    ScrapFloatingButtons(
-                        showScrollToTop = screenState.showScrollToTop,
-                        viewMode = uiState.viewMode,
-                        listState = screenState.listState,
-                        gridState = screenState.gridState,
-                        showAddScrapFab = true,
-                        isSelectionMode = uiState.isSelectionMode,
-                        onAddScrap = { navigateToAddScrap() },
-                        modifier = modifier,
-                    )
-                },
-                dialogs = {
-                    if (screenState.showDeleteDialog) {
-                        CommonDeleteDialog(
-                            title = "정말 카테고리를 삭제하시겠습니까?",
-                            description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
-                            confirmText = "삭제하기",
-                            onDismiss = { screenState.showDeleteDialog = false },
-                            onConfirm = {
-                                screenState.showDeleteDialog = false
-                                scrapViewModel.deleteCategory(uiState.categoryId)
-                            }
-                        )
-                    }
-                },
-                modifier = modifier
+                listState = screenState.listState,
+                gridState = screenState.gridState,
+                modifier = contentModifier
             )
+        }, floatingActionButton = { modifier ->
+            ScrapFloatingButtons(
+                showScrollToTop = screenState.showScrollToTop,
+                viewMode = uiState.viewMode,
+                listState = screenState.listState,
+                gridState = screenState.gridState,
+                showAddScrapFab = true,
+                isSelectionMode = uiState.isSelectionMode,
+                onAddScrap = { navigateToAddScrap() },
+                modifier = modifier,
+            )
+        }, dialogs = {
+            if (screenState.showDeleteDialog) {
+                CommonDeleteDialog(
+                    title = "정말 카테고리를 삭제하시겠습니까?",
+                    description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
+                    confirmText = "삭제하기",
+                    onDismiss = { screenState.showDeleteDialog = false },
+                    onConfirm = {
+                        screenState.showDeleteDialog = false
+                        scrapViewModel.deleteCategory(uiState.categoryId)
+                    })
+            }
+        }, modifier = modifier
+        )
     }
 }
 
@@ -235,8 +222,7 @@ fun ScrapScreenContentPreview() {
                     categoryId = "1",
                     categoryTitle = "분류되지 않음",
                     onUpdateCategory = { _, _ -> },
-                    onDeleteCategory = {}
-                )
+                    onDeleteCategory = {})
                 ScrapSearchBar("", {})
                 SortBar(
                     sortType = SortType.SCRAP_DATE,
@@ -244,13 +230,12 @@ fun ScrapScreenContentPreview() {
                     viewMode = ViewMode.GRID,
                     onSortTypeToggle = {},
                     onSortDirectionToggle = {},
-                    onViewModeToggle = {}
-                )
+                    onViewModeToggle = {})
             },
             content = { modifier ->
                 ScrapListContent(
                     showCategory = false,
-                    scrapItemsResult = Result.Success(emptyList()),
+                    scrapItemsState = ScrapUiState.Success(emptyList()),
                     viewMode = ViewMode.GRID,
                     isPreferencesLoaded = true,
                     isSelectionMode = false,
@@ -290,13 +275,12 @@ fun ScrapScreenContentSelectionModePreview() {
                     selectedCount = 0,
                     totalCount = 0,
                     onSelectAll = {},
-                    onDeselectAll = {}
-                )
+                    onDeselectAll = {})
             },
             content = { modifier ->
                 ScrapListContent(
                     showCategory = false,
-                    scrapItemsResult = Result.Success(emptyList()),
+                    scrapItemsState = ScrapUiState.Success(emptyList()),
                     viewMode = ViewMode.LIST,
                     isPreferencesLoaded = true,
                     isSelectionMode = true,
@@ -332,8 +316,7 @@ private fun SetSelectionBottomBar(isSelectionMode: Boolean, scrapViewModel: Scra
                     onShare = { /* todo */ },
                     onFavorite = { onSuccess, onFailure ->
                         scrapViewModel.toggleFavoriteSelectedItems(onSuccess, onFailure)
-                    }
-                )
+                    })
             }
         } else {
             GlobalUiState.setBottomBar(null)
@@ -343,27 +326,22 @@ private fun SetSelectionBottomBar(isSelectionMode: Boolean, scrapViewModel: Scra
 
 @Composable
 private fun HandleCategoryDeleteEvents(
-    scrapViewModel: ScrapViewModel,
-    onDeleteSuccess: () -> Unit,
-    onLoadingToggle: (Boolean) -> Unit
+    scrapViewModel: ScrapViewModel, onDeleteSuccess: () -> Unit, onLoadingToggle: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
 
     LaunchedEffect(scrapViewModel.categoryDeleteEvent) {
         scrapViewModel.categoryDeleteEvent.collect { result ->
-            when (result) {
-                Result.Loading -> onLoadingToggle(true)
-                is Result.Success -> {
+            result.onSuccess {
                     onLoadingToggle(false)
-                    GlobalUiState.setCategory(CategoryItem.DEFAULT_ID, CategoryItem.DEFAULT_NAME)
+                    GlobalUiState.setCategory(
+                        CategoryItem.DEFAULT_ID, CategoryItem.DEFAULT_NAME
+                    )
                     onDeleteSuccess()
-                }
-
-                is Result.Error -> {
+                }.onFailure {
                     onLoadingToggle(false)
-                    Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, it.message ?: "삭제 실패", Toast.LENGTH_SHORT).show()
                 }
-            }
         }
     }
 }

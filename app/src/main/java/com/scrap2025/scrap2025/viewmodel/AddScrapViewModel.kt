@@ -3,7 +3,6 @@ package com.scrap2025.scrap2025.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.model.LinkPreview
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.repository.LinkPreviewRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
@@ -18,19 +17,30 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
 
+sealed interface LinkPreviewUiState {
+    data object Loading : LinkPreviewUiState
+    data class Success(val preview: LinkPreview) : LinkPreviewUiState
+    data class Error(val message: String? = null) : LinkPreviewUiState
+}
+
+sealed interface AddScrapUiState {
+    data object Loading : AddScrapUiState
+    data object Success : AddScrapUiState
+    data class Error(val message: String? = null) : AddScrapUiState
+}
+
 @HiltViewModel
 class AddScrapViewModel
-@Inject
-constructor(
+@Inject constructor(
     private val scrapRepository: ScrapRepository,
     private val linkPreviewRepository: LinkPreviewRepository,
 ) : ViewModel() {
 
-    private val _addScrapState = MutableStateFlow<Result<Unit>?>(null)
-    val addScrapState: StateFlow<Result<Unit>?> = _addScrapState.asStateFlow()
+    private val _addScrapState = MutableStateFlow<AddScrapUiState?>(null)
+    val addScrapState: StateFlow<AddScrapUiState?> = _addScrapState.asStateFlow()
 
-    private val _linkPreviewState = MutableStateFlow<Result<LinkPreview>?>(null)
-    val linkPreviewState: StateFlow<Result<LinkPreview>?> = _linkPreviewState.asStateFlow()
+    private val _linkPreviewUiState = MutableStateFlow<LinkPreviewUiState?>(null)
+    val linkPreviewUiState: StateFlow<LinkPreviewUiState?> = _linkPreviewUiState.asStateFlow()
 
     private val _url = MutableStateFlow("")
     val url: StateFlow<String> = _url.asStateFlow()
@@ -46,7 +56,7 @@ constructor(
                 .collect { currentUrl ->
                     // 1. 비어있는 경우 즉시 초기화
                     if (currentUrl.isBlank()) {
-                        _linkPreviewState.value = null
+                        _linkPreviewUiState.value = null
                         return@collect
                     }
 
@@ -55,7 +65,7 @@ constructor(
                         fetchLinkPreview(currentUrl)
                     } else {
                         // 3. 올바르지 않은 형식인 경우에도 초기화
-                        _linkPreviewState.value = null
+                        _linkPreviewUiState.value = null
                     }
                 }
         }
@@ -75,9 +85,11 @@ constructor(
      */
     private fun fetchLinkPreview(url: String) {
         viewModelScope.launch {
-            _linkPreviewState.value = Result.Loading
+            _linkPreviewUiState.value = LinkPreviewUiState.Loading
             val result = linkPreviewRepository.fetchLinkPreview(url)
-            _linkPreviewState.value = result
+            result.fold(
+                onSuccess = { _linkPreviewUiState.value = LinkPreviewUiState.Success(it) },
+                onFailure = { _linkPreviewUiState.value = LinkPreviewUiState.Error(it.message) })
         }
     }
 
@@ -88,31 +100,29 @@ constructor(
      * @param linkPreview 링크 미리보기 데이터 (선택사항)
      */
     fun addScrapItem(
-        url: String,
-        memo: String,
-        linkPreview: LinkPreview? = null,
-        categoryId: String
+        url: String, memo: String, linkPreview: LinkPreview? = null, categoryId: String
     ) {
         viewModelScope.launch {
             // Loading 상태 설정
-            _addScrapState.value = Result.Loading
+            _addScrapState.value = AddScrapUiState.Loading
 
-            val newItem =
-                ScrapItem(
-                    id = UUID.randomUUID().toString(),
-                    title = linkPreview?.title ?: url,
-                    description = linkPreview?.description ?: "",
-                    url = url,
-                    imageUrl = linkPreview?.imageUrl,
-                    createdDate = LocalDateTime.now(),
-                    isFavorite = false,
-                    categoryId = categoryId,
-                    memo = memo
-                )
+            val newItem = ScrapItem(
+                id = UUID.randomUUID().toString(),
+                title = linkPreview?.title ?: url,
+                description = linkPreview?.description ?: "",
+                url = url,
+                imageUrl = linkPreview?.imageUrl,
+                createdDate = LocalDateTime.now(),
+                isFavorite = false,
+                categoryId = categoryId,
+                memo = memo
+            )
 
             // Repository를 통해 스크랩 추가
             val result = scrapRepository.createScrap(newItem)
-            _addScrapState.value = result
+            result.fold(
+                onSuccess = { _addScrapState.value = AddScrapUiState.Success },
+                onFailure = { _addScrapState.value = AddScrapUiState.Error(it.message) })
         }
     }
 
@@ -121,6 +131,6 @@ constructor(
         _addScrapState.value = null
         _url.value = ""
         _memo.value = ""
-        _linkPreviewState.value = null
+        _linkPreviewUiState.value = null
     }
 }

@@ -12,49 +12,43 @@ import com.scrap2025.scrap2025.data.remote.datasource.UserRemoteDataSource
 import com.scrap2025.scrap2025.data.remote.dto.MemberInfo
 import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
 import com.scrap2025.scrap2025.data.remote.dto.Statistics
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.worker.MyPageSyncWorker
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 class MyPageRepositoryImpl
 @Inject
 constructor(
-        private val myPageDao: MyPageDao,
-        private val userRemoteDataSource: UserRemoteDataSource,
-        private val workManager: WorkManager
+    private val myPageDao: MyPageDao,
+    private val userRemoteDataSource: UserRemoteDataSource,
+    private val workManager: WorkManager
 ) : MyPageRepository {
 
     // 1. UI Observes this (SSOT)
     // Convert Entity to Domain Model (MyPageResponse)
     // If Entity is null, emit null (or handle default state)
     override val myPageData: Flow<MyPageResponse?> =
-            myPageDao.getMyPage().map { entity -> entity?.toDomainModel() }
+        myPageDao.getMyPage().map { entity -> entity?.toDomainModel() }
 
     // 2. Triggered by ViewModel on init or pull-to-refresh
     // Returns true if sync successful, false otherwise.
     override suspend fun invokeMyPageSync(): Boolean {
         return try {
-            val result = userRemoteDataSource.getMyPage()
-            if (result is Result.Success) {
-                val remoteData = result.data
-                // Save to Local DB -> Triggers myPageData Flow -> UI Updates automatically
-                myPageDao.insertMyPage(remoteData.toEntity())
-                true
-            } else {
-                result as Result.Error
-                Log.e("MyPageRepository", "Sync failed: ${result.message}")
-                markAsPending()
-                false
-            }
+            val remoteData = userRemoteDataSource.getMyPage()
+            // Save to Local DB -> Triggers myPageData Flow -> UI Updates automatically
+            myPageDao.insertMyPage(remoteData.toEntity())
+            true
         } catch (e: Exception) {
             Log.e("MyPageRepository", "Sync error", e)
             markAsPending()
-            throw e // Re-throw to allow Worker to retry
+            // Rethrowing to let the worker or caller know there's a problem
+            // For Worker it will retry, for ViewModel it might show error.
+            // But MyPageSyncWorker returns Result.retry() on catch.
+            false
         }
     }
 
@@ -65,12 +59,12 @@ constructor(
 
             // Enqueue WorkManager for background sync
             val constraints =
-                    Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
+                Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
             val syncRequest =
-                    OneTimeWorkRequestBuilder<MyPageSyncWorker>()
-                            .setConstraints(constraints)
-                            .build()
+                OneTimeWorkRequestBuilder<MyPageSyncWorker>()
+                    .setConstraints(constraints)
+                    .build()
 
             workManager.enqueue(syncRequest)
             Log.d("MyPageRepository", "Enqueued OneTimeWorkRequest for MyPage sync")
@@ -79,18 +73,18 @@ constructor(
 
     private fun MyPageEntity.toDomainModel(): MyPageResponse {
         return MyPageResponse(
-                memberInfo = MemberInfo(name = this.name),
-                statistics =
-                        Statistics(totalCategory = this.totalCategory, totalScrap = this.totalScrap)
+            memberInfo = MemberInfo(name = this.name),
+            statistics =
+                Statistics(totalCategory = this.totalCategory, totalScrap = this.totalScrap)
         )
     }
 
     private fun MyPageResponse.toEntity(): MyPageEntity {
         return MyPageEntity(
-                name = this.memberInfo.name,
-                totalCategory = this.statistics.totalCategory,
-                totalScrap = this.statistics.totalScrap,
-                syncStatus = SyncStatus.SYNCED
+            name = this.memberInfo.name,
+            totalCategory = this.statistics.totalCategory,
+            totalScrap = this.statistics.totalScrap,
+            syncStatus = SyncStatus.SYNCED
         )
     }
 }

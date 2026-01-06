@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.SortDirection
 import com.scrap2025.scrap2025.model.enums.SortType
@@ -27,15 +26,21 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+sealed interface ScrapUiState {
+    data object Loading : ScrapUiState
+    data class Success(val items: List<ScrapItem>) : ScrapUiState
+    data class Error(val message: String? = null) : ScrapUiState
+}
+
 @HiltViewModel
 class ScrapViewModel
-@Inject
-constructor(
+@Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val scrapRepository: ScrapRepository,
     private val preferencesManager: PreferencesManager
@@ -66,35 +71,32 @@ constructor(
     val queryState: StateFlow<String> = _queryState.asStateFlow()
 
     // 정렬 타입 (DataStore에서 로드)
-    val sortType: StateFlow<SortType> =
-        preferencesManager.sortType.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SortType.SCRAP_DATE
-        )
+    val sortType: StateFlow<SortType> = preferencesManager.sortType.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = SortType.SCRAP_DATE
+    )
 
     // 정렬 방향 (DataStore에서 로드)
-    val sortDirection: StateFlow<SortDirection> =
-        preferencesManager.sortDirection.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SortDirection.ASC
-        )
+    val sortDirection: StateFlow<SortDirection> = preferencesManager.sortDirection.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = SortDirection.ASC
+    )
 
     // 뷰 모드 (DataStore에서 로드)
-    val viewMode: StateFlow<ViewMode> =
-        preferencesManager.viewMode.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ViewMode.LIST
-        )
+    val viewMode: StateFlow<ViewMode> = preferencesManager.viewMode.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ViewMode.LIST
+    )
 
     // Quartic 헬퍼 클래스 (4개 파라미터 combine용)
     data class Quartic<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 
     /** ScrapUiState - UI에 필요한 모든 상태를 하나의 객체로 관리 */
-    data class ScrapUiState(
-        val scrapItemsResult: Result<List<ScrapItem>> = Result.Loading,
+    data class ScrapState(
+        val scrapItemsState: ScrapUiState = ScrapUiState.Loading,
         val categoryId: String = CategoryItem.DEFAULT_ID,
         val categoryName: String = CategoryItem.DEFAULT_NAME,
         val viewMode: ViewMode = ViewMode.LIST,
@@ -107,102 +109,84 @@ constructor(
     )
 
     // 정렬된 스크랩 아이템 목록 (Repository, sortType, sortDirection, selectedCategory 조합)
-    val sortedScrapItems: StateFlow<Result<List<ScrapItem>>> = combine(
+    val sortedScrapItems: StateFlow<ScrapUiState> = combine(
         _selectedCategoryId,
         queryState,
         sortType,
         sortDirection
     ) { categoryId, query, type, direction ->
         Quartic(categoryId, query, type, direction)
-    }
-        .distinctUntilChanged()
-        .debounce(500L)
-        .flatMapLatest { (categoryId, query, type, direction) ->
+    }.distinctUntilChanged().debounce(500L).flatMapLatest { (categoryId, query, type, direction) ->
             if (query.isBlank()) {
                 scrapRepository.getScrapItems(categoryId).map { result ->
-                    when (result) {
-                        is Result.Success -> {
-                            val sortedItems = sortScrapItems(result.data, type, direction)
-                            Result.Success(sortedItems)
-                        }
-
-                        is Result.Error -> result
-                        is Result.Loading -> result
-                    }
-                }
+                        result.fold(onSuccess = { items ->
+                            ScrapUiState.Success(
+                                sortScrapItems(items, type, direction)
+                            )
+                        }, onFailure = { ScrapUiState.Error(it.message) })
+                    }.onStart { emit(ScrapUiState.Loading) }
             } else {
-                flow<Result<List<ScrapItem>>> {
-                    emit(Result.Loading)
+                flow {
+                    emit(ScrapUiState.Loading)
                     val categoryResult = categoryRepository.getCategoryById(categoryId)
-                    if (categoryResult is Result.Success) {
-                        val remoteId = categoryResult.data.remoteId?.toLong()
+                    categoryResult.fold(onSuccess = { category ->
+                        val remoteId = category.remoteId?.toLong()
                         if (remoteId != null) {
-                            val searchResult =
-                                scrapRepository.searchScrapsByCategory(
-                                    categoryRemoteId = remoteId,
-                                    query = query,
-                                    sortType = type.name,
-                                    sortDirection = direction.name
-                                )
-                            when (searchResult) {
-                                is Result.Success -> {
-                                    emit(
-                                        Result.Success(
-                                            sortScrapItems(
-                                                searchResult.data,
-                                                type,
-                                                direction
-                                            )
+                            val searchResult = scrapRepository.searchScrapsByCategory(
+                                categoryRemoteId = remoteId,
+                                query = query,
+                                sortType = type.name,
+                                sortDirection = direction.name
+                            )
+                            searchResult.fold(onSuccess = { items ->
+                                emit(
+                                    ScrapUiState.Success(
+                                        sortScrapItems(
+                                            items, type, direction
                                         )
                                     )
-                                }
-
-                                is Result.Error -> emit(searchResult)
-                                is Result.Loading -> emit(Result.Loading)
-                            }
+                                )
+                            }, onFailure = {
+                                emit(ScrapUiState.Error(it.message))
+                            })
                         } else {
-                            emit(Result.Success(emptyList()))
+                            emit(ScrapUiState.Success(emptyList()))
                         }
-                    } else {
-                        emit(Result.Error(Exception("Category not found")))
-                    }
+                    }, onFailure = {
+                        emit(ScrapUiState.Error("Category not found"))
+                    })
                 }
             }
-        }
-        .stateIn(
+        }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = Result.Loading
+            initialValue = ScrapUiState.Loading
         )
 
-    val categoryFlow = combine(
-        GlobalUiState.selectedCategoryId,
-        GlobalUiState.selectedCategoryName
-    ) { id, name -> id to name }
+    val categoryFlow =
+        combine(GlobalUiState.selectedCategoryId, GlobalUiState.selectedCategoryName) { id, name ->
+            id to name
+        }
 
-    val preferenceFlow = combine(
-        viewMode,
-        sortType,
-        sortDirection,
-        isPreferencesLoaded
-    ) { mode, type, dir, loaded -> Quartic(mode, type, dir, loaded) }
+    val preferenceFlow =
+        combine(viewMode, sortType, sortDirection, isPreferencesLoaded) { mode, type, dir, loaded ->
+            Quartic(mode, type, dir, loaded)
+        }
 
-    val selectionFlow = combine(
-        isSelectionMode,
-        selectedScrapIds
-    ) { selection, selectedIds -> selection to selectedIds }
-
+    val selectionFlow = combine(isSelectionMode, selectedScrapIds) { selection, selectedIds ->
+        selection to selectedIds
+    }
 
     /** uiState - 모든 상태를 관찰하여 UI 레이어로 전달 (8개 이상의 Flow를 위해 그룹화) */
-    val uiState: StateFlow<ScrapUiState> = combine(
+    val uiState: StateFlow<ScrapState> = combine(
         sortedScrapItems,
         categoryFlow,
         preferenceFlow,
         selectionFlow,
         queryState
     ) { items, category, prefs, selection, query ->
-        ScrapUiState(
-            scrapItemsResult = items,
+        ScrapState(
+            scrapItemsState = items,
             categoryId = category.first,
             categoryName = category.second,
             viewMode = prefs.a,
@@ -213,11 +197,10 @@ constructor(
             selectedScrapIds = selection.second,
             query = query
         )
-    }
-        .stateIn(
+    }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = ScrapUiState()
+            initialValue = ScrapState()
         )
 
     init {
@@ -229,28 +212,23 @@ constructor(
                 preferencesManager.viewMode
             ) { _, _, _ ->
                 _isPreferencesLoaded.value = true // DataStore 로드 후 실행
-            }
-                .take(1)
-                .collect() // 1번만 실행
+            }.take(1).collect() // 1번만 실행
         }
     }
 
     // 스크랩 아이템 정렬 로직
     private fun sortScrapItems(
-        items: List<ScrapItem>,
-        sortType: SortType,
-        sortDirection: SortDirection
+        items: List<ScrapItem>, sortType: SortType, sortDirection: SortDirection
     ): List<ScrapItem> {
-        val sorted =
-            when (sortType) {
-                SortType.SCRAP_DATE -> {
-                    items.sortedBy { it.createdDate }
-                }
-
-                SortType.TITLE -> {
-                    items.sortedBy { it.title.lowercase() }
-                }
+        val sorted = when (sortType) {
+            SortType.SCRAP_DATE -> {
+                items.sortedBy { it.createdDate }
             }
+
+            SortType.TITLE -> {
+                items.sortedBy { it.title.lowercase() }
+            }
+        }
 
         return if (sortDirection == SortDirection.ASC) {
             sorted
@@ -262,12 +240,11 @@ constructor(
     // 정렬 타입 토글 (DATE ⇄ TITLE, 오름차순으로 리셋)
     fun toggleSortType() {
         viewModelScope.launch {
-            val newSortType =
-                if (sortType.value == SortType.SCRAP_DATE) {
-                    SortType.TITLE
-                } else {
-                    SortType.SCRAP_DATE
-                }
+            val newSortType = if (sortType.value == SortType.SCRAP_DATE) {
+                SortType.TITLE
+            } else {
+                SortType.SCRAP_DATE
+            }
             preferencesManager.setSortType(newSortType)
             preferencesManager.setSortDirection(SortDirection.ASC)
         }
@@ -276,12 +253,11 @@ constructor(
     // 정렬 방향 토글
     fun toggleSortDirection() {
         viewModelScope.launch {
-            val newDirection =
-                if (sortDirection.value == SortDirection.ASC) {
-                    SortDirection.DESC
-                } else {
-                    SortDirection.ASC
-                }
+            val newDirection = if (sortDirection.value == SortDirection.ASC) {
+                SortDirection.DESC
+            } else {
+                SortDirection.ASC
+            }
             preferencesManager.setSortDirection(newDirection)
         }
     }
@@ -289,12 +265,11 @@ constructor(
     // 뷰 모드 토글
     fun toggleViewMode() {
         viewModelScope.launch {
-            val newViewMode =
-                if (viewMode.value == ViewMode.LIST) {
-                    ViewMode.GRID
-                } else {
-                    ViewMode.LIST
-                }
+            val newViewMode = if (viewMode.value == ViewMode.LIST) {
+                ViewMode.GRID
+            } else {
+                ViewMode.LIST
+            }
             preferencesManager.setViewMode(newViewMode)
         }
     }
@@ -314,18 +289,19 @@ constructor(
     // 개별 아이템 선택 토글
     fun toggleScrapItemSelection(id: String) {
         val currentSelection = _selectedScrapIds.value
-        _selectedScrapIds.value =
-            if (currentSelection.contains(id)) {
-                currentSelection - id
-            } else {
-                currentSelection + id
-            }
+        _selectedScrapIds.value = if (currentSelection.contains(id)) {
+            currentSelection - id
+        } else {
+            currentSelection + id
+        }
     }
 
     // 전체 선택
     fun selectAllScrapItems() {
-        val items = (sortedScrapItems.value as? Result.Success)?.data ?: return
-        _selectedScrapIds.value = items.map { it.id }.toSet()
+        val state = sortedScrapItems.value
+        if (state is ScrapUiState.Success) {
+            _selectedScrapIds.value = state.items.map { it.id }.toSet()
+        }
     }
 
     // 전체 선택 해제
@@ -345,16 +321,17 @@ constructor(
     fun moveSelectedItems(categoryId: String) {
         viewModelScope.launch {
             _selectedScrapIds.value.forEach { id -> scrapRepository.moveScrapItem(id, categoryId) }
-            // Todo: 구현 예정
             exitSelectionMode()
         }
     }
 
     // 선택된 아이템 공유
     fun shareSelectedItems(): List<ScrapItem> {
-        val items = (sortedScrapItems.value as? Result.Success)?.data ?: return emptyList()
-        return items.filter { it.id in _selectedScrapIds.value }
-        // todo: 구현 예정
+        val state = sortedScrapItems.value
+        if (state is ScrapUiState.Success) {
+            return state.items.filter { it.id in _selectedScrapIds.value }
+        }
+        return emptyList()
     }
 
     // 선택된 아이템 즐겨찾기 토글
@@ -363,18 +340,10 @@ constructor(
             val scrapIdBulk = _selectedScrapIds.value.toList()
             val result = scrapRepository.toggleFavoriteBulk(scrapIdBulk)
 
-            when (result) {
-                is Result.Success -> {
-                    onSuccess()
-                    exitSelectionMode()
-                }
-
-                is Result.Error -> {
-                    onFailure()
-                }
-
-                else -> {}
-            }
+            result.fold(onSuccess = {
+                onSuccess()
+                exitSelectionMode()
+            }, onFailure = { onFailure() })
         }
     }
 
@@ -403,12 +372,10 @@ constructor(
      */
     fun deleteCategory(id: String) {
         viewModelScope.launch {
-            _categoryDeleteEvent.emit(Result.Loading)
-            // Repository 내에서 트랜잭션으로 처리 (스크랩 이동 + 카테고리 삭제)
-            val result =
-                categoryRepository.deleteCategory(
-                    id = id,
-                )
+            _categoryDeleteEvent.emit(
+                Result.failure(Exception("Loading"))
+            ) // Temporary placeholder for loading
+            val result = categoryRepository.deleteCategory(id = id)
             _categoryDeleteEvent.emit(result)
         }
     }
@@ -417,19 +384,9 @@ constructor(
         viewModelScope.launch {
             val categoryResult = categoryRepository.getCategoryById(categoryId)
 
-            if (categoryResult is Result.Success) {
-                val remoteId = categoryResult.data.remoteId ?: return@launch
-
-                val syncScrapsResult = scrapRepository.syncScrapsByCategoryId(categoryId, remoteId)
-
-                when (syncScrapsResult) {
-                    Result.Loading -> {}
-                    is Result.Error -> {
-                        throw syncScrapsResult.exception
-                    }
-
-                    is Result.Success -> {}
-                }
+            categoryResult.onSuccess { category ->
+                val remoteId = category.remoteId ?: return@onSuccess
+                scrapRepository.syncScrapsByCategoryId(categoryId, remoteId)
             }
         }
     }

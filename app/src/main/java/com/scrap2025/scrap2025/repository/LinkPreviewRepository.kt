@@ -1,7 +1,6 @@
 package com.scrap2025.scrap2025.repository
 
 import com.scrap2025.scrap2025.model.LinkPreview
-import com.scrap2025.scrap2025.model.Result
 
 interface LinkPreviewRepository {
     /**

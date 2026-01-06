@@ -66,18 +66,15 @@ fun SearchScreen(
     var showDatePicker by remember { mutableStateOf(false) }
 
     // 파생 상태: 스크롤 위치에서 버튼 표시 여부 계산
-    val showScrollToTop by
-    remember(uiState.viewMode) {
+    val showScrollToTop by remember(uiState.viewMode) {
         derivedStateOf {
             when (uiState.viewMode) {
                 ViewMode.LIST -> {
-                    listState.firstVisibleItemIndex > 0 ||
-                            listState.firstVisibleItemScrollOffset > 0
+                    listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
                 }
 
                 ViewMode.GRID -> {
-                    gridState.firstVisibleItemIndex > 0 ||
-                            gridState.firstVisibleItemScrollOffset > 0
+                    gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 0
                 }
             }
         }
@@ -105,14 +102,12 @@ fun SearchScreen(
             onDateSelected = { start, end ->
                 if (start != null && end != null) {
                     viewModel.onDateChange(
-                        viewModel.formatMillisToDate(start),
-                        viewModel.formatMillisToDate(end)
+                        viewModel.formatMillisToDate(start), viewModel.formatMillisToDate(end)
                     )
                 }
                 showDatePicker = false
             },
-            onDismiss = { showDatePicker = false }
-        )
+            onDismiss = { showDatePicker = false })
     }
 
     Scaffold(
@@ -142,8 +137,7 @@ fun SearchScreen(
                     viewMode = uiState.viewMode,
                     onSortTypeToggle = { viewModel.toggleSortType() },
                     onSortDirectionToggle = { viewModel.toggleSortDirection() },
-                    onViewModeToggle = { viewModel.toggleViewMode() }
-                )
+                    onViewModeToggle = { viewModel.toggleViewMode() })
             }
         },
         floatingActionButton = {
@@ -175,12 +169,11 @@ fun SearchScreen(
                     )
                 }
             }
-        }
-    ) { paddingValues ->
+        }) { paddingValues ->
         // 3. 스크랩 리스트 영역
         ScrapListContent(
             showCategory = true,
-            scrapItemsResult = uiState.searchResults,
+            scrapItemsState = uiState.searchResults,
             viewMode = uiState.viewMode,
             isPreferencesLoaded = true,
             listState = listState,

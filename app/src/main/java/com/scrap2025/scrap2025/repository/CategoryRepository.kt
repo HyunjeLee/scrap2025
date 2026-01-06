@@ -1,7 +1,6 @@
 package com.scrap2025.scrap2025.repository
 
 import com.scrap2025.scrap2025.model.CategoryItem
-import com.scrap2025.scrap2025.model.Result
 import kotlinx.coroutines.flow.Flow
 
 /** CategoryRepository - 카테고리 데이터 접근 추상화 인터페이스 데이터 소스(로컬/리모트)에 독립적인 비즈니스 로직 제공 */

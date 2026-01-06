@@ -23,20 +23,13 @@ class AuthRepositoryImpl
 
     override suspend fun loginToServer(snsType: SnsType, socialToken: String): Result<Unit> {
         return try {
-            val result = authRemoteDataSource.login(sns = snsType.value, token = socialToken)
-            if (result is com.scrap2025.scrap2025.model.Result.Success) {
-                val loginResult = result.data
-                tokenManager.saveTokens(
-                    accessToken = loginResult.accessToken, refreshToken = loginResult.refreshToken
-                )
-                tokenManager.saveSnsType(snsType)
-                Log.d(TAG, "Tokens and SnsType saved successfully")
-                Result.success(Unit)
-            } else {
-                result as com.scrap2025.scrap2025.model.Result.Error
-                Log.e(TAG, "Login failed: ${result.message}")
-                Result.failure(result.exception)
-            }
+            val loginResult = authRemoteDataSource.login(sns = snsType.value, token = socialToken)
+            tokenManager.saveTokens(
+                accessToken = loginResult.accessToken, refreshToken = loginResult.refreshToken
+            )
+            tokenManager.saveSnsType(snsType)
+            Log.d(TAG, "Tokens and SnsType saved successfully")
+            Result.success(Unit)
         } catch (e: Exception) {
             Log.e(TAG, "Login exception", e)
             Result.failure(e)
@@ -45,32 +38,24 @@ class AuthRepositoryImpl
 
     override suspend fun logoutToServer(): Result<Unit> {
         return try {
-            val result = authRemoteDataSource.logout()
-            if (result is com.scrap2025.scrap2025.model.Result.Success) {
-                tokenManager.clearTokens()
-                Result.success(Unit)
-            } else {
-                result as com.scrap2025.scrap2025.model.Result.Error
-                Result.failure(result.exception)
-            }
+            authRemoteDataSource.logout()
+            tokenManager.clearTokens()
+            Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(TAG, "Logout exception", e)
             Result.failure(e)
         }
     }
 
     override suspend fun withdrawToServer(): Result<Unit> {
         return try {
-            val result = authRemoteDataSource.withdraw()
-            if (result is com.scrap2025.scrap2025.model.Result.Success) {
-                tokenManager.clearTokens()
-                database.clearAllData()
-                databaseInitializer.init()
-                Result.success(Unit)
-            } else {
-                result as com.scrap2025.scrap2025.model.Result.Error
-                Result.failure(result.exception)
-            }
+            authRemoteDataSource.withdraw()
+            tokenManager.clearTokens()
+            database.clearAllData()
+            databaseInitializer.init()
+            Result.success(Unit)
         } catch (e: Exception) {
+            Log.e(TAG, "Withdraw exception", e)
             Result.failure(e)
         }
     }

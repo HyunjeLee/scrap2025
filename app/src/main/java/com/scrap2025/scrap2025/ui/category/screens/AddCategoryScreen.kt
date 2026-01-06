@@ -25,7 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.ui.common.buttons.TwoButtons
 import com.scrap2025.scrap2025.ui.common.topbars.TopBarWithBack
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
@@ -33,6 +32,7 @@ import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.AddCategoryUiState
 import com.scrap2025.scrap2025.viewmodel.AddCategoryViewModel
 
 /** AddCategoryScreen - 카테고리 추가 화면 ViewModel을 통해 카테고리를 추가하고, Result 상태를 처리 */
@@ -42,7 +42,7 @@ fun AddCategoryScreen(
     modifier: Modifier = Modifier,
     viewModel: AddCategoryViewModel = hiltViewModel()
 ) {
-    val addCategoryState by viewModel.addCategoryState.collectAsState()
+    val addCategoryState by viewModel.addCategoryUiState.collectAsState()
     val context = LocalContext.current
 
     val categoryTitleInput by viewModel.categoryTitle.collectAsState()
@@ -50,18 +50,21 @@ fun AddCategoryScreen(
     // Result 상태 처리
     LaunchedEffect(addCategoryState) {
         when (val state = addCategoryState) {
-            is Result.Success -> {
+            is AddCategoryUiState.Success -> {
                 Toast.makeText(context, "카테고리가 추가되었습니다", Toast.LENGTH_SHORT).show()
                 onBack()
                 viewModel.resetState()
             }
-            is Result.Error -> {
+
+            is AddCategoryUiState.Error -> {
                 Toast.makeText(context, state.message ?: "카테고리 추가 실패", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
             }
-            is Result.Loading -> {
+
+            is AddCategoryUiState.Loading -> {
                 // Loading 상태는 버튼 비활성화로 처리
             }
+
             null -> {
                 // 초기 상태
             }
@@ -73,9 +76,8 @@ fun AddCategoryScreen(
         onBack = onBack,
         categoryTitleInput = categoryTitleInput,
         onValueChange = { newName -> viewModel.updateCategoryTitle(newName) },
-        addCategoryState = addCategoryState,
-        onAddCategory = { viewModel.addCategory() }
-    )
+        addCategoryUiState = addCategoryState,
+        onAddCategory = { viewModel.addCategory() })
 }
 
 @Composable
@@ -84,7 +86,7 @@ fun AddCategoryScreenContent(
     onBack: () -> Unit,
     categoryTitleInput: String,
     onValueChange: (String) -> Unit,
-    addCategoryState: Result<Unit>?,
+    addCategoryUiState: AddCategoryUiState?,
     onAddCategory: () -> Unit,
 ) {
     Scaffold(
@@ -96,10 +98,9 @@ fun AddCategoryScreenContent(
                 confirmText = "추가하기",
                 onCancel = onBack,
                 onConfirm = onAddCategory,
-                state = addCategoryState
+                isLoading = addCategoryUiState is AddCategoryUiState.Loading
             )
-        }
-    ) { innerPadding ->
+        }) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -108,19 +109,21 @@ fun AddCategoryScreenContent(
             Column(modifier = Modifier.fillMaxSize()) {
                 // 입력 필드
                 Box(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 21.dp, vertical = 20.dp)
-                            .background(MainColorLight, shape = RoundedCornerShape(8.dp))
-                            .padding(12.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 21.dp, vertical = 20.dp)
+                        .background(
+                            MainColorLight, shape = RoundedCornerShape(8.dp)
+                        )
+                        .padding(12.dp)
                 ) {
                     Box(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                                .background(MainColor, shape = RoundedCornerShape(10.dp))
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .background(
+                                MainColor, shape = RoundedCornerShape(10.dp)
+                            )
                     ) {
                         TextField(
                             value = categoryTitleInput,
@@ -136,26 +139,23 @@ fun AddCategoryScreenContent(
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp),
                             textStyle = TextStyle(fontSize = 15.sp),
-                            colors =
-                                TextFieldDefaults.colors(
-                                    focusedContainerColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedIndicatorColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent,
-                                    focusedTextColor = Color.Black,
-                                    unfocusedTextColor = Color.Black,
-                                    cursorColor = Color.Black
-                                ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                cursorColor = Color.Black
+                            ),
                             singleLine = true,
-                            readOnly = addCategoryState is Result.Loading
+                            readOnly = addCategoryUiState is AddCategoryUiState.Loading
                         )
                     }
                 }
             }
         }
-
     }
-
 }
 
 @Preview(showBackground = true)
@@ -167,8 +167,7 @@ fun AddCategoryScreenContentPreview() {
             onBack = {},
             categoryTitleInput = "",
             onValueChange = {},
-            addCategoryState = null,
-            onAddCategory = {}
-        )
+            addCategoryUiState = null,
+            onAddCategory = {})
     }
 }

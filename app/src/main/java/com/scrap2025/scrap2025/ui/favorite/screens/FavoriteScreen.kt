@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.SortBar
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapFloatingButtons
@@ -28,6 +27,7 @@ import com.scrap2025.scrap2025.ui.scrap.components.SelectionTopBar
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreenContent
 import com.scrap2025.scrap2025.utils.isScrolled
 import com.scrap2025.scrap2025.viewmodel.FavoriteViewModel
+import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 
 @Stable
 class FavoriteScreenState(
@@ -80,8 +80,8 @@ fun FavoriteScreen(
     ScrapScreenContent(
         topBar = {
             if (uiState.isSelectionMode) {
-                val totalCount = when (val result = uiState.scrapItemsResult) {
-                    is Result.Success -> result.data.size
+                val totalCount = when (val state = uiState.scrapItemsState) {
+                    is ScrapUiState.Success -> state.items.size
                     else -> 0
                 }
                 SelectionTopBar(
@@ -109,7 +109,7 @@ fun FavoriteScreen(
         },
         content = { contentModifier ->
             ScrapListContent(
-                scrapItemsResult = uiState.scrapItemsResult,
+                scrapItemsState = uiState.scrapItemsState,
                 viewMode = uiState.viewMode,
                 isPreferencesLoaded = uiState.isPreferencesLoaded,
                 isSelectionMode = uiState.isSelectionMode,

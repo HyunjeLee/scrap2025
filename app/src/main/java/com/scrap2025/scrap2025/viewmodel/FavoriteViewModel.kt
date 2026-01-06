@@ -3,7 +3,6 @@ package com.scrap2025.scrap2025.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.SortDirection
 import com.scrap2025.scrap2025.model.enums.SortType
@@ -21,6 +20,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -70,8 +70,8 @@ class FavoriteViewModel
     )
 
     /** FavoriteUiState - UI에 필요한 모든 상태를 하나의 객체로 관리 */
-    data class FavoriteUiState(
-        val scrapItemsResult: Result<List<ScrapItem>> = Result.Loading,
+    data class FavoriteState(
+        val scrapItemsState: ScrapUiState = ScrapUiState.Loading,
         val viewMode: ViewMode = ViewMode.LIST,
         val sortType: SortType = SortType.SCRAP_DATE,
         val sortDirection: SortDirection = SortDirection.ASC,
@@ -85,51 +85,39 @@ class FavoriteViewModel
     data class Quartic<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 
     // 정렬된 즐겨찾기 스크랩 아이템 목록
-    val sortedFavoriteItems: StateFlow<Result<List<ScrapItem>>> =
+    val sortedFavoriteItems: StateFlow<ScrapUiState> =
         combine(queryState, sortType, sortDirection) { query, type, direction ->
             Triple(query, type, direction)
-        }
-            .distinctUntilChanged()
-            .debounce(500L)
-            .flatMapLatest { (query, type, direction) ->
+        }.distinctUntilChanged().debounce(500L).flatMapLatest { (query, type, direction) ->
                 if (query.isBlank()) {
                     scrapRepository.getFavoriteScrapItemsFromRemote().map { result ->
-                        when (result) {
-                            is Result.Success -> {
-                                val sortedItems = sortScrapItems(result.data, type, direction)
-                                Result.Success(sortedItems)
-                            }
-
-                            is Result.Error -> result
-                            is Result.Loading -> result
-                        }
-                    }
+                            result.fold(onSuccess = { items ->
+                                ScrapUiState.Success(
+                                    sortScrapItems(items, type, direction)
+                                )
+                            }, onFailure = { ScrapUiState.Error(it.message) })
+                        }.onStart { emit(ScrapUiState.Loading) }
                 } else {
-                    flow<Result<List<ScrapItem>>> {
-                        emit(Result.Loading)
+                    flow {
+                        emit(ScrapUiState.Loading)
 
                         val searchResult = scrapRepository.searchFavoriteScraps(
                             query = query, sortType = type.name, sortDirection = direction.name
                         )
 
-                        when (searchResult) {
-                            is Result.Success -> {
-                                // SearchViewModel처럼 서버 결과를 그대로 쓰거나, 기존 Favorite의 로컬 정렬 로직을
-                                // 유지할 수 있음
-                                val sortedItems = sortScrapItems(searchResult.data, type, direction)
-                                emit(Result.Success(sortedItems))
-                            }
-
-                            is Result.Error -> emit(searchResult)
-                            is Result.Loading -> emit(Result.Loading)
-                        }
+                        searchResult.fold(onSuccess = { items ->
+                            emit(
+                                ScrapUiState.Success(
+                                    sortScrapItems(items, type, direction)
+                                )
+                            )
+                        }, onFailure = { emit(ScrapUiState.Error(it.message)) })
                     }
                 }
-            }
-            .stateIn(
+            }.stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = Result.Loading
+                initialValue = ScrapUiState.Loading
             )
 
     val preferenceFlow =
@@ -142,14 +130,14 @@ class FavoriteViewModel
     }
 
     /** uiState - 모든 상태를 관찰하여 UI 레이어로 전달 */
-    val uiState: StateFlow<FavoriteUiState> = combine(
+    val uiState: StateFlow<FavoriteState> = combine(
         sortedFavoriteItems,
         preferenceFlow,
         selectionFlow,
         queryState
     ) { items, prefs, selection, query ->
-        FavoriteUiState(
-            scrapItemsResult = items,
+        FavoriteState(
+            scrapItemsState = items,
             viewMode = prefs.a,
             sortType = prefs.b,
             sortDirection = prefs.c,
@@ -161,7 +149,7 @@ class FavoriteViewModel
     }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = FavoriteUiState()
+            initialValue = FavoriteState()
         )
 
     init {
@@ -225,8 +213,10 @@ class FavoriteViewModel
     }
 
     fun selectAllScrapItems() {
-        val items = (sortedFavoriteItems.value as? Result.Success)?.data ?: return
-        _selectedScrapIds.value = items.map { it.id }.toSet()
+        val state = sortedFavoriteItems.value
+        if (state is ScrapUiState.Success) {
+            _selectedScrapIds.value = state.items.map { it.id }.toSet()
+        }
     }
 
     fun deselectAllScrapItems() {

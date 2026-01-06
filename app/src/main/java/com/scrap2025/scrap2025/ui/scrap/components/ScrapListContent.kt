@@ -13,9 +13,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,15 +23,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.scrap2025.scrap2025.model.Result
-import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
+import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 
 @Composable
 fun ScrapListContent(
-    scrapItemsResult: Result<List<ScrapItem>>,
+    scrapItemsState: ScrapUiState,
     viewMode: ViewMode,
     isPreferencesLoaded: Boolean,
     modifier: Modifier = Modifier,
@@ -42,18 +39,18 @@ fun ScrapListContent(
     onItemClick: (String) -> Unit = {},
     onItemLongClick: (String) -> Unit = {},
     onItemSelectionToggle: (String) -> Unit = {},
-    listState: LazyListState = rememberLazyListState(),
-    gridState: LazyGridState = rememberLazyGridState(),
+    listState: LazyListState = androidx.compose.foundation.lazy.rememberLazyListState(),
+    gridState: LazyGridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(),
     showCategory: Boolean = false,
 ) {
-    when (val result = scrapItemsResult) {
-        is Result.Loading -> {
+    when (val result = scrapItemsState) {
+        is ScrapUiState.Loading -> {
             Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = MainColorDeep)
             }
         }
 
-        is Result.Error -> {
+        is ScrapUiState.Error -> {
             Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
@@ -71,13 +68,13 @@ fun ScrapListContent(
             }
         }
 
-        is Result.Success -> {
+        is ScrapUiState.Success -> {
             if (!isPreferencesLoaded) {
                 Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = MainColorDeep)
                 }
             } else {
-                val scrapItems = result.data
+                val scrapItems = result.items
                 when (viewMode) {
                     ViewMode.LIST -> {
                         LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
@@ -89,8 +86,7 @@ fun ScrapListContent(
                                     isSelected = selectedScrapIds.contains(scrapItem.id),
                                     onClick = { onItemClick(scrapItem.id) },
                                     onLongClick = { onItemLongClick(scrapItem.id) },
-                                    onSelectionToggle = { onItemSelectionToggle(scrapItem.id) }
-                                )
+                                    onSelectionToggle = { onItemSelectionToggle(scrapItem.id) })
                             }
                         }
                     }
@@ -112,8 +108,7 @@ fun ScrapListContent(
                                     isSelected = selectedScrapIds.contains(scrapItem.id),
                                     onClick = { onItemClick(scrapItem.id) },
                                     onLongClick = { onItemLongClick(scrapItem.id) },
-                                    onSelectionToggle = { onItemSelectionToggle(scrapItem.id) }
-                                )
+                                    onSelectionToggle = { onItemSelectionToggle(scrapItem.id) })
                             }
                         }
                     }

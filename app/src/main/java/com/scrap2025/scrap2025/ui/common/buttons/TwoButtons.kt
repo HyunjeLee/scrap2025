@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -16,7 +17,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
@@ -28,7 +28,7 @@ fun TwoButtons(
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
-    state: Result<Unit>? = null,
+    isLoading: Boolean = false,
 ) {
     Row(
         modifier = modifier
@@ -55,15 +55,16 @@ fun TwoButtons(
         // 추가하기 버튼
         Button(
             onClick = { onConfirm() },
-            enabled = state !is Result.Loading,
+            enabled = !isLoading,
             modifier = Modifier
                 .weight(1f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MainColorDeep),
             shape = RoundedCornerShape(8.dp)
         ) {
-            if (state is Result.Loading) CircularProgressIndicator(color = MainColor)
-            else {
+            if (isLoading) {
+                CircularProgressIndicator(color = MainColor, modifier = Modifier.size(24.dp))
+            } else {
                 Text(
                     text = confirmText,
                     style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),

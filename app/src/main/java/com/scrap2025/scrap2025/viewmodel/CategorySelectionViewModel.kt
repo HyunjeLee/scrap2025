@@ -4,23 +4,20 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.GlobalUiState
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.navigation.CategorySelection
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class CategorySelectionViewModel
-@Inject
-constructor(
+@Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val scrapRepository: ScrapRepository,
     savedStateHandle: SavedStateHandle
@@ -30,8 +27,9 @@ constructor(
     val scrapId = savedStateHandle.toRoute<CategorySelection>().scrapId
     val initialSelectedIds = savedStateHandle.toRoute<CategorySelection>().initialSelectedIds
 
-    private val _categoryUiState = MutableStateFlow<Result<List<CategoryItem>>>(Result.Loading)
-    val categoryUiState: StateFlow<Result<List<CategoryItem>>> = _categoryUiState.asStateFlow()
+    private val _categoryUiState =
+        MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
+    val categoryUiState: StateFlow<CategoryUiState> = _categoryUiState.asStateFlow()
 
     private val _selectedCategoryId =
         MutableStateFlow<String>(GlobalUiState.selectedCategoryId.value)
@@ -66,10 +64,7 @@ constructor(
         if (scrapId != null) {
             viewModelScope.launch {
                 val result = scrapRepository.moveScrapItem(scrapId, categoryId)
-
-                if (result is Result.Success) {
-                    onSuccess()
-                }
+                result.onSuccess { onSuccess() }
             }
         }
     }
@@ -77,7 +72,11 @@ constructor(
     private fun fetchCategories() {
         viewModelScope.launch {
             categoryRepository.getAllCategories().collect { result ->
-                _categoryUiState.value = result
+                result.fold(
+                    onSuccess = { _categoryUiState.value = CategoryUiState.Success(it) },
+                    onFailure = {
+                        _categoryUiState.value = CategoryUiState.Error(it.message)
+                    })
             }
         }
 

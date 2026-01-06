@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.model.CategoryItem
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.common.components.ErrorScreen
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
@@ -45,6 +44,7 @@ import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 import com.scrap2025.scrap2025.viewmodel.CategoryViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -65,23 +65,24 @@ fun CategoryScreen(
         onAddClick = onAddClick,
         modifier = modifier,
         onMove = { from, to -> viewModel.moveCategory(from, to) },
-        onDragStopped = { viewModel.updateCategoryOrder() }
-    )
+        onDragStopped = { viewModel.updateCategoryOrder() })
 }
 
 /** CategoryScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
 @Composable
 fun CategoryScreenContent(
-    uiState: Result<List<CategoryItem>>,
+    uiState: CategoryUiState,
     onCategoryClick: (CategoryItem) -> Unit,
     onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
     onMove: (Int, Int) -> Unit = { _, _ -> },
     onDragStopped: () -> Unit = {}
 ) {
-    Box(modifier = modifier
-        .fillMaxSize()
-        .background(BackgroundColor)) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundColor)
+    ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 헤더 (높이 68dp)
             Box(
@@ -99,29 +100,27 @@ fun CategoryScreenContent(
             }
 
             HorizontalDivider(
-                modifier = Modifier.fillMaxWidth(),
-                color = GrayColor,
-                thickness = 0.5.dp
+                modifier = Modifier.fillMaxWidth(), color = GrayColor, thickness = 0.5.dp
             )
 
             // 카테고리 리스트 - 상태 처리
             when (uiState) {
-                is Result.Loading -> {
+                is CategoryUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = MainColorDeep)
                     }
                 }
-                is Result.Error -> {
-                    ErrorScreen(
-                        errorText = uiState.message ?: "카테고리를 불러올 수 없습니다."
-                    )
+
+                is CategoryUiState.Error -> {
+                    ErrorScreen(errorText = uiState.message ?: "카테고리를 불러올 수 없습니다.")
                 }
-                is Result.Success -> {
+
+                is CategoryUiState.Success -> {
                     // TODO: 전체 동기화 상태 표시 UI 추가 필요
                     // 동기화 상태 로깅
-                    LaunchedEffect(uiState.data) {
+                    LaunchedEffect(uiState.categories) {
                         val hasPending =
-                            uiState.data.any { it.syncStatus == SyncStatus.PENDING }
+                            uiState.categories.any { it.syncStatus == SyncStatus.PENDING }
 
                         if (hasPending) {
                             Log.d("CategorySync", "전체 카테고리 동기화 중... (Pending items detected)")
@@ -132,37 +131,34 @@ fun CategoryScreenContent(
 
                     // Creating LazyListState explicitly
                     val listState = rememberLazyListState()
-                    val state =
-                        rememberReorderableLazyListState(
-                            lazyListState = listState,
-                            onMove = { from, to -> onMove(from.index, to.index) }
-                        )
+                    val state = rememberReorderableLazyListState(
+                        lazyListState = listState,
+                        onMove = { from, to -> onMove(from.index, to.index) })
 
                     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                        items(items = uiState.data, key = { it.id }) { item ->
+                        items(items = uiState.categories, key = { it.id }) { item ->
                             ReorderableItem(state, key = item.id) { isDragging ->
                                 val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
 
                                 Column(
-                                    modifier =
-                                        Modifier
-                                            .then(
-                                                if (item.id != CategoryItem.DEFAULT_ID) {
-                                                    Modifier.draggableHandle(onDragStopped = { onDragStopped() })
-                                                } else {
-                                                    Modifier
-                                                }
-                                            )
-                                            .shadow(elevation.value)
-                                            .background(
-                                                if (isDragging) Color.White
-                                                else Color.Transparent
-                                            )
-                                ) {
+                                    modifier = Modifier
+                                        .then(
+                                            if (item.id != CategoryItem.DEFAULT_ID) {
+                                                Modifier.draggableHandle(
+                                                    onDragStopped = {
+                                                        onDragStopped()
+                                                    })
+                                            } else {
+                                                Modifier
+                                            }
+                                        )
+                                        .shadow(elevation.value)
+                                        .background(
+                                            if (isDragging) Color.White
+                                            else Color.Transparent
+                                        )) {
                                     CategoryItemCard(
-                                        categoryItem = item,
-                                        onClick = { onCategoryClick(item) }
-                                    )
+                                        categoryItem = item, onClick = { onCategoryClick(item) })
                                     HorizontalDivider(
                                         modifier = Modifier.fillMaxWidth(),
                                         color = GrayColor,
@@ -182,11 +178,10 @@ fun CategoryScreenContent(
             shape = CircleShape,
             containerColor = MainColor,
             contentColor = MainColorDeep,
-            modifier =
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 21.dp, bottom = 21.dp)
-                    .size(60.dp)
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 21.dp, bottom = 21.dp)
+                .size(60.dp)
         ) {
             Icon(
                 imageVector = Icons.Rounded.Add,
@@ -201,30 +196,28 @@ fun CategoryScreenContent(
 @Composable
 fun CategoryScreenContentPreview() {
 
-    val dummyCategories =
-        listOf(
-            CategoryItem(
-                id = "1",
-                name = "분류되지 않음",
-                orderIndex = 0,
-            ),
-            CategoryItem(
-                id = "2",
-                name = "코테 자료",
-                orderIndex = 0,
-            ),
-            CategoryItem(
-                id = "3",
-                name = "IBM Technology",
-                orderIndex = 0,
-            ),
-        )
+    val dummyCategories = listOf(
+        CategoryItem(
+            id = "1",
+            name = "분류되지 않음",
+            orderIndex = 0,
+        ),
+        CategoryItem(
+            id = "2",
+            name = "코테 자료",
+            orderIndex = 0,
+        ),
+        CategoryItem(
+            id = "3",
+            name = "IBM Technology",
+            orderIndex = 0,
+        ),
+    )
 
     Scrap2025Theme {
         CategoryScreenContent(
-            uiState = Result.Success(data = dummyCategories),
+            uiState = CategoryUiState.Success(categories = dummyCategories),
             onCategoryClick = {},
-            onAddClick = {}
-        )
+            onAddClick = {})
     }
 }

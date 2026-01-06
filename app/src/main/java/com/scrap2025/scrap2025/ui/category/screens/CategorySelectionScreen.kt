@@ -26,7 +26,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.scrap2025.scrap2025.model.CategoryItem
-import com.scrap2025.scrap2025.model.Result
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.common.buttons.TwoButtons
 import com.scrap2025.scrap2025.ui.common.components.ErrorScreen
@@ -36,12 +35,11 @@ import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
+import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 import com.scrap2025.scrap2025.viewmodel.CategorySelectionViewModel
 
 enum class Mode {
-    MOVE,
-    SHARE,
-    SEARCH
+    MOVE, SHARE, SEARCH
 }
 
 @Composable
@@ -55,18 +53,16 @@ fun CategorySelectionScreen(
 ) {
     val context = LocalContext.current
     val mode = viewModel.mode
-    val title =
-        when (mode) {
-            Mode.MOVE -> "이동하기"
-            Mode.SHARE -> "카테고리 선택하기"
-            Mode.SEARCH -> "카테고리"
-        }
-    val confirmText =
-        when (mode) {
-            Mode.MOVE -> "이동하기"
-            Mode.SHARE -> "다음"
-            Mode.SEARCH -> "완료"
-        }
+    val title = when (mode) {
+        Mode.MOVE -> "이동하기"
+        Mode.SHARE -> "카테고리 선택하기"
+        Mode.SEARCH -> "카테고리"
+    }
+    val confirmText = when (mode) {
+        Mode.MOVE -> "이동하기"
+        Mode.SHARE -> "다음"
+        Mode.SEARCH -> "완료"
+    }
 
     val uiState by viewModel.categoryUiState.collectAsState()
     val selectedCategoryId by viewModel.selectedCategoryId.collectAsState()
@@ -95,17 +91,17 @@ fun CategorySelectionScreen(
     }
 
     when (val state = uiState) {
-        Result.Loading -> {
+        is CategoryUiState.Loading -> {
             LoadingScreen()
         }
 
-        is Result.Error -> {
+        is CategoryUiState.Error -> {
             ErrorScreen(errorText = state.message ?: "카테고리를 불러올 수 없습니다.")
         }
 
-        is Result.Success -> {
+        is CategoryUiState.Success -> {
             CategorySelectionScreenContent(
-                categories = state.data,
+                categories = state.categories,
                 selectedCategoryId = selectedCategoryId,
                 selectedCategoryIds = selectedCategoryIds,
                 isMultiSelect = mode == Mode.SEARCH,
@@ -142,30 +138,26 @@ fun CategorySelectionScreenContent(
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
-        topBar = { TopBarWithBack(title = title, onBack = onBack) },
-        bottomBar = {
-            TwoButtons(confirmText = confirmText, onCancel = onBack, onConfirm = onConfirm)
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onAddClick,
-                shape = CircleShape,
-                containerColor = MainColor,
-                contentColor = MainColorDeep,
-                modifier =
-                    Modifier
-                        .offset(y = 16.dp) // 기본 여백 제거
-                        .padding(end = 5.dp)
-                        .size(60.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Add,
-                    contentDescription = "카테고리 추가",
-                    modifier = Modifier.size(50.dp)
-                )
-            }
-        },
-        containerColor = BackgroundColor
+        topBar = { TopBarWithBack(title = title, onBack = onBack) }, bottomBar = {
+        TwoButtons(confirmText = confirmText, onCancel = onBack, onConfirm = onConfirm)
+    }, floatingActionButton = {
+        FloatingActionButton(
+            onClick = onAddClick,
+            shape = CircleShape,
+            containerColor = MainColor,
+            contentColor = MainColorDeep,
+            modifier = Modifier
+                .offset(y = 16.dp) // 기본 여백 제거
+                .padding(end = 5.dp)
+                .size(60.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = "카테고리 추가",
+                modifier = Modifier.size(50.dp)
+            )
+        }
+    }, containerColor = BackgroundColor
     ) { innerPadding ->
         Box(
             modifier = modifier
@@ -175,20 +167,16 @@ fun CategorySelectionScreenContent(
             // 카테고리 목록
             Column {
                 HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = GrayColor,
-                    thickness = 0.5.dp
+                    modifier = Modifier.fillMaxWidth(), color = GrayColor, thickness = 0.5.dp
                 )
                 LazyColumn {
                     items(items = categories) { item ->
                         CategoryItemCard(
-                            isSelected =
-                                if (isMultiSelect) selectedCategoryIds.contains(item.id)
-                                else selectedCategoryId == item.id,
+                            isSelected = if (isMultiSelect) selectedCategoryIds.contains(item.id)
+                            else selectedCategoryId == item.id,
                             isSelectable = true,
                             categoryItem = item,
-                            onClick = { onCategoryClick(item.id, item.name) }
-                        )
+                            onClick = { onCategoryClick(item.id, item.name) })
                         HorizontalDivider(
                             modifier = Modifier.fillMaxWidth(),
                             color = GrayColor,
@@ -197,9 +185,7 @@ fun CategorySelectionScreenContent(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = GrayColor,
-                    thickness = 0.5.dp
+                    modifier = Modifier.fillMaxWidth(), color = GrayColor, thickness = 0.5.dp
                 )
             }
         }
@@ -219,25 +205,23 @@ fun CategorySelectionScreenContentPreview() {
         onBack = {},
         onConfirm = {},
         onCategoryClick = { _, _ -> },
-        onAddClick = {}
-    )
+        onAddClick = {})
 }
 
-val dummyCategories =
-    listOf(
-        CategoryItem(
-            id = "1",
-            name = "분류되지 않음",
-            orderIndex = 0,
-        ),
-        CategoryItem(
-            id = "2",
-            name = "코테 자료",
-            orderIndex = 0,
-        ),
-        CategoryItem(
-            id = "3",
-            name = "IBM Technology",
-            orderIndex = 0,
-        ),
-    )
+val dummyCategories = listOf(
+    CategoryItem(
+        id = "1",
+        name = "분류되지 않음",
+        orderIndex = 0,
+    ),
+    CategoryItem(
+        id = "2",
+        name = "코테 자료",
+        orderIndex = 0,
+    ),
+    CategoryItem(
+        id = "3",
+        name = "IBM Technology",
+        orderIndex = 0,
+    ),
+)

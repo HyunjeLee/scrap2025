@@ -10,24 +10,20 @@ import com.scrap2025.scrap2025.data.remote.dto.SearchFavoriteResponse
 import com.scrap2025.scrap2025.data.remote.dto.SearchListResponse
 import com.scrap2025.scrap2025.data.remote.dto.SearchRequest
 import com.scrap2025.scrap2025.data.remote.dto.SearchScrapResponse
-import com.scrap2025.scrap2025.model.Result
 import kotlinx.serialization.json.JsonElement
 
 interface ScrapRemoteDataSource {
-    suspend fun getAllScrapsByCategoryId(categoryRemoteId: Int): Result<ScrapListResponse>
-    suspend fun getFavoriteScraps(): Result<FavoriteListResponse>
-    suspend fun updateScrapFavorite(scrapId: Long): Result<JsonElement>
-    suspend fun updateScrapBulkFavorite(scrapIdList: List<Long>): Result<JsonElement>
-    suspend fun getScrapById(scrapRemoteId: Int): Result<ScrapDetailResponse>
-    suspend fun createScrap(
-        categoryRemoteId: Int, request: CreateScrapRequest
-    ): Result<CreateScrapResponse>
-
-    suspend fun updateScrapMemo(scrapId: Int, memo: String): Result<ScrapMemoDto>
-    suspend fun moveScrap(scrapId: Long, categoryRemoteId: Long): Result<JsonElement>
-    suspend fun moveScrapList(scrapIds: List<Long>, moveCategoryId: Long): Result<JsonElement?>
-    suspend fun deleteScrap(scrapId: Long): Result<JsonElement?>
-    suspend fun deleteScrapBulk(scrapIds: List<Long>): Result<JsonElement?>
+    suspend fun getAllScrapsByCategoryId(categoryRemoteId: Int): ScrapListResponse
+    suspend fun getFavoriteScraps(): FavoriteListResponse
+    suspend fun updateScrapFavorite(scrapId: Long): JsonElement
+    suspend fun updateScrapBulkFavorite(scrapIdList: List<Long>): JsonElement
+    suspend fun getScrapById(scrapRemoteId: Int): ScrapDetailResponse
+    suspend fun createScrap(categoryRemoteId: Int, request: CreateScrapRequest): CreateScrapResponse
+    suspend fun updateScrapMemo(scrapId: Int, memo: String): ScrapMemoDto
+    suspend fun moveScrap(scrapId: Long, categoryRemoteId: Long): JsonElement
+    suspend fun moveScrapList(scrapIds: List<Long>, moveCategoryId: Long): JsonElement?
+    suspend fun deleteScrap(scrapId: Long): JsonElement?
+    suspend fun deleteScrapBulk(scrapIds: List<Long>): JsonElement?
     suspend fun searchScraps(
         query: String,
         sort: String?,
@@ -35,13 +31,13 @@ interface ScrapRemoteDataSource {
         page: Int?,
         size: Int?,
         request: SearchRequest
-    ): Result<SearchListResponse>
+    ): SearchListResponse
 
     suspend fun favoriteSearch(
         query: String, sort: String?, direction: String?
-    ): Result<SearchFavoriteResponse>
+    ): SearchFavoriteResponse
 
     suspend fun searchScrapsByCategory(
         categoryRemoteId: Long, query: String, sort: String?, direction: String?
-    ): Result<SearchScrapResponse>
+    ): SearchScrapResponse
 }

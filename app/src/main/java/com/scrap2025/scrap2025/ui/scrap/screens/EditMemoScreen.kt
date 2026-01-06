@@ -19,8 +19,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,16 +40,8 @@ import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.EditMemoUiState
 import com.scrap2025.scrap2025.viewmodel.EditMemoViewModel
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.LocalContext
-import com.scrap2025.scrap2025.data.remote.dto.ScrapMemoDto
-import com.scrap2025.scrap2025.model.Result
 
 @Composable
 fun EditMemoScreen(
@@ -50,20 +49,19 @@ fun EditMemoScreen(
     modifier: Modifier = Modifier,
     viewModel: EditMemoViewModel = hiltViewModel()
 ) {
-    val editMemoState = viewModel.editMemoState.collectAsState()
+    val editMemoState by viewModel.editMemoUiState.collectAsState()
 
     EditMemoScreenContent(
         modifier = modifier,
-        state = editMemoState.value,
+        state = editMemoState,
         onBack = onBack,
         initialMemo = viewModel.initialMemo,
-        onEditMemo = { memo -> viewModel.editMemo(memo) }
-    )
+        onEditMemo = { memo -> viewModel.editMemo(memo) })
 }
 
 @Composable
 fun EditMemoScreenContent(
-    state: Result<ScrapMemoDto>?,
+    state: EditMemoUiState?,
     onBack: () -> Unit,
     initialMemo: String,
     onEditMemo: (String) -> Unit,
@@ -73,19 +71,21 @@ fun EditMemoScreenContent(
     var memoText by remember { mutableStateOf(initialMemo) }
 
     when (state) {
-        is Result.Loading -> {
+        is EditMemoUiState.Loading -> {
             Box(modifier = Modifier.fillMaxSize()) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
         }
-        is Result.Success -> {
+
+        is EditMemoUiState.Success -> {
             Toast.makeText(context, "메모가 수정되었습니다", Toast.LENGTH_SHORT).show()
             onBack()
         }
 
-        is Result.Error -> {
-            Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+        is EditMemoUiState.Error -> {
+            Toast.makeText(context, state.message ?: "메모 수정 실패", Toast.LENGTH_SHORT).show()
         }
+
         else -> {
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(
@@ -114,18 +114,16 @@ fun EditMemoScreenContent(
                                 .padding(all = 25.dp)
                                 .fillMaxSize(),
                             value = memoText,
-                            onValueChange = { newValue -> memoText = newValue},
+                            onValueChange = { newValue -> memoText = newValue },
                         )
                     }
 
-
                     // 하단 버튼
                     Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 31.dp)
-                                .padding(bottom = 21.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 31.dp)
+                            .padding(bottom = 21.dp)
                     ) {
                         // 취소 버튼
                         Button(
@@ -134,15 +132,14 @@ fun EditMemoScreenContent(
                                 .weight(1f)
                                 .height(61.dp),
                             shape = RoundedCornerShape(15.dp),
-                            colors =
-                                ButtonDefaults.buttonColors(
-                                    containerColor = LightGrayColor,
-                                    contentColor = DarkGrayColor
-                                ),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = LightGrayColor, contentColor = DarkGrayColor
+                            ),
                         ) {
                             Text(
-                                text = "취소",
-                                style = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+                                text = "취소", style = TextStyle(
+                                    fontSize = 17.sp, fontWeight = FontWeight.SemiBold
+                                )
                             )
                         }
 
@@ -155,19 +152,14 @@ fun EditMemoScreenContent(
                                 .weight(1f)
                                 .height(61.dp),
                             shape = RoundedCornerShape(15.dp),
-                            colors =
-                                ButtonDefaults.buttonColors(
-                                    containerColor = MainColorDeep,
-                                    contentColor = Color.White
-                                ),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MainColorDeep, contentColor = Color.White
+                            ),
                         ) {
                             Text(
-                                text = "추가하기",
-                                style =
-                                    TextStyle(
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
+                                text = "추가하기", style = TextStyle(
+                                    fontSize = 18.sp, fontWeight = FontWeight.SemiBold
+                                )
                             )
                         }
                     }
@@ -184,7 +176,7 @@ fun EditMemoScreenContentPreview() {
         EditMemoScreenContent(
             onBack = {},
             initialMemo = "test test test",
-            onEditMemo = { },
+            onEditMemo = {},
             state = null
         )
     }
