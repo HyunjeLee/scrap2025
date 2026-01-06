@@ -28,6 +28,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -166,10 +167,14 @@ fun ScrapItemCardGrid(
                         )
                         // 카테고리 출력
                         if (showCategory) {
-                            Spacer(Modifier.weight(1f))
+                            Spacer(Modifier.width(8.dp))
                             Text(
                                 text = scrapItem.categoryTitle?.let { "[$it]" }.orEmpty(),
+                                textAlign = TextAlign.End,
                                 style = TextStyle(fontSize = 12.sp,),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
@@ -226,6 +231,7 @@ fun ScrapItemCardGridPreview() {
                     url = "주소주소주소주소",
                     imageUrl = null,
                     categoryId = "",
+                    categoryTitle = "분류되지 않음",
                     createdDate = LocalDateTime.of(2024, 2, 26, 10, 0),
                     isFavorite = true
                 ),
