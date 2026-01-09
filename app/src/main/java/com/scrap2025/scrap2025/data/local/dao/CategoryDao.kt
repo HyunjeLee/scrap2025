@@ -18,7 +18,7 @@ interface CategoryDao {
     fun getCategoryCount(): Flow<Int>
 
     @Query("SELECT * FROM categories WHERE id = :id")
-    suspend fun getCategoryById(id: String): CategoryEntity?
+    suspend fun getCategoryById(id: Long): CategoryEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCategory(category: CategoryEntity)
@@ -27,34 +27,25 @@ interface CategoryDao {
     suspend fun upsertCategories(categories: List<CategoryEntity>)
 
     @Query("DELETE FROM categories WHERE id = :id")
-    suspend fun deleteCategory(id: String)
+    suspend fun deleteCategory(id: Long)
 
     @Query("UPDATE categories SET name = :name WHERE id = :id")
-    suspend fun updateCategoryName(id: String, name: String)
+    suspend fun updateCategoryName(id: Long, name: String)
 
     @Query("UPDATE categories SET scrapCount = scrapCount + 1 WHERE id = :id")
-    suspend fun incrementScrapCount(id: String)
+    suspend fun incrementScrapCount(id: Long)
 
     @Query("UPDATE categories SET scrapCount = scrapCount - 1 WHERE id = :id AND scrapCount > 0")
-    suspend fun decrementScrapCount(id: String)
+    suspend fun decrementScrapCount(id: Long)
 
     @Query("UPDATE categories SET scrapCount = scrapCount + :amount WHERE id = :id")
-    suspend fun updateScrapCount(id: String, amount: Int)
+    suspend fun updateScrapCount(id: Long, amount: Int)
 
     @Query("SELECT * FROM categories")
     suspend fun getAllCategoriesSnapshot(): List<CategoryEntity>
 
-    @Query("UPDATE categories SET remoteId = :remoteId, scrapCount = :scrapCount, orderIndex = :orderIndex, syncStatus = :status WHERE id = :id")
-    suspend fun updateCategoryRemoteId(
-        id: String,
-        remoteId: Int,
-        scrapCount: Int,
-        orderIndex: Int,
-        status: SyncStatus
-    )
-
     @Query("UPDATE categories SET syncStatus = :status WHERE id = :id")
-    suspend fun updateCategoryStatus(id: String, status: SyncStatus)
+    suspend fun updateCategoryStatus(id: Long, status: SyncStatus)
 
     @Query("SELECT * FROM categories WHERE isDefault = 1 LIMIT 1")
     suspend fun getDefaultCategory(): CategoryEntity?
@@ -65,7 +56,7 @@ interface CategoryDao {
 
     // 순서 변경을 위한 개별 업데이트
     @Query("UPDATE categories SET orderIndex = :orderIndex WHERE id = :id")
-    suspend fun updateCategoryOrder(id: String, orderIndex: Int)
+    suspend fun updateCategoryOrder(id: Long, orderIndex: Int)
 
     @Query("DELETE FROM categories")
     suspend fun deleteAll()
