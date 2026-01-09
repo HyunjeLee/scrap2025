@@ -1,15 +1,13 @@
 package com.scrap2025.scrap2025.repository
 
-import androidx.room.withTransaction
-import com.scrap2025.scrap2025.data.local.AppDatabase
-import com.scrap2025.scrap2025.data.local.dao.CategoryDao
-import com.scrap2025.scrap2025.data.local.dao.ScrapDao
-import com.scrap2025.scrap2025.data.local.entity.CategoryEntity
-import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.datasource.CategoryRemoteDataSource
 import com.scrap2025.scrap2025.model.CategoryItem
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,166 +16,79 @@ import javax.inject.Singleton
 class CategoryRepositoryImpl
 @Inject
 constructor(
-    private val categoryDao: CategoryDao,
-    private val scrapDao: ScrapDao,
-    private val db: AppDatabase,
     private val categoryRemoteDataSource: CategoryRemoteDataSource
 ) : CategoryRepository {
+    private val _refreshEvent = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
+    override val refreshEvent: SharedFlow<Unit> = _refreshEvent.asSharedFlow()
 
-    override fun getCategoryCount(): Flow<Int> = categoryDao.getCategoryCount()
+    override var defaultCategory: CategoryItem? = null
+        private set  // set은 외부에서 할 수 없도록
 
-    override fun getAllCategories(): Flow<Result<List<CategoryItem>>> {
-        return categoryDao.getAllCategories().map { entities ->
-            try {
-                Result.success(entities.map { it.toDomainModel() })
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-    }
+    private val _allCategories =
+        MutableStateFlow<Result<List<CategoryItem>>>(Result.success(emptyList()))
+    override val allCategories: StateFlow<Result<List<CategoryItem>>> = _allCategories.asStateFlow()
 
-    override suspend fun getCategoryById(id: String): Result<CategoryItem> {
-        return try {
-            val entity = categoryDao.getCategoryById(id)
-            if (entity != null) {
-                Result.success(entity.toDomainModel())
-            } else {
-                Result.failure(NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다."))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+    private val _selectedCategoryId = MutableStateFlow<Long?>(null)
+    override val selectedCategoryId: StateFlow<Long?> = _selectedCategoryId.asStateFlow()
 
-    override suspend fun createCategory(item: CategoryItem): Result<Unit> {
-        return try {
-            // 1. Local Insert (PENDING)
-            val entity = CategoryEntity.fromDomainModel(item)
-            categoryDao.insertCategory(entity)
+    private val _selectedCategoryTitle = MutableStateFlow<String?>(null)
+    override val selectedCategoryTitle: StateFlow<String?> = _selectedCategoryTitle.asStateFlow()
 
-            // 2. Remote Sync
-            try {
-                categoryRemoteDataSource.createCategory(item.name)
-                // 3. Trigger Sync to get the remoteId
-                syncCategories()
-            } catch (e: Exception) {
-                // If remote fails, it stays PENDING
-            }
+    override suspend fun refreshCategories() {
+        try {
+            val response = categoryRemoteDataSource.getCategories()
+            val categories = response.categories.map { it.toDomainModel() }
+            _allCategories.value = Result.success(categories)
 
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun deleteCategory(id: String): Result<Unit> {
-        return try {
-            val existing =
-                categoryDao.getCategoryById(id)
-                    ?: return Result.failure(
-                        NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다.")
-                    )
-
-            // "분류되지 않음" (기본) 카테고리는 삭제 불가
-            if (existing.isDefault) {
-                return Result.failure(IllegalArgumentException("기본 카테고리는 삭제할 수 없습니다."))
-            }
-
-            // 기본 카테고리 찾기
-            val defaultCategory = categoryDao.getDefaultCategory()
             if (defaultCategory == null) {
-                return Result.failure(IllegalStateException("기본 카테고리를 찾을 수 없습니다."))
+                defaultCategory = categories.find { it.isDefault }
             }
 
-            db.withTransaction {
-                // 1. 해당 카테고리의 모든 스크랩을 기본 카테고리로 이동
-                val count = scrapDao.moveScraps(id, defaultCategory.id)
-                // 2. 기본 카테고리의 스크랩 count 업데이트
-                if (count != 0) {
-                    categoryDao.updateScrapCount(CategoryItem.DEFAULT_ID, count)
-                }
-                // 3. 카테고리 삭제
-                categoryDao.deleteCategory(id)
+            // 초기 선택값이 없는 경우 기본 카테고리로 설정
+            val currentDefault = defaultCategory
+            if (_selectedCategoryId.value == null && currentDefault != null) {
+                _selectedCategoryId.value = currentDefault.id
+                _selectedCategoryTitle.value = currentDefault.title
             }
+        } catch (e: Exception) {
+            _allCategories.value = Result.failure(e)
+        }
+    }
 
-            // 3. Remote Delete (if remoteId exists)
-            val remoteId = existing.remoteId
-            if (remoteId != null) {
-                try {
-                    categoryRemoteDataSource.deleteCategory(remoteId)
-                } catch (e: Exception) {
-                    // TODO: Handle sync failure (e.g., job scheduler)
-                }
-            }
+    override fun selectCategory(id: Long, title: String) {
+        _selectedCategoryId.value = id
+        _selectedCategoryTitle.value = title
+    }
 
+    override suspend fun createCategory(title: String): Result<Unit> {
+        return try {
+            categoryRemoteDataSource.createCategory(title)
+
+            _refreshEvent.emit(Unit)
+            refreshCategories()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun updateCategory(id: String, name: String): Result<Unit> {
+    override suspend fun deleteCategory(id: Long): Result<Unit> {
         return try {
-            val existing =
-                categoryDao.getCategoryById(id)
-                    ?: return Result.failure(
-                        NoSuchElementException("ID가 $id 인 카테고리를 찾을 수 없습니다.")
-                    )
+            categoryRemoteDataSource.deleteCategory(id)
 
-            // "분류되지 않음" (기본) 카테고리는 수정 불가
-            if (existing.isDefault) {
-                return Result.failure(IllegalArgumentException("기본 카테고리는 수정할 수 없습니다."))
-            }
-
-            // 1. Local Update
-            categoryDao.updateCategoryName(id, name)
-
-            // 2. Remote Sync (if remoteId is valid)
-            val remoteId = existing.remoteId
-            if (remoteId != null && remoteId != 0 && remoteId != -1) {
-                try {
-                    categoryRemoteDataSource.renameCategory(remoteId, name)
-                } catch (e: Exception) {
-                    // We ignore remote failure for now, following local-first principle
-                }
-            }
+            _refreshEvent.emit(Unit)
+            refreshCategories()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    override suspend fun syncCategories(): Result<Unit> {
+    override suspend fun updateCategory(id: Long, newTitle: String): Result<Unit> {
         return try {
-            val remoteData = categoryRemoteDataSource.getCategories()
-            val remoteCategories = remoteData.categories
-            val localCategories = categoryDao.getAllCategoriesSnapshot()
+            categoryRemoteDataSource.renameCategory(id, newTitle)
 
-            val localCategoryMap = localCategories.associateBy { it.name }
-            val toInsert = mutableListOf<CategoryEntity>()
-
-            for (remoteCategory in remoteCategories) {
-                val existingLocal = localCategoryMap[remoteCategory.categoryTitle]
-
-                if (existingLocal != null) {
-                    if (existingLocal.remoteId != remoteCategory.categoryRemoteId) {
-                        categoryDao.updateCategoryRemoteId(
-                            existingLocal.id,
-                            remoteCategory.categoryRemoteId,
-                            remoteCategory.scrapCount,
-                            remoteCategory.orderIndex - 1,
-                            SyncStatus.SYNCED
-                        )
-                    }
-                } else {
-                    toInsert.add(remoteCategory.toEntity())
-                }
-            }
-
-            if (toInsert.isNotEmpty()) {
-                categoryDao.upsertCategories(toInsert)
-            }
-
+            refreshCategories()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -185,24 +96,12 @@ constructor(
     }
 
     override suspend fun reorderCategories(
-        categoryItems: List<CategoryItem>,
+        ids: List<Long>,
     ): Result<Unit> {
         return try {
-            db.withTransaction {
-                categoryItems.forEachIndexed { index, categoryItem ->
-                    categoryDao.updateCategoryOrder(id = categoryItem.id, orderIndex = index)
-                }
-            }
+            categoryRemoteDataSource.updateCategorySequence(ids)
 
-            val categoryRemoteIds = categoryItems.mapNotNull { it.remoteId }
-            if (categoryRemoteIds.isNotEmpty()) {
-                try {
-                    categoryRemoteDataSource.updateCategorySequence(categoryRemoteIds)
-                } catch (e: Exception) {
-                    // Ignore remote failure
-                }
-            }
-
+            refreshCategories()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

@@ -1,296 +1,143 @@
 package com.scrap2025.scrap2025.repository
 
-import androidx.room.withTransaction
-import com.scrap2025.scrap2025.data.local.AppDatabase
-import com.scrap2025.scrap2025.data.local.dao.CategoryDao
-import com.scrap2025.scrap2025.data.local.dao.ScrapDao
-import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
-import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.data.remote.datasource.ScrapRemoteDataSource
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapRequest
-import com.scrap2025.scrap2025.data.remote.dto.CreateScrapResponse
 import com.scrap2025.scrap2025.data.remote.dto.SearchRequest
 import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class ScrapRepositoryImpl
 @Inject constructor(
-    private val appDatabase: AppDatabase,
-    private val scrapDao: ScrapDao,
-    private val categoryDao: CategoryDao,
     private val scrapRemoteDataSource: ScrapRemoteDataSource,
 ) : ScrapRepository {
 
-    override fun getScrapItems(categoryId: String?): Flow<Result<List<ScrapItem>>> {
-        val flow = if (categoryId != null) {
-            scrapDao.getAllScrapsByCategoryId(categoryId)
-        } else {
-            scrapDao.getAllScraps()
-        }
+    private val _refreshEvent = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
+    override val refreshEvent: SharedFlow<Unit> = _refreshEvent.asSharedFlow()
 
-        return flow.map { entities ->
-            try {
-                Result.success(entities.map { it.toDomainModel() })
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
-    }
-
-    override fun getFavoriteScrapItemsFromRemote(): Flow<Result<List<ScrapItem>>> = flow {
+    override fun getAllScrapsByCategory(categoryId: Long): Flow<Result<List<ScrapItem>>> = flow {
         try {
-            val remoteData = scrapRemoteDataSource.getFavoriteScraps()
-            val remoteScraps = remoteData.scraps
+            val response = scrapRemoteDataSource.getAllScrapsByCategoryId(categoryId)
+            val scraps = response.scraps.map { it.toDomainModel() }
 
-            val domainItems = remoteScraps.map { remoteScrap ->
-                val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
-
-                remoteScrap.toDomainModel(
-                    scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                    categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
-                )
-            }
-
-            emit(Result.success(domainItems))
+            emit(Result.success(scraps))
         } catch (e: Exception) {
             emit(Result.failure(e))
         }
     }
 
-    override fun getScrapItemByIdAsFlow(id: String): Flow<Result<ScrapItem>> {
-        return scrapDao.getScrapByIdFlow(id).map { entity ->
-                if (entity != null) {
-                    Result.success(entity.toDomainModel())
-                } else {
-                    Result.failure(NoSuchElementException())
-                }
-            }.catch { e -> emit(Result.failure(e)) }
+    override fun getAllFavoriteScraps(): Flow<Result<List<ScrapItem>>> = flow {
+        try {
+            val response = scrapRemoteDataSource.getFavoriteScraps()
+            val scraps = response.scraps.map { it.toDomainModel() }
+
+            emit(Result.success(scraps))
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+
+    override suspend fun getScrapById(id: Long): Result<ScrapItem> {
+        return try {
+            val scrap = scrapRemoteDataSource.getScrapById(id)
+
+            Result.success(scrap.toDomainModel())
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     override suspend fun createScrap(item: ScrapItem): Result<Unit> {
         return try {
-            appDatabase.withTransaction {
-                scrapDao.insertScrap(ScrapEntity.fromDomainModel(item))
-                categoryDao.incrementScrapCount(item.categoryId)
-            }
-
-            try {
-                createScrapRemote(item)
-                val category = categoryDao.getCategoryById(item.categoryId)
-                val categoryRemoteId = category?.remoteId
-
-                if (categoryRemoteId != null) {
-                    syncScrapsByCategoryId(
-                        categoryId = item.categoryId, categoryRemoteId = categoryRemoteId
-                    )
-                }
-            } catch (e: Exception) {
-                // Stay PENDING
-            }
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun deleteScrapItem(id: String): Result<Unit> {
-        return try {
-            val existing = scrapDao.getScrapById(id)
-            if (existing != null) {
-                appDatabase.withTransaction {
-                    scrapDao.deleteScrap(id)
-                    categoryDao.decrementScrapCount(existing.categoryId)
-                }
-
-                try {
-                    scrapRemoteDataSource.deleteScrap(existing.remoteId!!.toLong())
-                } catch (e: Exception) {
-                    // Sync fail
-                }
-
-                Result.success(Unit)
-            } else {
-                Result.failure(NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun deleteScrapBulk(scrapIdBulk: List<Long>): Result<Unit> {
-        return try {
-            scrapRemoteDataSource.deleteScrapBulk(scrapIdBulk)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun updateScrapItem(id: String, memo: String?): Result<Unit> {
-        return try {
-            val existing = scrapDao.getScrapById(id)
-            if (existing != null) {
-                val remoteId = existing.remoteId
-
-                scrapDao.updateScrapMemo(id, memo)
-                if (remoteId != null && memo != null) {
-                    try {
-                        scrapRemoteDataSource.updateScrapMemo(remoteId, memo)
-                    } catch (e: Exception) {
-                        // Sync fail
-                    }
-                }
-
-                Result.success(Unit)
-            } else {
-                Result.failure(NoSuchElementException("ID가 $id 인 스크랩을 찾을 수 없습니다."))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun moveScrapItem(scrapId: String, categoryId: String): Result<Unit> {
-        return try {
-            val existing = scrapDao.getScrapById(scrapId)
-            if (existing != null) {
-                val categoryRemoteId = categoryDao.getCategoryById(categoryId)!!.remoteId!!
-
-                appDatabase.withTransaction {
-                    categoryDao.decrementScrapCount(existing.categoryId)
-                    scrapDao.moveScrap(scrapId, categoryId)
-                    categoryDao.incrementScrapCount(categoryId)
-                }
-
-                try {
-                    scrapRemoteDataSource.moveScrap(
-                        existing.remoteId!!.toLong(), categoryRemoteId.toLong()
-                    )
-                } catch (e: Exception) {
-                    // Sync fail
-                }
-
-                Result.success(Unit)
-            } else {
-                Result.failure(NoSuchElementException("ID가 $scrapId 인 스크랩을 찾을 수 없습니다."))
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun toggleFavorite(scrapId: String): Result<Unit> {
-        return try {
-            val scrapLocal = scrapDao.getScrapById(scrapId) ?: throw NoSuchElementException()
-            scrapDao.updateIsFavorite(scrapId, !scrapLocal.isFavorite)
-
-            try {
-                scrapRemoteDataSource.updateScrapFavorite(scrapLocal.remoteId!!.toLong())
-            } catch (e: Exception) {
-                // Sync fail
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun toggleFavoriteBulk(scrapIdBulk: List<String>): Result<Unit> {
-        return try {
-            val scrapRemoteIdBulk = scrapIdBulk.map { scrapId ->
-                scrapDao.getScrapById(scrapId)?.remoteId!!.toLong()
-            }
-            scrapRemoteDataSource.updateScrapBulkFavorite(scrapRemoteIdBulk)
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun moveScrapsToCategory(fromId: String, toId: String): Result<Unit> {
-        return try {
-            val movedCount = scrapDao.moveScraps(fromId, toId)
-            if (movedCount > 0) {
-                categoryDao.updateScrapCount(fromId, -movedCount)
-                categoryDao.updateScrapCount(toId, movedCount)
-            }
-
-            try {
-                scrapRemoteDataSource.moveScrapList(
-                    scrapIds = listOf(), // todo: actual scrap IDs
-                    moveCategoryId = categoryDao.getCategoryById(toId)!!.remoteId!!.toLong()
+            scrapRemoteDataSource.createScrap(
+                categoryId = item.categoryId ?: 0L, request = CreateScrapRequest(
+                    scrapURL = item.url,
+                    imageURL = item.imageUrl,
+                    title = item.title,
+                    description = item.description,
+                    memo = item.memo,
+                    isFavorite = item.isFavorite
                 )
-            } catch (e: Exception) {
-                // Sync fail
-            }
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override fun getScrapCount(): Flow<Int> = scrapDao.getScrapCount()
-
-    override suspend fun syncScrapsByCategoryId(
-        categoryId: String, categoryRemoteId: Int
-    ): Result<Unit> {
-        return try {
-            val remoteData = scrapRemoteDataSource.getAllScrapsByCategoryId(categoryRemoteId)
-            val remoteScraps = remoteData.scraps
-            val localScraps = scrapDao.getAllScrapsByCategoryId(categoryId).first()
-
-            val localScrapMap = localScraps.associateBy { it.remoteId }
-
-            val toInsert = mutableListOf<ScrapEntity>()
-
-            for (remoteScrap in remoteScraps) {
-                val existingLocal = localScrapMap[remoteScrap.scrapRemoteId]
-
-                if (existingLocal != null) {
-                    if (existingLocal.remoteId != remoteScrap.scrapRemoteId) {
-                        scrapDao.updateScrapRemoteId(
-                            id = existingLocal.id,
-                            remoteId = remoteScrap.scrapRemoteId,
-                            isFavorite = remoteScrap.isFavorite,
-                            status = SyncStatus.SYNCED
-                        )
-                    }
-                } else {
-                    toInsert.add(remoteScrap.toEntity(categoryId))
-                }
-            }
-
-            if (toInsert.isNotEmpty()) {
-                scrapDao.upsertScraps(toInsert)
-            }
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun syncScrapById(id: String): Result<Unit> {
-        return try {
-            val existing =
-                scrapDao.getScrapById(id) ?: return Result.failure(NoSuchElementException())
-            val remoteId = existing.remoteId ?: return Result.success(Unit)
-
-            val remoteScrap = scrapRemoteDataSource.getScrapById(remoteId)
-            scrapDao.updateScrapDetails(
-                id = id,
-                description = remoteScrap.description,
-                memo = remoteScrap.memo,
             )
+            _refreshEvent.emit(Unit)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteScrapItem(id: Long): Result<Unit> {
+        return try {
+            scrapRemoteDataSource.deleteScrap(id)
+            _refreshEvent.emit(Unit)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteScrapBulk(idBulk: List<Long>): Result<Unit> {
+        return try {
+            scrapRemoteDataSource.deleteScrapBulk(idBulk)
+            _refreshEvent.emit(Unit)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun updateScrapMemo(id: Long, memo: String?): Result<Unit> {
+        return try {
+            if (memo != null) {
+                scrapRemoteDataSource.updateScrapMemo(id, memo)
+                _refreshEvent.emit(Unit)
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun moveScrap(scrapId: Long, categoryId: Long): Result<Unit> {
+        return try {
+            scrapRemoteDataSource.moveScrap(scrapId, categoryId)
+            _refreshEvent.emit(Unit)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun moveScrapBulk(scrapIds: List<Long>, categoryId: Long): Result<Unit> {
+        return try {
+            scrapRemoteDataSource.moveScrapBulk(scrapIds, categoryId)
+            _refreshEvent.emit(Unit)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun toggleFavorite(scrapId: Long): Result<Unit> {
+        return try {
+            scrapRemoteDataSource.updateScrapFavorite(scrapId)
+            _refreshEvent.emit(Unit)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun toggleFavoriteBulk(scrapIdBulk: List<Long>): Result<Unit> {
+        return try {
+            scrapRemoteDataSource.updateScrapListFavorite(scrapIdBulk)
+            _refreshEvent.emit(Unit)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -300,7 +147,7 @@ class ScrapRepositoryImpl
     override suspend fun searchScraps(
         query: String,
         searchScope: List<String>,
-        categoryRemoteIds: List<Int>,
+        categoryRemoteIds: List<Long>,
         startDate: String,
         endDate: String,
         sortType: String,
@@ -319,15 +166,7 @@ class ScrapRepositoryImpl
             request = request
         )
 
-        val remoteScraps = remoteData.scraps
-        val domainItems = remoteScraps.map { remoteScrap ->
-            val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
-
-            remoteScrap.toDomainModel(
-                scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
-            )
-        }
+        val domainItems = remoteData.scraps.map { it.toDomainModel() }
         Result.success(domainItems)
     } catch (e: Exception) {
         Result.failure(e)
@@ -344,18 +183,7 @@ class ScrapRepositoryImpl
             direction = sortDirection,
         )
 
-        val remoteScraps = remoteData.scraps
-        val domainItems = remoteScraps.map { remoteScrap ->
-            val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
-            val categoryTitle =
-                categoryDao.getCategoryById(localScrap?.categoryId ?: "NO_LOCAL")?.name.orEmpty()
-
-            remoteScrap.toDomainModel(
-                scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL",
-                categoryTitle = categoryTitle,
-            )
-        }
+        val domainItems = remoteData.scraps.map { it.toDomainModel() }
         Result.success(domainItems)
     } catch (e: Exception) {
         Result.failure(e)
@@ -365,42 +193,12 @@ class ScrapRepositoryImpl
         categoryRemoteId: Long, query: String, sortType: String?, sortDirection: String?
     ): Result<List<ScrapItem>> = try {
         val remoteData = scrapRemoteDataSource.searchScrapsByCategory(
-            categoryRemoteId = categoryRemoteId,
-            query = query,
-            sort = sortType,
-            direction = sortDirection
+            categoryId = categoryRemoteId, query = query, sort = sortType, direction = sortDirection
         )
 
-        val remoteScraps = remoteData.scraps
-        val domainItems = remoteScraps.map { remoteScrap ->
-            val localScrap = scrapDao.getScrapByRemoteId(remoteScrap.scrapRemoteId)
-
-            remoteScrap.toDomainModel(
-                scrapLocalId = localScrap?.id ?: "NO_LOCAL",
-                categoryLocalId = localScrap?.categoryId ?: "NO_LOCAL"
-            )
-        }
+        val domainItems = remoteData.scraps.map { it.toDomainModel() }
         Result.success(domainItems)
     } catch (e: Exception) {
         Result.failure(e)
-    }
-
-    private suspend fun createScrapRemote(item: ScrapItem): CreateScrapResponse {
-        val category = categoryDao.getCategoryById(item.categoryId)
-        val categoryRemoteId = category?.remoteId
-        if (categoryRemoteId == null) {
-            throw Exception("Remote Category ID missing")
-        }
-
-        val request = CreateScrapRequest(
-            scrapURL = item.url,
-            imageURL = item.imageUrl,
-            title = item.title,
-            description = item.description,
-            memo = item.memo,
-            isFavorite = item.isFavorite
-        )
-
-        return scrapRemoteDataSource.createScrap(categoryRemoteId, request)
     }
 }
