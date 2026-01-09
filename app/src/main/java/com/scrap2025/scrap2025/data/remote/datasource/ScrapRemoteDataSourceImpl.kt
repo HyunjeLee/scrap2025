@@ -3,6 +3,7 @@ package com.scrap2025.scrap2025.data.remote.datasource
 import com.scrap2025.scrap2025.data.remote.api.ScrapService
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapResponse
+import com.scrap2025.scrap2025.data.remote.dto.DeleteSCrapBulkRequest
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListResponse
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListToggleRequest
 import com.scrap2025.scrap2025.data.remote.dto.MoveScrapListRequest
@@ -20,8 +21,8 @@ import javax.inject.Inject
 class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: ScrapService) :
     ScrapRemoteDataSource {
 
-    override suspend fun getAllScrapsByCategoryId(categoryRemoteId: Int): ScrapListResponse {
-        val response = scrapService.getAllScrapsByCategoryId(categoryRemoteId)
+    override suspend fun getAllScrapsByCategoryId(categoryId: Long): ScrapListResponse {
+        val response = scrapService.getAllScrapsByCategoryId(categoryId)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
         } else {
@@ -47,8 +48,8 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
         }
     }
 
-    override suspend fun updateScrapBulkFavorite(scrapIdList: List<Long>): JsonElement {
-        val request = FavoriteListToggleRequest(scrapIdList = scrapIdList)
+    override suspend fun updateScrapListFavorite(scrapIds: List<Long>): JsonElement {
+        val request = FavoriteListToggleRequest(scrapIdList = scrapIds)
         val response = scrapService.updateScrapBulkFavorite(request)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
@@ -57,8 +58,8 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
         }
     }
 
-    override suspend fun getScrapById(scrapRemoteId: Int): ScrapDetailResponse {
-        val response = scrapService.getScrapById(scrapRemoteId)
+    override suspend fun getScrapById(scrapId: Long): ScrapDetailResponse {
+        val response = scrapService.getScrapById(scrapId)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
         } else {
@@ -67,9 +68,9 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
     }
 
     override suspend fun createScrap(
-        categoryRemoteId: Int, request: CreateScrapRequest
+        categoryId: Long, request: CreateScrapRequest
     ): CreateScrapResponse {
-        val response = scrapService.createScrap(categoryRemoteId, request)
+        val response = scrapService.createScrap(categoryId, request)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
         } else {
@@ -77,7 +78,7 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
         }
     }
 
-    override suspend fun updateScrapMemo(scrapId: Int, memo: String): ScrapMemoDto {
+    override suspend fun updateScrapMemo(scrapId: Long, memo: String): ScrapMemoDto {
         val request = ScrapMemoDto(memo = memo)
         val response = scrapService.updateScrapMemo(scrapId, request)
         if (response.isSuccessful) {
@@ -87,8 +88,8 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
         }
     }
 
-    override suspend fun moveScrap(scrapId: Long, categoryRemoteId: Long): JsonElement {
-        val request = MoveScrapRequest(moveCategoryId = categoryRemoteId)
+    override suspend fun moveScrap(scrapId: Long, categoryId: Long): JsonElement {
+        val request = MoveScrapRequest(moveCategoryId = categoryId)
         val response = scrapService.moveScrap(scrapId, request)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
@@ -97,8 +98,8 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
         }
     }
 
-    override suspend fun moveScrapList(scrapIds: List<Long>, moveCategoryId: Long): JsonElement? {
-        val request = MoveScrapListRequest(scrapIds = scrapIds, moveCategoryId = moveCategoryId)
+    override suspend fun moveScrapBulk(scrapIds: List<Long>, categoryId: Long): JsonElement? {
+        val request = MoveScrapListRequest(scrapIds = scrapIds, categoryId = categoryId)
         val response = scrapService.moveScrapList(request)
         if (response.isSuccessful) {
             return response.body()?.result
@@ -117,7 +118,8 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
     }
 
     override suspend fun deleteScrapBulk(scrapIds: List<Long>): JsonElement? {
-        val response = scrapService.deleteScrapBulk(scrapIds)
+        val request = DeleteSCrapBulkRequest(scrapIds)
+        val response = scrapService.deleteScrapBulk(request)
         if (response.isSuccessful) {
             return response.body()?.result
         } else {
@@ -153,9 +155,9 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
     }
 
     override suspend fun searchScrapsByCategory(
-        categoryRemoteId: Long, query: String, sort: String?, direction: String?
+        categoryId: Long, query: String, sort: String?, direction: String?
     ): SearchScrapResponse {
-        val response = scrapService.searchScrapsByCategory(categoryRemoteId, query, sort, direction)
+        val response = scrapService.searchScrapsByCategory(categoryId, query, sort, direction)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
         } else {

@@ -3,6 +3,7 @@ package com.scrap2025.scrap2025.data.remote.api
 import com.scrap2025.scrap2025.data.remote.dto.BaseResponse
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapResponse
+import com.scrap2025.scrap2025.data.remote.dto.DeleteSCrapBulkRequest
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListResponse
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListToggleRequest
 import com.scrap2025.scrap2025.data.remote.dto.MoveScrapListRequest
@@ -26,11 +27,12 @@ import retrofit2.http.Query
 interface ScrapService {
     @GET("/auth/scraps")
     suspend fun getAllScrapsByCategoryId(
-        @Query("category") categoryRemoteId: Int
+        @Query("category") categoryId: Long
     ): Response<BaseResponse<ScrapListResponse>>
 
     @GET("/auth/scraps/favorite")
-    suspend fun getFavoriteScraps(): Response<BaseResponse<FavoriteListResponse>>
+    suspend fun getFavoriteScraps(
+    ): Response<BaseResponse<FavoriteListResponse>>
 
     @PATCH("/auth/scraps/{scrap-id}/favorite")
     suspend fun updateScrapFavorite(
@@ -44,18 +46,18 @@ interface ScrapService {
 
     @GET("/auth/scraps/{scrap-id}")
     suspend fun getScrapById(
-        @Path("scrap-id") scrapRemoteId: Int
+        @Path("scrap-id") scrapId: Long
     ): Response<BaseResponse<ScrapDetailResponse>>
 
     @POST("/auth/scraps/{category-id}")
     suspend fun createScrap(
-        @Path("category-id") categoryId: Int,
+        @Path("category-id") categoryId: Long,
         @Body body: CreateScrapRequest
     ): Response<BaseResponse<CreateScrapResponse>>
 
     @PATCH("/auth/scraps/{scrap-id}/memo")
     suspend fun updateScrapMemo(
-        @Path("scrap-id") scrapId: Int,
+        @Path("scrap-id") scrapId: Long,
         @Body body: ScrapMemoDto
     ): Response<BaseResponse<ScrapMemoDto>>
 
@@ -71,11 +73,13 @@ interface ScrapService {
     ): Response<BaseResponse<JsonElement?>>
 
     @PATCH("/auth/scraps/{scrap-id}/trash")
-    suspend fun deleteScrap(@Path("scrap-id") scrapId: Long): Response<BaseResponse<JsonElement?>>
+    suspend fun deleteScrap(
+        @Path("scrap-id") scrapId: Long
+    ): Response<BaseResponse<JsonElement?>>
 
     @PATCH("/auth/scraps/trash")
     suspend fun deleteScrapBulk(
-        @Body body: List<Long> // scrapIds
+        @Body body: DeleteSCrapBulkRequest // scrapIds
     ): Response<BaseResponse<JsonElement?>>
 
     @POST("/auth/search")
@@ -97,7 +101,7 @@ interface ScrapService {
 
     @GET("/auth/scraps/search/{category-id}")
     suspend fun searchScrapsByCategory(
-        @Path("category-id") categoryRemoteId: Long,
+        @Path("category-id") categoryId: Long,
         @Query("q") query: String,
         @Query("sort") sort: String? = null,
         @Query("direction") direction: String? = null

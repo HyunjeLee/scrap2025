@@ -3,7 +3,6 @@ package com.scrap2025.scrap2025.data.remote.datasource
 import com.scrap2025.scrap2025.data.remote.api.CategoryService
 import com.scrap2025.scrap2025.data.remote.dto.CategoryListResponse
 import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryRequest
-import com.scrap2025.scrap2025.data.remote.dto.CreateCategoryResponse
 import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryRequest
 import com.scrap2025.scrap2025.data.remote.dto.RenameCategoryResponse
 import com.scrap2025.scrap2025.data.remote.dto.SequenceCategoryRequest
@@ -22,18 +21,16 @@ class CategoryRemoteDataSourceImpl
         }
     }
 
-    override suspend fun createCategory(title: String): CreateCategoryResponse {
+    override suspend fun createCategory(title: String) {
         val request = CreateCategoryRequest(categoryTitle = title)
         val response = categoryService.createCategory(request)
-        if (response.isSuccessful) {
-            return response.body()?.result ?: throw Exception("Response body is null")
-        } else {
-            throw Exception("Create failed code: ${response.code()}")
+        if (!response.isSuccessful) {
+            throw Exception("Create failed code: ${response.code()} message: ${response.message()}")
         }
     }
 
     override suspend fun renameCategory(
-        categoryId: Int, newTitle: String
+        categoryId: Long, newTitle: String
     ): RenameCategoryResponse {
         val request = RenameCategoryRequest(newCategoryTitle = newTitle)
         val response = categoryService.renameCategory(categoryId, request)
@@ -44,7 +41,7 @@ class CategoryRemoteDataSourceImpl
         }
     }
 
-    override suspend fun deleteCategory(categoryId: Int) {
+    override suspend fun deleteCategory(categoryId: Long) {
         val response = categoryService.deleteCategory(categoryId)
         if (!response.isSuccessful) {
             throw Exception("Delete failed code: ${response.code()}")
@@ -52,9 +49,9 @@ class CategoryRemoteDataSourceImpl
     }
 
     override suspend fun updateCategorySequence(
-        categoryIdList: List<Int>
+        categoryIds: List<Long>
     ): SequenceCategoryResponse {
-        val request = SequenceCategoryRequest(categoryIdList = categoryIdList)
+        val request = SequenceCategoryRequest(categoryIdList = categoryIds)
         val response = categoryService.updateCategorySequence(request)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
