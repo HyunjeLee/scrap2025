@@ -1,16 +1,14 @@
 package com.scrap2025.scrap2025.data.remote.dto
 
 import com.scrap2025.scrap2025.model.ScrapItem
+import com.scrap2025.scrap2025.utils.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Serializable
 data class SearchRequest(
     val searchScope: List<String>,
-    val categoryScope: List<Int>,
+    val categoryScope: List<Long>,
     val startDate: String,
     val endDate: String
 )
@@ -23,7 +21,7 @@ data class SearchListResponse(
 
 @Serializable
 data class SearchItemResponse(
-    @SerialName("scrapId") val scrapRemoteId: Int = -1,
+    @SerialName("scrapId") val scrapId: Long = -1L,
     val categoryTitle: String = "",
     val scrapTitle: String = "",
     @SerialName("scrapURL") val scrapUrl: String = "",
@@ -31,26 +29,15 @@ data class SearchItemResponse(
     val isFavorite: Boolean = false,
     val scrapDate: String = ""
 ) {
-    fun toDomainModel(scrapLocalId: String, categoryLocalId: String): ScrapItem {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val parsedDate = try {
-            LocalDate.parse(scrapDate, formatter).atStartOfDay()
-        } catch (e: Exception) {
-            LocalDateTime.now() // 파싱 실패 시 기본값 처리
-        }
-
-        return ScrapItem(
-            id = scrapLocalId,
-            remoteId = scrapRemoteId,
-            title = scrapTitle,
-            url = scrapUrl,
-            imageUrl = imageUrl,
-            createdDate = parsedDate,
-            isFavorite = isFavorite,
-            categoryId = categoryLocalId,
-            categoryTitle = categoryTitle
-        )
-    }
+    fun toDomainModel(): ScrapItem = ScrapItem(
+        id = scrapId,
+        title = scrapTitle,
+        url = scrapUrl,
+        imageUrl = imageUrl,
+        createdDate = scrapDate.toLocalDateTime(),
+        isFavorite = isFavorite,
+        categoryTitle = categoryTitle,
+    )
 }
 
 @Serializable
@@ -61,33 +48,21 @@ data class SearchFavoriteResponse(
 
 @Serializable
 data class SearchFavoriteItemResponse(
-    @SerialName("scrapId") val scrapRemoteId: Int,
+    @SerialName("scrapId") val scrapId: Long,
     @SerialName("title") val scrapTitle: String,
     @SerialName("scrapURL") val scrapUrl: String = "",
     @SerialName("imageURL") val imageUrl: String? = null,
     val isFavorite: Boolean = true,
     val scrapDate: String = ""
 ) {
-    fun toDomainModel(scrapLocalId: String, categoryLocalId: String, categoryTitle: String): ScrapItem {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val parsedDate = try {
-            LocalDate.parse(scrapDate, formatter).atStartOfDay()
-        } catch (e: Exception) {
-            LocalDateTime.now() // 파싱 실패 시 기본값 처리
-        }
-
-        return ScrapItem(
-            id = scrapLocalId,
-            remoteId = scrapRemoteId,
-            title = scrapTitle,
-            url = scrapUrl,
-            imageUrl = imageUrl,
-            createdDate = parsedDate,
-            isFavorite = isFavorite,
-            categoryId = categoryLocalId,
-            categoryTitle = categoryTitle,
-        )
-    }
+    fun toDomainModel(): ScrapItem = ScrapItem(
+        id = scrapId,
+        title = scrapTitle,
+        url = scrapUrl,
+        imageUrl = imageUrl,
+        createdDate = scrapDate.toLocalDateTime(),
+        isFavorite = isFavorite,
+    )
 }
 
 @Serializable
@@ -98,30 +73,19 @@ data class SearchScrapResponse(
 
 @Serializable
 data class SearchScrapItemResponse(
-    @SerialName("scrapId") val scrapRemoteId: Int,
+    @SerialName("scrapId") val scrapId: Long,
     @SerialName("title") val scrapTitle: String,
     @SerialName("scrapURL") val scrapUrl: String = "",
     @SerialName("imageURL") val imageUrl: String? = null,
     val isFavorite: Boolean = false,
     val scrapDate: String = ""
 ) {
-    fun toDomainModel(scrapLocalId: String, categoryLocalId: String): ScrapItem {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-        val parsedDate = try {
-            LocalDate.parse(scrapDate, formatter).atStartOfDay()
-        } catch (e: Exception) {
-            LocalDateTime.now() // 파싱 실패 시 기본값 처리
-        }
-
-        return ScrapItem(
-            id = scrapLocalId,
-            remoteId = scrapRemoteId,
-            title = scrapTitle,
-            url = scrapUrl,
-            imageUrl = imageUrl,
-            createdDate = parsedDate,
-            isFavorite = isFavorite,
-            categoryId = categoryLocalId,
-        )
-    }
+    fun toDomainModel(): ScrapItem = ScrapItem(
+        id = scrapId,
+        title = scrapTitle,
+        url = scrapUrl,
+        imageUrl = imageUrl,
+        createdDate = scrapDate.toLocalDateTime(),
+        isFavorite = isFavorite,
+    )
 }

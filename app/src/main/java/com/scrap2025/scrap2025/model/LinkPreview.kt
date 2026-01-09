@@ -20,14 +20,14 @@ data class LinkPreview(
  */
 fun LinkPreview.toScrapItem(): ScrapItem {
     return ScrapItem(
-        id = "", // 임시 ID (프리뷰이므로 실제 ID 불필요)
+        id = 0L, // 임시 ID (프리뷰이므로 실제 ID 불필요)
         title = this.title ?: this.url, // 제목이 없으면 URL 표시
         description = this.description ?: "",
         url = this.url,
         imageUrl = this.imageUrl,
         createdDate = LocalDateTime.now(), // 임시 날짜
         isFavorite = false,
-        categoryId = "",
+        categoryId = 0L,
         memo = ""
     )
 }
