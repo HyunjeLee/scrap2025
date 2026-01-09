@@ -35,7 +35,7 @@ class EditMemoViewModel
     fun editMemo(memo: String) {
         viewModelScope.launch {
             _editMemoUiState.value = EditMemoUiState.Loading
-            val result = scrapRepository.updateScrapItem(scrapId, memo)
+            val result = scrapRepository.updateScrapMemo(scrapId, memo)
             result.fold(onSuccess = {
                 _editMemoUiState.value = EditMemoUiState.Success(ScrapMemoDto(memo))
             }, onFailure = { _editMemoUiState.value = EditMemoUiState.Error(it.message) })

@@ -13,9 +13,9 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.scrap2025.scrap2025.model.CategoryItem
-import com.scrap2025.scrap2025.model.GlobalUiState
+import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.SortBar
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapFloatingButtons
@@ -27,6 +27,7 @@ import com.scrap2025.scrap2025.ui.scrap.components.SelectionTopBar
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreenContent
 import com.scrap2025.scrap2025.utils.isScrolled
 import com.scrap2025.scrap2025.viewmodel.FavoriteViewModel
+import com.scrap2025.scrap2025.viewmodel.MainViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 
 @Stable
@@ -52,9 +53,11 @@ fun rememberFavoriteScreenState(
 
 @Composable
 fun FavoriteScreen(
-    navigateToScrapDetail: (String) -> Unit,
+    navigateToScrapDetail: (Long) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: FavoriteViewModel = hiltViewModel()
+    viewModel: FavoriteViewModel = hiltViewModel(),
+    mainViewModel: MainViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val screenState = rememberFavoriteScreenState(viewMode = uiState.viewMode)
@@ -64,13 +67,14 @@ fun FavoriteScreen(
             onDelete = { viewModel.deleteSelectedItems() },
             onMove = { /* todo */ },
             onShare = { /* todo */ },
-            onFavorite = { onSuccess, onFailure -> viewModel.toggleFavoriteSelectedItems() })
+            onFavorite = { onSuccess, onFailure -> viewModel.toggleFavoriteSelectedItems() }
+        )
     }
 
     LaunchedEffect(uiState.isSelectionMode) {
         when (uiState.isSelectionMode) {
-            true -> GlobalUiState.setBottomBar(selectionBottomBar)
-            false -> GlobalUiState.setBottomBar(null)
+            true -> mainViewModel.setBottomBar(selectionBottomBar)
+            false -> mainViewModel.setBottomBar(null)
         }
     }
 
@@ -80,20 +84,23 @@ fun FavoriteScreen(
     ScrapScreenContent(
         topBar = {
             if (uiState.isSelectionMode) {
-                val totalCount = when (val state = uiState.scrapItemsState) {
-                    is ScrapUiState.Success -> state.items.size
-                    else -> 0
-                }
+                val totalCount =
+                    when (val state = uiState.scrapItemsState) {
+                        is ScrapUiState.Success -> state.items.size
+                        else -> 0
+                    }
                 SelectionTopBar(
-                    categoryTitle = CategoryItem.FAVORITE_NAME,
+                    categoryTitle = "즐겨찾기",
                     selectedCount = uiState.selectedScrapIds.size,
                     totalCount = totalCount,
                     onSelectAll = { viewModel.selectAllScrapItems() },
-                    onDeselectAll = { viewModel.deselectAllScrapItems() })
+                    onDeselectAll = { viewModel.deselectAllScrapItems() }
+                )
             } else {
                 ScrapTopBar(
-                    categoryId = CategoryItem.FAVORITE_ID,
-                    categoryTitle = CategoryItem.FAVORITE_NAME,
+                    categoryId = -1L,
+                    categoryTitle = "즐겨찾기",
+                    isEditable = false,
                     onUpdateCategory = { _, _ -> /* 즐겨찾기 제목 수정 불가 */ },
                     onDeleteCategory = { /* 즐겨찾기 카테고리 삭제 불가 */ },
                 )
@@ -104,7 +111,8 @@ fun FavoriteScreen(
                     viewMode = uiState.viewMode,
                     onSortTypeToggle = { viewModel.toggleSortType() },
                     onSortDirectionToggle = { viewModel.toggleSortDirection() },
-                    onViewModeToggle = { viewModel.toggleViewMode() })
+                    onViewModeToggle = { viewModel.toggleViewMode() }
+                )
             }
         },
         content = { contentModifier ->

@@ -57,30 +57,27 @@ fun ScrapItemCardList(
     onClick: () -> Unit = {},
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 6.5.dp)
-            .combinedClickable(
-                onClick = {
-                    if (isSelectionMode) {
-                        onSelectionToggle()
-                    } else {
-                        onClick()
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 6.5.dp)
+                .combinedClickable(
+                    onClick = {
+                        if (isSelectionMode) {
+                            onSelectionToggle()
+                        } else {
+                            onClick()
+                        }
+                    },
+                    onLongClick = {
+                        if (!isSelectionMode) {
+                            onLongClick()
+                        }
                     }
-                },
-                onLongClick = {
-                    if (!isSelectionMode) {
-                        onLongClick()
-                    }
-                }
-            ),
+                ),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box {
             Row(
@@ -91,15 +88,16 @@ fun ScrapItemCardList(
             ) {
                 // 이미지 영역
                 Box(
-                    modifier = Modifier
-                        .size(width = 100.dp, height = 75.dp)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(LightGrayColor)
-                        .border(
-                            width = 1.dp,
-                            color = LightGrayColor,
-                            shape = RoundedCornerShape(4.dp)
-                        ),
+                    modifier =
+                        Modifier
+                            .size(width = 100.dp, height = 75.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(LightGrayColor)
+                            .border(
+                                width = 1.dp,
+                                color = LightGrayColor,
+                                shape = RoundedCornerShape(4.dp)
+                            ),
                     contentAlignment = Alignment.Center
                 ) {
                     if (scrapItem.imageUrl != null) {
@@ -131,7 +129,7 @@ fun ScrapItemCardList(
                         if (scrapItem.isFavorite) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_fav_true),
-                                contentDescription ="즐겨찾기",
+                                contentDescription = "즐겨찾기",
                                 tint = FavoriteColor,
                                 modifier = Modifier
                                     .padding(top = 4.dp)
@@ -144,10 +142,7 @@ fun ScrapItemCardList(
                         // 제목
                         Text(
                             text = scrapItem.title,
-                            style = TextStyle(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Normal
-                            ),
+                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
                             color = Color.Black,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -160,10 +155,7 @@ fun ScrapItemCardList(
                     // URL
                     Text(
                         text = scrapItem.url,
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Normal
-                        ),
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
                         color = GrayColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -175,15 +167,24 @@ fun ScrapItemCardList(
                     ) {
                         // 날짜
                         Text(
-                            text = scrapItem.createdDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
-                            style = TextStyle(fontSize = 12.sp,),
+                            text =
+                                scrapItem.createdDate.format(
+                                    DateTimeFormatter.ofPattern("yyyy.MM.dd")
+                                ),
+                            style =
+                                TextStyle(
+                                    fontSize = 12.sp,
+                                ),
                         )
                         // 카테고리 출력
                         if (showCategory) {
                             Spacer(Modifier.weight(1f))
                             Text(
                                 text = scrapItem.categoryTitle?.let { "[$it]" }.orEmpty(),
-                                style = TextStyle(fontSize = 12.sp,),
+                                style =
+                                    TextStyle(
+                                        fontSize = 12.sp,
+                                    ),
                             )
                         }
                     }
@@ -193,19 +194,21 @@ fun ScrapItemCardList(
             // 선택 모드일 때 체크마크 표시 (왼쪽 상단)
             if (isSelectionMode) {
                 Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(Color.Transparent)
-                        .align(Alignment.TopStart)
+                    modifier =
+                        Modifier
+                            .padding(8.dp)
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(Color.Transparent)
+                            .align(Alignment.TopStart)
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .align(Alignment.Center)
+                        modifier =
+                            Modifier
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .align(Alignment.Center)
                     )
                     Icon(
                         painter =
@@ -221,52 +224,53 @@ fun ScrapItemCardList(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun ScrapItemCardListPreview() {
     Scrap2025Theme {
-        Column(
-            modifier = Modifier.background(Color(0xFFFCFCFC))
-        ) {
+        Column(modifier = Modifier.background(Color(0xFFFCFCFC))) {
             ScrapItemCardList(
-                scrapItem = ScrapItem(
-                    id = "1",
-                    title = "제목제목",
-                    description = "description",
-                    url = "주소주소주소주소",
-                    imageUrl = null,
-                    categoryId = "",
-                    categoryTitle = "분류되지 않음",
-                    createdDate = LocalDateTime.of(2024, 2, 22, 10, 0),
-                    isFavorite = true
-                ),
+                scrapItem =
+                    ScrapItem(
+                        id = 1L,
+                        title = "제목제목",
+                        description = "description",
+                        url = "주소주소주소주소",
+                        imageUrl = null,
+                        categoryId = 0L,
+                        categoryTitle = "분류되지 않음",
+                        createdDate = LocalDateTime.of(2024, 2, 22, 10, 0),
+                        isFavorite = true
+                    ),
                 showCategory = true,
             )
             ScrapItemCardList(
-                scrapItem = ScrapItem(
-                    id = "2",
-                    title = "제목제목제목제목제목제목제목제목제목제목제목제끝",
-                    description = "description",
-                    url = "주소주소주소주소",
-                    imageUrl = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-                    categoryId = "",
-                    createdDate = LocalDateTime.of(2024, 2, 22, 14, 30),
-                    isFavorite = true
-                ),
+                scrapItem =
+                    ScrapItem(
+                        id = 2L,
+                        title = "제목제목제목제목제목제목제목제목제목제목제목제끝",
+                        description = "description",
+                        url = "주소주소주소주소",
+                        imageUrl =
+                            "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
+                        categoryId = 0L,
+                        createdDate = LocalDateTime.of(2024, 2, 22, 14, 30),
+                        isFavorite = true
+                    ),
                 showCategory = true,
             )
             ScrapItemCardList(
-                scrapItem = ScrapItem(
-                    id = "3",
-                    title = "제목제목",
-                    description = "description",
-                    url = "주소주소주소주소",
-                    imageUrl = null,
-                    categoryId = "",
-                    createdDate = LocalDateTime.of(2024, 2, 22, 16, 45),
-                    isFavorite = false
-                ),
+                scrapItem =
+                    ScrapItem(
+                        id = 3L,
+                        title = "제목제목",
+                        description = "description",
+                        url = "주소주소주소주소",
+                        imageUrl = null,
+                        categoryId = 0L,
+                        createdDate = LocalDateTime.of(2024, 2, 22, 16, 45),
+                        isFavorite = false
+                    ),
                 showCategory = true,
             )
         }

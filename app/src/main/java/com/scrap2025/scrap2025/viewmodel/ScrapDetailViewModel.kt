@@ -9,11 +9,8 @@ import com.scrap2025.scrap2025.navigation.ScrapDetail
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,28 +22,19 @@ sealed interface ScrapDetailUiState {
 
 @HiltViewModel
 class ScrapDetailViewModel
-@Inject constructor(
+@Inject
+constructor(
     private val scrapRepository: ScrapRepository,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
-    private val scrapId: String = savedStateHandle.toRoute<ScrapDetail>().scrapId
+) :
+    ViewModel() {
+    private val scrapId: Long = savedStateHandle.toRoute<ScrapDetail>().scrapId
 
     private val _isDeleteDialogVisible = MutableStateFlow(false)
     val isDeleteDialogVisible: StateFlow<Boolean> = _isDeleteDialogVisible.asStateFlow()
 
-    private val _isSyncing = MutableStateFlow(false)
-    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
-
-    val scrapDetailUiState: StateFlow<ScrapDetailUiState> =
-        scrapRepository.getScrapItemByIdAsFlow(scrapId).map { result ->
-                result.fold(
-                    onSuccess = { ScrapDetailUiState.Success(it) },
-                    onFailure = { ScrapDetailUiState.Error(it.message) })
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = ScrapDetailUiState.Loading
-            )
+    private val _uiState = MutableStateFlow<ScrapDetailUiState>(ScrapDetailUiState.Loading)
+    val uiState: StateFlow<ScrapDetailUiState> = _uiState.asStateFlow()
 
     init {
         fetchScrapDetail()
@@ -54,9 +42,17 @@ class ScrapDetailViewModel
 
     private fun fetchScrapDetail() {
         viewModelScope.launch {
-            _isSyncing.value = true
-            scrapRepository.syncScrapById(scrapId)
-            _isSyncing.value = false
+            _uiState.value = ScrapDetailUiState.Loading
+
+            scrapRepository.getScrapById(scrapId)
+                .fold(
+                    onSuccess = {
+                        _uiState.value = ScrapDetailUiState.Success(it)
+                    },
+                    onFailure = {
+                        _uiState.value = ScrapDetailUiState.Error(it.message)
+                    }
+                )
         }
     }
 
@@ -77,8 +73,21 @@ class ScrapDetailViewModel
 
     fun toggleFavorite(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            val result = scrapRepository.toggleFavorite(scrapId)
-            result.fold(onSuccess = { onSuccess() }, onFailure = { onFailure() })
+            scrapRepository.toggleFavorite(scrapId)
+                .onSuccess {
+                    val currentState = _uiState.value
+                    if (currentState is ScrapDetailUiState.Success) {
+                        val updated =
+                            currentState.scrapItem.copy(isFavorite = !currentState.scrapItem.isFavorite)
+
+                        _uiState.value = ScrapDetailUiState.Success(updated)
+                    }
+
+                    onSuccess()
+                }
+                .onFailure {
+                    onFailure()
+                }
         }
     }
 }

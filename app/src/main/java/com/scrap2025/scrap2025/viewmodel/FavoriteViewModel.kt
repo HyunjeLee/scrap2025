@@ -37,8 +37,8 @@ class FavoriteViewModel
     val isSelectionMode: StateFlow<Boolean> = _isSelectionMode.asStateFlow()
 
     // 선택된 스크랩 아이템 ID 목록
-    private val _selectedScrapIds = MutableStateFlow<Set<String>>(emptySet())
-    val selectedScrapIds: StateFlow<Set<String>> = _selectedScrapIds.asStateFlow()
+    private val _selectedScrapIds = MutableStateFlow<Set<Long>>(emptySet())
+    val selectedScrapIds: StateFlow<Set<Long>> = _selectedScrapIds.asStateFlow()
 
     // Preferences 로딩 상태
     private val _isPreferencesLoaded = MutableStateFlow(false)
@@ -47,6 +47,9 @@ class FavoriteViewModel
     // query
     private val _queryState = MutableStateFlow("")
     val queryState: StateFlow<String> = _queryState.asStateFlow()
+
+    private val debouncedQuery =
+        queryState.debounce { query -> if (query.isEmpty()) 0L else 500L }.distinctUntilChanged()
 
     // 정렬 타입 (DataStore에서 로드)
     val sortType: StateFlow<SortType> = preferencesManager.sortType.stateIn(
@@ -76,7 +79,7 @@ class FavoriteViewModel
         val sortType: SortType = SortType.SCRAP_DATE,
         val sortDirection: SortDirection = SortDirection.ASC,
         val isSelectionMode: Boolean = false,
-        val selectedScrapIds: Set<String> = emptySet(),
+        val selectedScrapIds: Set<Long> = emptySet(),
         val isPreferencesLoaded: Boolean = false,
         val query: String = ""
     )
@@ -85,40 +88,41 @@ class FavoriteViewModel
     data class Quartic<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 
     // 정렬된 즐겨찾기 스크랩 아이템 목록
-    val sortedFavoriteItems: StateFlow<ScrapUiState> =
-        combine(queryState, sortType, sortDirection) { query, type, direction ->
-            Triple(query, type, direction)
-        }.distinctUntilChanged().debounce(500L).flatMapLatest { (query, type, direction) ->
-                if (query.isBlank()) {
-                    scrapRepository.getFavoriteScrapItemsFromRemote().map { result ->
-                            result.fold(onSuccess = { items ->
-                                ScrapUiState.Success(
-                                    sortScrapItems(items, type, direction)
-                                )
-                            }, onFailure = { ScrapUiState.Error(it.message) })
-                        }.onStart { emit(ScrapUiState.Loading) }
-                } else {
-                    flow {
-                        emit(ScrapUiState.Loading)
+    val sortedFavoriteItems: StateFlow<ScrapUiState> = combine(
+        debouncedQuery, sortType, sortDirection, scrapRepository.refreshEvent
+    ) { query, type, direction, _ ->
+        Triple(query, type, direction)
+    }.flatMapLatest { (query, type, direction) ->
+        if (query.isBlank()) {
+            scrapRepository.getAllFavoriteScraps().map { result ->
+                result.fold(onSuccess = { items ->
+                    ScrapUiState.Success(
+                        sortScrapItems(items, type, direction)
+                    )
+                }, onFailure = { ScrapUiState.Error(it.message) })
+            }.onStart { emit(ScrapUiState.Loading) }
+        } else {
+            flow {
+                emit(ScrapUiState.Loading)
 
-                        val searchResult = scrapRepository.searchFavoriteScraps(
-                            query = query, sortType = type.name, sortDirection = direction.name
+                val searchResult = scrapRepository.searchFavoriteScraps(
+                    query = query, sortType = type.name, sortDirection = direction.name
+                )
+
+                searchResult.fold(onSuccess = { items ->
+                    emit(
+                        ScrapUiState.Success(
+                            sortScrapItems(items, type, direction)
                         )
-
-                        searchResult.fold(onSuccess = { items ->
-                            emit(
-                                ScrapUiState.Success(
-                                    sortScrapItems(items, type, direction)
-                                )
-                            )
-                        }, onFailure = { emit(ScrapUiState.Error(it.message)) })
-                    }
-                }
-            }.stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = ScrapUiState.Loading
-            )
+                    )
+                }, onFailure = { emit(ScrapUiState.Error(it.message)) })
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ScrapUiState.Loading
+    )
 
     val preferenceFlow =
         combine(viewMode, sortType, sortDirection, isPreferencesLoaded) { mode, type, dir, loaded ->
@@ -147,10 +151,10 @@ class FavoriteViewModel
             query = query
         )
     }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = FavoriteState()
-        )
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = FavoriteState()
+    )
 
     init {
         viewModelScope.launch {
@@ -196,7 +200,7 @@ class FavoriteViewModel
         }
     }
 
-    fun enterSelectionMode(itemId: String) {
+    fun enterSelectionMode(itemId: Long) {
         _isSelectionMode.value = true
         _selectedScrapIds.value = setOf(itemId)
     }
@@ -206,7 +210,7 @@ class FavoriteViewModel
         _selectedScrapIds.value = emptySet()
     }
 
-    fun toggleScrapItemSelection(id: String) {
+    fun toggleScrapItemSelection(id: Long) {
         val currentSelection = _selectedScrapIds.value
         _selectedScrapIds.value =
             if (currentSelection.contains(id)) currentSelection - id else currentSelection + id

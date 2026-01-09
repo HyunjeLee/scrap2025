@@ -55,43 +55,43 @@ fun ScrapItemCardGrid(
     onClick: () -> Unit = {},
 ) {
     Card(
-        modifier = modifier
-            .size(width = 164.dp, height = 190.dp)
-            .combinedClickable(
-                onClick = {
-                    if (isSelectionMode) {  // 선택 모드인 경우
-                        onSelectionToggle()
-                    } else {
-                        onClick()
+        modifier =
+            modifier
+                .size(width = 164.dp, height = 190.dp)
+                .combinedClickable(
+                    onClick = {
+                        if (isSelectionMode) { // 선택 모드인 경우
+                            onSelectionToggle()
+                        } else {
+                            onClick()
+                        }
+                    },
+                    onLongClick = {
+                        if (!isSelectionMode) {
+                            onLongClick()
+                        }
                     }
-                },
-                onLongClick = {
-                    if (!isSelectionMode) {
-                        onLongClick()
-                    }
-                }
-            ),
+                ),
         shape = RoundedCornerShape(15.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        )
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 // 이미지 영역
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(97.dp)
-                        .background(
-                            color = LightGrayColor,
-                            shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)
-                        ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(97.dp)
+                            .background(
+                                color = LightGrayColor,
+                                shape =
+                                    RoundedCornerShape(
+                                        topStart = 15.dp,
+                                        topEnd = 15.dp
+                                    )
+                            ),
                     contentAlignment = Alignment.Center
                 ) {
                     if (scrapItem.imageUrl != null) {
@@ -131,10 +131,7 @@ fun ScrapItemCardGrid(
 
                         Text(
                             text = scrapItem.title,
-                            style = TextStyle(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Normal
-                            ),
+                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
                             color = Color.Black,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -147,10 +144,7 @@ fun ScrapItemCardGrid(
                     // URL
                     Text(
                         text = scrapItem.url,
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Normal
-                        ),
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
                         color = GrayColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -162,8 +156,14 @@ fun ScrapItemCardGrid(
                     ) {
                         // 날짜
                         Text(
-                            text = scrapItem.createdDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
-                            style = TextStyle(fontSize = 12.sp,),
+                            text =
+                                scrapItem.createdDate.format(
+                                    DateTimeFormatter.ofPattern("yyyy.MM.dd")
+                                ),
+                            style =
+                                TextStyle(
+                                    fontSize = 12.sp,
+                                ),
                         )
                         // 카테고리 출력
                         if (showCategory) {
@@ -171,7 +171,10 @@ fun ScrapItemCardGrid(
                             Text(
                                 text = scrapItem.categoryTitle?.let { "[$it]" }.orEmpty(),
                                 textAlign = TextAlign.End,
-                                style = TextStyle(fontSize = 12.sp,),
+                                style =
+                                    TextStyle(
+                                        fontSize = 12.sp,
+                                    ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)
@@ -184,19 +187,21 @@ fun ScrapItemCardGrid(
             // 선택 모드일 때 체크마크 표시 (왼쪽 상단)
             if (isSelectionMode) {
                 Box(
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(Color.Transparent)
-                        .align(Alignment.TopStart)
+                    modifier =
+                        Modifier
+                            .padding(8.dp)
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(Color.Transparent)
+                            .align(Alignment.TopStart)
                 ) {
                     Box(
-                        modifier = Modifier
-                            .size(18.dp)
-                            .clip(CircleShape)
-                            .background(Color.White)
-                            .align(Alignment.Center)
+                        modifier =
+                            Modifier
+                                .size(18.dp)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .align(Alignment.Center)
                     )
                     Icon(
                         painter =
@@ -212,7 +217,6 @@ fun ScrapItemCardGrid(
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun ScrapItemCardGridPreview() {
@@ -224,30 +228,33 @@ fun ScrapItemCardGridPreview() {
             horizontalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             ScrapItemCardGrid(
-                scrapItem = ScrapItem(
-                    id = "1",
-                    title = "제목제목",
-                    description = "description",
-                    url = "주소주소주소주소",
-                    imageUrl = null,
-                    categoryId = "",
-                    categoryTitle = "분류되지 않음",
-                    createdDate = LocalDateTime.of(2024, 2, 26, 10, 0),
-                    isFavorite = true
-                ),
+                scrapItem =
+                    ScrapItem(
+                        id = 1L,
+                        title = "제목제목",
+                        description = "description",
+                        url = "주소주소주소주소",
+                        imageUrl = null,
+                        categoryId = 0L,
+                        categoryTitle = "분류되지 않음",
+                        createdDate = LocalDateTime.of(2024, 2, 26, 10, 0),
+                        isFavorite = true
+                    ),
                 showCategory = true,
             )
             ScrapItemCardGrid(
-                scrapItem = ScrapItem(
-                    id = "2",
-                    title = "제목제목제목제목제목제목제목제목제...",
-                    description = "description",
-                    url = "주소주소주소주소",
-                    imageUrl = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
-                    categoryId = "",
-                    createdDate = LocalDateTime.of(2024, 2, 26, 14, 30),
-                    isFavorite = false
-                ),
+                scrapItem =
+                    ScrapItem(
+                        id = 2L,
+                        title = "제목제목제목제목제목제목제목제목제...",
+                        description = "description",
+                        url = "주소주소주소주소",
+                        imageUrl =
+                            "https://images.unsplash.com/photo-1506905925346-21bda4d32df4",
+                        categoryId = 0L,
+                        createdDate = LocalDateTime.of(2024, 2, 26, 14, 30),
+                        isFavorite = false
+                    ),
                 showCategory = true,
             )
         }

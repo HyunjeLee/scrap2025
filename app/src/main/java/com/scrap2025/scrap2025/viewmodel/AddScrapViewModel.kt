@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import java.util.UUID
 import javax.inject.Inject
 
 sealed interface LinkPreviewUiState {
@@ -31,7 +30,8 @@ sealed interface AddScrapUiState {
 
 @HiltViewModel
 class AddScrapViewModel
-@Inject constructor(
+@Inject
+constructor(
     private val scrapRepository: ScrapRepository,
     private val linkPreviewRepository: LinkPreviewRepository,
 ) : ViewModel() {
@@ -89,7 +89,8 @@ class AddScrapViewModel
             val result = linkPreviewRepository.fetchLinkPreview(url)
             result.fold(
                 onSuccess = { _linkPreviewUiState.value = LinkPreviewUiState.Success(it) },
-                onFailure = { _linkPreviewUiState.value = LinkPreviewUiState.Error(it.message) })
+                onFailure = { _linkPreviewUiState.value = LinkPreviewUiState.Error(it.message) }
+            )
         }
     }
 
@@ -100,29 +101,34 @@ class AddScrapViewModel
      * @param linkPreview 링크 미리보기 데이터 (선택사항)
      */
     fun addScrapItem(
-        url: String, memo: String, linkPreview: LinkPreview? = null, categoryId: String
+        url: String,
+        memo: String,
+        linkPreview: LinkPreview? = null,
+        categoryId: Long
     ) {
         viewModelScope.launch {
             // Loading 상태 설정
             _addScrapState.value = AddScrapUiState.Loading
 
-            val newItem = ScrapItem(
-                id = UUID.randomUUID().toString(),
-                title = linkPreview?.title ?: url,
-                description = linkPreview?.description ?: "",
-                url = url,
-                imageUrl = linkPreview?.imageUrl,
-                createdDate = LocalDateTime.now(),
-                isFavorite = false,
-                categoryId = categoryId,
-                memo = memo
-            )
+            val newItem =
+                ScrapItem(
+                    id = 0L, // Server will assign the real ID
+                    title = linkPreview?.title ?: url,
+                    description = linkPreview?.description ?: "",
+                    url = url,
+                    imageUrl = linkPreview?.imageUrl,
+                    createdDate = LocalDateTime.now(),
+                    isFavorite = false,
+                    categoryId = categoryId,
+                    memo = memo
+                )
 
             // Repository를 통해 스크랩 추가
             val result = scrapRepository.createScrap(newItem)
             result.fold(
                 onSuccess = { _addScrapState.value = AddScrapUiState.Success },
-                onFailure = { _addScrapState.value = AddScrapUiState.Error(it.message) })
+                onFailure = { _addScrapState.value = AddScrapUiState.Error(it.message) }
+            )
         }
     }
 

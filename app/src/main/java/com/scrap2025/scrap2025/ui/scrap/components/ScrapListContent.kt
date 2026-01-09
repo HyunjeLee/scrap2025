@@ -35,10 +35,10 @@ fun ScrapListContent(
     isPreferencesLoaded: Boolean,
     modifier: Modifier = Modifier,
     isSelectionMode: Boolean = false,
-    selectedScrapIds: Set<String> = emptySet(),
-    onItemClick: (String) -> Unit = {},
-    onItemLongClick: (String) -> Unit = {},
-    onItemSelectionToggle: (String) -> Unit = {},
+    selectedScrapIds: Set<Long> = emptySet(),
+    onItemClick: (Long) -> Unit = {},
+    onItemLongClick: (Long) -> Unit = {},
+    onItemSelectionToggle: (Long) -> Unit = {},
     listState: LazyListState = androidx.compose.foundation.lazy.rememberLazyListState(),
     gridState: LazyGridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(),
     showCategory: Boolean = false,
@@ -86,7 +86,8 @@ fun ScrapListContent(
                                     isSelected = selectedScrapIds.contains(scrapItem.id),
                                     onClick = { onItemClick(scrapItem.id) },
                                     onLongClick = { onItemLongClick(scrapItem.id) },
-                                    onSelectionToggle = { onItemSelectionToggle(scrapItem.id) })
+                                    onSelectionToggle = { onItemSelectionToggle(scrapItem.id) }
+                                )
                             }
                         }
                     }
@@ -108,7 +109,8 @@ fun ScrapListContent(
                                     isSelected = selectedScrapIds.contains(scrapItem.id),
                                     onClick = { onItemClick(scrapItem.id) },
                                     onLongClick = { onItemLongClick(scrapItem.id) },
-                                    onSelectionToggle = { onItemSelectionToggle(scrapItem.id) })
+                                    onSelectionToggle = { onItemSelectionToggle(scrapItem.id) }
+                                )
                             }
                         }
                     }

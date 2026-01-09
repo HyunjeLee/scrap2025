@@ -33,7 +33,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.R
-import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
@@ -45,11 +44,12 @@ import com.scrap2025.scrap2025.ui.theme.WarningColor
  */
 @Composable
 fun ScrapTopBar(
-    categoryId: String,
+    categoryId: Long,
     categoryTitle: String,
-    onUpdateCategory: (String, String) -> Unit,
+    onUpdateCategory: (Long, String) -> Unit,
     onDeleteCategory: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isEditable: Boolean = true,
 ) {
     // === 내부 상태: 편집 모드 관리 ===
     var isEditMode by remember { mutableStateOf(false) }
@@ -66,8 +66,8 @@ fun ScrapTopBar(
         )
     } else {
         TopBarDefault(
-            categoryId = categoryId,
             categoryTitle = categoryTitle,
+            isEditable = isEditable,
             onEditClick = { isEditMode = true },
             onDeleteClick = { onDeleteCategory() },
             modifier = modifier
@@ -78,11 +78,11 @@ fun ScrapTopBar(
 /** TopBarDefault - 일반 모드 (카테고리명 표시 + 편집/삭제 버튼) */
 @Composable
 private fun TopBarDefault(
-    categoryId: String,
     categoryTitle: String,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isEditable: Boolean = true,
 ) {
     Box(
         modifier = modifier
@@ -101,7 +101,7 @@ private fun TopBarDefault(
             modifier = Modifier.padding(start = 21.dp, end = 85.dp)
         )
 
-        if (categoryId != CategoryItem.DEFAULT_ID && categoryId != CategoryItem.FAVORITE_ID) {
+        if (isEditable) {
             // 편집/삭제 버튼
             Row(
                 modifier = Modifier
@@ -218,7 +218,6 @@ private fun TopBarEditMode(
 fun TopBarDefaultPreview() {
     Scrap2025Theme {
         TopBarDefault(
-            categoryId = "",
             categoryTitle = "분류되지 않음",
             onEditClick = {},
             onDeleteClick = {}
