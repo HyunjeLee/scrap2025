@@ -57,7 +57,7 @@ fun AddCategoryScreen(
             }
 
             is AddCategoryUiState.Error -> {
-                Toast.makeText(context, state.message ?: "카테고리 추가 실패", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "카테고리 추가 실패", Toast.LENGTH_SHORT).show()
                 viewModel.resetState()
             }
 
@@ -77,7 +77,8 @@ fun AddCategoryScreen(
         categoryTitleInput = categoryTitleInput,
         onValueChange = { newName -> viewModel.updateCategoryTitle(newName) },
         addCategoryUiState = addCategoryState,
-        onAddCategory = { viewModel.addCategory() })
+        onAddCategory = { viewModel.addCategory() }
+    )
 }
 
 @Composable

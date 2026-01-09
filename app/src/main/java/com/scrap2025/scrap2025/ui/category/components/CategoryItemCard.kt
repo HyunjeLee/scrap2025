@@ -50,11 +50,11 @@ fun CategoryItemCard(
     ) {
         // 카테고리명 - ellipsis 처리
         Text(
-            text = categoryItem.name,
+            text = categoryItem.title,
             style = TextStyle(
                 fontSize = 15.sp,
                 fontWeight =
-                    if (isSelected) FontWeight.SemiBold  else FontWeight.Normal
+                    if (isSelected) FontWeight.SemiBold else FontWeight.Normal
             ),
             color = Color.Black,
             maxLines = 1,
@@ -105,16 +105,16 @@ fun CategoryItemCardPreview() {
         Column {
             CategoryItemCard(
                 categoryItem = CategoryItem(
-                    id = "1",
-                    name = "분류되지 않음",
+                    id = 1,
+                    title = "분류되지 않음",
                     scrapCount = 322,
                     orderIndex = 0
                 )
             )
             CategoryItemCard(
                 categoryItem = CategoryItem(
-                    id = "2",
-                    name = "데이트",
+                    id = 2,
+                    title = "데이트",
                     scrapCount = 32,
                     orderIndex = 0
                 )
@@ -132,8 +132,8 @@ fun CategoryItemCardSelectionPreview() {
                 isSelected = true,
                 isSelectable = true,
                 categoryItem = CategoryItem(
-                    id = "1",
-                    name = "isSelectable",
+                    id = 1,
+                    title = "isSelectable",
                     scrapCount = 322,
                     orderIndex = 0
                 )
@@ -142,8 +142,8 @@ fun CategoryItemCardSelectionPreview() {
                 isSelected = false,
                 isSelectable = true,
                 categoryItem = CategoryItem(
-                    id = "2",
-                    name = "데이트",
+                    id = 2,
+                    title = "데이트",
                     scrapCount = 32,
                     orderIndex = 0
                 )

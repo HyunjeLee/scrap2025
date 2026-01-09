@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.common.buttons.TwoButtons
@@ -35,32 +36,34 @@ import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
-import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 import com.scrap2025.scrap2025.viewmodel.CategorySelectionViewModel
+import com.scrap2025.scrap2025.viewmodel.CategoryUiState
+import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 enum class Mode {
-    MOVE, SHARE, SEARCH
+    MOVE, ADD, SEARCH
 }
 
 @Composable
 fun CategorySelectionScreen(
     onBack: () -> Unit,
     onAddClick: () -> Unit,
-    onConfirmShare: (String, String) -> Unit,
-    onConfirmSearch: (List<String>) -> Unit,
+    onConfirmAdd: (Long, String) -> Unit,
+    onConfirmSearch: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CategorySelectionViewModel = hiltViewModel()
+    viewModel: CategorySelectionViewModel = hiltViewModel(),
+    mainViewModel: MainViewModel = hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val context = LocalContext.current
     val mode = viewModel.mode
     val title = when (mode) {
         Mode.MOVE -> "이동하기"
-        Mode.SHARE -> "카테고리 선택하기"
+        Mode.ADD -> "카테고리 선택하기"
         Mode.SEARCH -> "카테고리"
     }
     val confirmText = when (mode) {
         Mode.MOVE -> "이동하기"
-        Mode.SHARE -> "다음"
+        Mode.ADD -> "다음"
         Mode.SEARCH -> "완료"
     }
 
@@ -73,14 +76,16 @@ fun CategorySelectionScreen(
         when (mode) {
             Mode.MOVE -> {
                 viewModel.moveScrap(selectedCategoryId) {
+                    mainViewModel.setGlobalCategory(selectedCategoryId, selectedCategoryName)
+
                     onBack()
-                    onBack() // UX를 위해 기존의 스크랩 목록 화면으로 돌아가 사용자에게 이동되었음을 보여준다.
+                    onBack()
                     Toast.makeText(context, "스크랩이 성공적으로 이동되었습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
 
-            Mode.SHARE -> {
-                onConfirmShare(selectedCategoryId, selectedCategoryName)
+            Mode.ADD -> {
+                onConfirmAdd(selectedCategoryId, selectedCategoryName)
             }
 
             Mode.SEARCH -> {
@@ -108,11 +113,11 @@ fun CategorySelectionScreen(
                 title = title,
                 confirmText = confirmText,
                 onBack = onBack,
-                onCategoryClick = { id, name ->
+                onCategoryClick = { id, title ->
                     if (mode == Mode.SEARCH) {
                         viewModel.toggleCategorySelection(id)
                     } else {
-                        viewModel.updateSelectedCategory(id, name)
+                        viewModel.updateSelectedCategory(id, title)
                     }
                 },
                 onAddClick = onAddClick,
@@ -126,38 +131,38 @@ fun CategorySelectionScreen(
 @Composable
 fun CategorySelectionScreenContent(
     categories: List<CategoryItem>,
-    selectedCategoryId: String,
-    selectedCategoryIds: Set<String>,
+    selectedCategoryId: Long,
+    selectedCategoryIds: Set<Long>,
     isMultiSelect: Boolean,
     title: String,
     confirmText: String,
     onBack: () -> Unit,
-    onCategoryClick: (String, String) -> Unit,
+    onCategoryClick: (Long, String) -> Unit,
     onAddClick: () -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         topBar = { TopBarWithBack(title = title, onBack = onBack) }, bottomBar = {
-        TwoButtons(confirmText = confirmText, onCancel = onBack, onConfirm = onConfirm)
-    }, floatingActionButton = {
-        FloatingActionButton(
-            onClick = onAddClick,
-            shape = CircleShape,
-            containerColor = MainColor,
-            contentColor = MainColorDeep,
-            modifier = Modifier
-                .offset(y = 16.dp) // 기본 여백 제거
-                .padding(end = 5.dp)
-                .size(60.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = "카테고리 추가",
-                modifier = Modifier.size(50.dp)
-            )
-        }
-    }, containerColor = BackgroundColor
+            TwoButtons(confirmText = confirmText, onCancel = onBack, onConfirm = onConfirm)
+        }, floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddClick,
+                shape = CircleShape,
+                containerColor = MainColor,
+                contentColor = MainColorDeep,
+                modifier = Modifier
+                    .offset(y = 16.dp) // 기본 여백 제거
+                    .padding(end = 5.dp)
+                    .size(60.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = "카테고리 추가",
+                    modifier = Modifier.size(50.dp)
+                )
+            }
+        }, containerColor = BackgroundColor
     ) { innerPadding ->
         Box(
             modifier = modifier
@@ -176,7 +181,7 @@ fun CategorySelectionScreenContent(
                             else selectedCategoryId == item.id,
                             isSelectable = true,
                             categoryItem = item,
-                            onClick = { onCategoryClick(item.id, item.name) })
+                            onClick = { onCategoryClick(item.id, item.title) })
                         HorizontalDivider(
                             modifier = Modifier.fillMaxWidth(),
                             color = GrayColor,
@@ -197,7 +202,7 @@ fun CategorySelectionScreenContent(
 fun CategorySelectionScreenContentPreview() {
     CategorySelectionScreenContent(
         categories = dummyCategories,
-        selectedCategoryId = "",
+        selectedCategoryId = 0,
         selectedCategoryIds = emptySet(),
         isMultiSelect = false,
         title = "카테고리 선택",
@@ -210,18 +215,18 @@ fun CategorySelectionScreenContentPreview() {
 
 val dummyCategories = listOf(
     CategoryItem(
-        id = "1",
-        name = "분류되지 않음",
+        id = 1,
+        title = "분류되지 않음",
         orderIndex = 0,
     ),
     CategoryItem(
-        id = "2",
-        name = "코테 자료",
+        id = 2,
+        title = "코테 자료",
         orderIndex = 0,
     ),
     CategoryItem(
-        id = "3",
-        name = "IBM Technology",
+        id = 3,
+        title = "IBM Technology",
         orderIndex = 0,
     ),
 )

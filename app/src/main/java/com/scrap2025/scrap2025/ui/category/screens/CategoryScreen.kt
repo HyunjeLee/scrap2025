@@ -1,6 +1,5 @@
 package com.scrap2025.scrap2025.ui.category.screens
 
-import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -35,7 +33,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.scrap2025.scrap2025.data.model.SyncStatus
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.common.components.ErrorScreen
@@ -116,19 +113,6 @@ fun CategoryScreenContent(
                 }
 
                 is CategoryUiState.Success -> {
-                    // TODO: 전체 동기화 상태 표시 UI 추가 필요
-                    // 동기화 상태 로깅
-                    LaunchedEffect(uiState.categories) {
-                        val hasPending =
-                            uiState.categories.any { it.syncStatus == SyncStatus.PENDING }
-
-                        if (hasPending) {
-                            Log.d("CategorySync", "전체 카테고리 동기화 중... (Pending items detected)")
-                        } else {
-                            Log.d("CategorySync", "전체 카테고리 동기화 완료 (All items synced)")
-                        }
-                    }
-
                     // Creating LazyListState explicitly
                     val listState = rememberLazyListState()
                     val state = rememberReorderableLazyListState(
@@ -142,14 +126,9 @@ fun CategoryScreenContent(
 
                                 Column(
                                     modifier = Modifier
-                                        .then(
-                                            if (item.id != CategoryItem.DEFAULT_ID) {
-                                                Modifier.draggableHandle(
-                                                    onDragStopped = {
-                                                        onDragStopped()
-                                                    })
-                                            } else {
-                                                Modifier
+                                        .draggableHandle(
+                                            onDragStopped = {
+                                                onDragStopped()
                                             }
                                         )
                                         .shadow(elevation.value)
@@ -198,18 +177,18 @@ fun CategoryScreenContentPreview() {
 
     val dummyCategories = listOf(
         CategoryItem(
-            id = "1",
-            name = "분류되지 않음",
+            id = 1,
+            title = "분류되지 않음",
             orderIndex = 0,
         ),
         CategoryItem(
-            id = "2",
-            name = "코테 자료",
+            id = 2,
+            title = "코테 자료",
             orderIndex = 0,
         ),
         CategoryItem(
-            id = "3",
-            name = "IBM Technology",
+            id = 3,
+            title = "IBM Technology",
             orderIndex = 0,
         ),
     )
