@@ -51,7 +51,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
-    navigateToDetail: (String) -> Unit = {},
+    navigateToDetail: (Long) -> Unit = {},
     onSelectCategoryClick: () -> Unit = {},
     viewModel: SearchViewModel = hiltViewModel()
 ) {

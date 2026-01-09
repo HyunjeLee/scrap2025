@@ -9,14 +9,15 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.scrap2025.scrap2025.model.GlobalUiState
 import com.scrap2025.scrap2025.navigation.Category
 import com.scrap2025.scrap2025.navigation.CategorySelection
 import com.scrap2025.scrap2025.navigation.Favorite
@@ -35,13 +36,14 @@ import com.scrap2025.scrap2025.viewmodel.MainViewModel
 fun MainScreen(
     parentNavController: NavHostController,
     modifier: Modifier = Modifier,
-    viewModel: MainViewModel = hiltViewModel()
+    mainViewModel: MainViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val tabNavController = rememberNavController()
     val currentBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val currentDestination = currentBackStackEntry?.destination
 
-    val accessToken by viewModel.accessToken.collectAsState()
+    val accessToken by mainViewModel.accessToken.collectAsState()
 
     // 토큰이 null이면 로그인 화면으로 이동
     // 초기값인 ""(빈 문자열)일 때는 무시
@@ -55,24 +57,31 @@ fun MainScreen(
     }
 
     // 메인 탭 화면들에서만 뒤로가기 종료 처리
-    val isMainTab = currentDestination?.hasRoute<Category>() == true ||
-            currentDestination?.hasRoute<Scrap>() == true ||
-            currentDestination?.hasRoute<Favorite>() == true ||
-            currentDestination?.hasRoute<Search>() == true ||
-            currentDestination?.hasRoute<MyPage>() == true
+    val isMainTab =
+        currentDestination?.hasRoute<Category>() == true ||
+                currentDestination?.hasRoute<Scrap>() == true ||
+                currentDestination?.hasRoute<Favorite>() == true ||
+                currentDestination?.hasRoute<Search>() == true ||
+                currentDestination?.hasRoute<MyPage>() == true
 
     if (isMainTab) {
         BackPressToExitHandler()
     }
 
-    val customBottomBar by GlobalUiState.customBottomBar.collectAsState()
-    val sharedUrl by GlobalUiState.sharedUrl.collectAsState()
+    val customBottomBar by mainViewModel.customBottomBar.collectAsState()
+    val sharedUrl by mainViewModel.sharedUrl.collectAsState()
 
     // 공유된 URL이 있으면 AddScrapScreen으로 이동
     LaunchedEffect(sharedUrl) {
         if (sharedUrl != null) {
-            tabNavController.navigate(CategorySelection(Mode.SHARE))
-            GlobalUiState.clearSharedUrlTrigger()
+            tabNavController.navigate(
+                CategorySelection(
+                    Mode.ADD,
+                    initialCategoryId = mainViewModel.selectedCategoryId.value,
+                    initialCategoryTitle = mainViewModel.selectedCategoryTitle.value,
+                )
+            )
+            mainViewModel.clearSharedUrlTrigger()
         }
     }
 
@@ -109,11 +118,9 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)) {
             TabNavHost(tabNavController = tabNavController)
         }
     }

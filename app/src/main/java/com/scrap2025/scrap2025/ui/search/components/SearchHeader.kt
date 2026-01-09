@@ -55,15 +55,17 @@ fun SearchHeader(
     onSearchRangeToggle: (String) -> Unit,
     selectedCategories: List<CategoryItem>,
     onSelectCategoryClick: () -> Unit,
-    onRemoveCategory: (String) -> Unit,
+    onRemoveCategory: (Long) -> Unit,
     startDate: String,
     endDate: String,
     onDateClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier
-        .fillMaxWidth()
-        .background(MainColor)) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MainColor)
+    ) {
         Text(
             text = "검색",
             style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
@@ -122,9 +124,11 @@ fun SearchHeader(
         HorizontalDivider(color = LineGrayColor)
 
         // 검색 범위
-        Box(modifier = Modifier
-            .height(48.dp)
-            .fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
             Row(
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
@@ -150,9 +154,11 @@ fun SearchHeader(
         HorizontalDivider(color = LineGrayColor)
 
         // 카테고리
-        Box(modifier = Modifier
-            .height(48.dp)
-            .fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
             Row(
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
@@ -185,7 +191,7 @@ fun SearchHeader(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(selectedCategories) { category ->
-                        CategoryChip(category.name) { onRemoveCategory(category.id) }
+                        CategoryChip(category.title) { onRemoveCategory(category.id) }
                     }
                 }
             }
@@ -194,9 +200,11 @@ fun SearchHeader(
         HorizontalDivider(color = LineGrayColor)
 
         // 날짜
-        Box(modifier = Modifier
-            .height(48.dp)
-            .fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(), contentAlignment = Alignment.Center
+        ) {
             Row(
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
@@ -225,7 +233,9 @@ fun SearchRangeItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier.clickable { onClick() }
     ) {
         Icon(
-            painter = if (isSelected) painterResource(R.drawable.ic_check_filled) else painterResource(R.drawable.ic_check_unfilled),
+            painter = if (isSelected) painterResource(R.drawable.ic_check_filled) else painterResource(
+                R.drawable.ic_check_unfilled
+            ),
             contentDescription = label,
             tint = Color.Unspecified,
             modifier = Modifier.size(20.dp)

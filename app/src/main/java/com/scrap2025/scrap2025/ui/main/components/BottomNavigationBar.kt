@@ -41,13 +41,34 @@ fun BottomNavigationBar(
     modifier: Modifier = Modifier,
     onItemClick: (Route) -> Unit = {}
 ) {
-    val items = listOf(
-        BottomNavItem("카테고리", painterResource(R.drawable.ic_folder), Category, Category::class),
-        BottomNavItem("스크랩", painterResource(R.drawable.ic_clip), Scrap, Scrap::class),
-        BottomNavItem("즐겨찾기", painterResource(R.drawable.ic_fav_false), Favorite, Favorite::class),
-        BottomNavItem("검색", painterResource(R.drawable.ic_search), Search, Search::class),
-        BottomNavItem("마이페이지", painterResource(R.drawable.ic_user), MyPage, MyPage::class)
-    )
+    val items =
+        listOf(
+            BottomNavItem(
+                "카테고리",
+                painterResource(R.drawable.ic_folder),
+                Category,
+                Category::class
+            ),
+            BottomNavItem("스크랩", painterResource(R.drawable.ic_clip), Scrap, Scrap::class),
+            BottomNavItem(
+                "즐겨찾기",
+                painterResource(R.drawable.ic_fav_false),
+                Favorite,
+                Favorite::class
+            ),
+            BottomNavItem(
+                "검색",
+                painterResource(R.drawable.ic_search),
+                Search,
+                Search::class
+            ),
+            BottomNavItem(
+                "마이페이지",
+                painterResource(R.drawable.ic_user),
+                MyPage,
+                MyPage::class
+            )
+        )
 
     NavigationBar(
         modifier = modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)),
@@ -60,11 +81,12 @@ fun BottomNavigationBar(
 
             NavigationBarItem(
                 selected = isSelected,
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MainColorDeep,
-                    selectedTextColor = MainColorDeep,
-                    indicatorColor = MainColorLight
-                ),
+                colors =
+                    NavigationBarItemDefaults.colors(
+                        selectedIconColor = MainColorDeep,
+                        selectedTextColor = MainColorDeep,
+                        indicatorColor = MainColorLight
+                    ),
                 onClick = { onItemClick(item.route) },
                 icon = { Icon(painter = item.icon, contentDescription = item.label) },
                 label = { Text(item.label) },
@@ -77,5 +99,9 @@ fun BottomNavigationBar(
 @Preview(showBackground = true)
 @Composable
 fun BottomNavigationBarPreview() {
-    Scrap2025Theme { BottomNavigationBar(currentDestination = null) }
+    Scrap2025Theme {
+        BottomNavigationBar(
+            currentDestination = null,
+        )
+    }
 }

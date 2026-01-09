@@ -6,17 +6,37 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.scrap2025.scrap2025.model.GlobalUiState
+import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.scrap2025.scrap2025.navigation.AppNavHost
+import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val mainViewModel: MainViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { Scrap2025Theme { AppNavHost() } }
+        setContent {
+            val isInitialized by mainViewModel.isInitialized.collectAsState()
+
+            Scrap2025Theme {
+                when (isInitialized) {
+                    true -> {
+                        AppNavHost()
+                    }
+
+                    false -> {
+                        LoadingScreen("로딩 중 입니다...")
+                    }
+                }
+            }
+        }
 
         // Handle intent when app is launched
         handleIntent(intent)
@@ -38,7 +58,7 @@ class MainActivity : ComponentActivity() {
                 val extractedUrl = extractUrl(sharedText)
                 if (extractedUrl != null) {
                     Log.d("SharedLink", "Extracted URL: $extractedUrl")
-                    GlobalUiState.setSharedUrl(extractedUrl)
+                    mainViewModel.setSharedUrl(extractedUrl)
                 } else {
                     Log.w("SharedLink", "No URL found in shared text: $sharedText")
                 }

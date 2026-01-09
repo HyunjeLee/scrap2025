@@ -83,6 +83,6 @@ constructor(
                 val errorMsg = "서버 로그인 실패: ${exception.message}"
                 _uiState.value = LoginUiState.Error(errorMsg)
                 Log.e(TAG, errorMsg)
-        }
+            }
     }
 }
