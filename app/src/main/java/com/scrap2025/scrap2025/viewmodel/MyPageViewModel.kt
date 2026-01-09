@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -51,17 +52,15 @@ constructor(
     val uiState: StateFlow<MyPageUiState> =
         combine(
             myPageRepository.myPageData,
-            scrapRepository.getScrapCount(),
-            categoryRepository.getCategoryCount(),
             tokenManager.snsType
-        ) { myPageInfo, scrapCount, categoryCount, snsType ->
+        ) { myPageInfo, snsType ->
             if (myPageInfo == null) {
                 MyPageUiState.Loading
             } else {
                 MyPageUiState.Success(
                     myPageInfo = myPageInfo,
-                    scrapCount = scrapCount,
-                    categoryCount = categoryCount,
+                    scrapCount = myPageInfo.statistics.totalScrap,
+                    categoryCount = myPageInfo.statistics.totalCategory,
                     snsType = snsType ?: SnsType.NAVER // 기본값 설정
                 )
             }
@@ -77,12 +76,17 @@ constructor(
     }
 
     init {
-        fetchMyPageInfo()
+        viewModelScope.launch {
+            merge(
+                scrapRepository.refreshEvent,
+                categoryRepository.refreshEvent
+            ).collect {
+                // 어떤 신호든 들어오면 마이페이지 서버 정보 새로고침
+                myPageRepository.fetchMyPage()
+            }
+        }
     }
 
-    fun fetchMyPageInfo() {
-        viewModelScope.launch { myPageRepository.invokeMyPageSync() }
-    }
 
     fun showWithdrawalDialog() {
         _showWithdrawDialog.value = true
@@ -108,7 +112,6 @@ constructor(
                 }
                 .onFailure { exception ->
                     val errorMsg = "소셜 로그아웃 실패: ${exception.message}"
-//                    _uiState.value = uiState.Error(errorMsg)
                     Log.e(TAG, errorMsg)
                 }
         }
@@ -130,7 +133,6 @@ constructor(
                 }
                 .onFailure { exception ->
                     val errorMsg = "소셜 연동해제 실패: ${exception.message}"
-//                    _uiState.value = uiState.Error(errorMsg)
                     Log.e(TAG, errorMsg)
                 }
         }
@@ -150,12 +152,10 @@ constructor(
     private suspend fun requestServerLogout() {
         authRepository.logoutToServer()
             .onSuccess {
-//                _uiState.value = LoginUiState.Success
                 Log.d(TAG, "서버 로그아웃 성공")
             }
             .onFailure { exception ->
                 val errorMsg = "서버 로그아웃 실패: ${exception.message}"
-//                _uiState.value = LoginUiState.Error(errorMsg)
                 Log.e(TAG, errorMsg)
             }
     }
@@ -174,12 +174,10 @@ constructor(
     private suspend fun requestServerWithdraw() {
         authRepository.withdrawToServer()
             .onSuccess {
-//                _uiState.value = LoginUiState.Success
                 Log.d(TAG, "서버 회원탈퇴 성공")
             }
             .onFailure { exception ->
                 val errorMsg = "서버 회원탈퇴 실패: ${exception.message}"
-//                _uiState.value = LoginUiState.Error(errorMsg)
                 Log.e(TAG, errorMsg)
             }
     }
