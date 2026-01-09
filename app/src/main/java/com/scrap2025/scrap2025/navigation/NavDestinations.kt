@@ -21,8 +21,10 @@ object Category : Route
 @Serializable
 data class CategorySelection(
     val mode: Mode,
-    val scrapId: String? = null,
-    val initialSelectedIds: List<String> = emptyList()
+    val scrapId: Long? = null,
+    val initialCategoryId: Long? = null,
+    val initialCategoryTitle: String? = null,
+    val initialSelectedIds: List<Long> = emptyList()
 ) : Route
 
 @Serializable
@@ -35,10 +37,10 @@ object Scrap : Route
 object AddScrap : Route
 
 @Serializable
-data class EditMemo(val scrapId: String, val initialMemo: String) : Route
+data class EditMemo(val scrapId: Long, val initialMemo: String) : Route
 
 @Serializable
-data class ScrapDetail(val scrapId: String) : Route
+data class ScrapDetail(val scrapId: Long) : Route
 
 @Serializable
 object Favorite : Route

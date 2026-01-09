@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -13,15 +15,20 @@ import com.scrap2025.scrap2025.navigation.graphs.myPageNavGraph
 import com.scrap2025.scrap2025.navigation.graphs.scrapNavGraph
 import com.scrap2025.scrap2025.navigation.graphs.searchNavGraph
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 @Composable
 fun TabNavHost(tabNavController: NavHostController, modifier: Modifier = Modifier) {
+    val mainViewModel: MainViewModel = hiltViewModel(
+        viewModelStoreOwner = tabNavController.context as ViewModelStoreOwner
+    )
+
     NavHost(
         navController = tabNavController,
         startDestination = CategoryGraph,
         modifier = modifier.fillMaxSize()
     ) {
-        categoryNavGraph(navController = tabNavController)
+        categoryNavGraph(navController = tabNavController, mainViewModel = mainViewModel)
         scrapNavGraph(navController = tabNavController)
         favoriteNavGraph(navController = tabNavController)
         searchNavGraph(navController = tabNavController)

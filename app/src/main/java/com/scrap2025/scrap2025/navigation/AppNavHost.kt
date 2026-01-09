@@ -3,8 +3,10 @@ package com.scrap2025.scrap2025.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
@@ -13,7 +15,7 @@ import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 @Composable
 fun AppNavHost(
-    mainViewModel: MainViewModel = hiltViewModel()
+    mainViewModel: MainViewModel = hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val navController = rememberNavController()
     val accessToken by mainViewModel.accessToken.collectAsState()
