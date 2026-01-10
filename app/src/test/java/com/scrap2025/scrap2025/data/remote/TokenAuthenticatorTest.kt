@@ -79,7 +79,7 @@ class TokenAuthenticatorTest {
         coVerify { tokenManager.saveTokens(newAccessToken, newRefreshToken) }
 
         // Verify new request has new token
-        assertEquals(newAccessToken, resultRequest?.header("Authorization"))
+        assertEquals("Bearer $newAccessToken", resultRequest?.header("Authorization"))
     }
 
     @Test
