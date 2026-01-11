@@ -11,18 +11,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** CategoryRepositoryImpl - CategoryRepository 구현체 Room DB(CategoryDao)를 사용하여 데이터 관리 */
+/** CategoryRepository의 구현체. [CategoryRemoteDataSource]를 사용하여 카테고리 데이터를 관리합니다. */
 @Singleton
 class CategoryRepositoryImpl
 @Inject
-constructor(
-    private val categoryRemoteDataSource: CategoryRemoteDataSource
-) : CategoryRepository {
+constructor(private val categoryRemoteDataSource: CategoryRemoteDataSource) : CategoryRepository {
     private val _refreshEvent = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
     override val refreshEvent: SharedFlow<Unit> = _refreshEvent.asSharedFlow()
 
     override var defaultCategory: CategoryItem? = null
-        private set  // set은 외부에서 할 수 없도록
+        private set // set은 외부에서 할 수 없도록
 
     private val _allCategories =
         MutableStateFlow<Result<List<CategoryItem>>>(Result.success(emptyList()))

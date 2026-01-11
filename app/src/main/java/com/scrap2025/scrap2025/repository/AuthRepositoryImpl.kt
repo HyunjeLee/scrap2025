@@ -8,9 +8,14 @@ import com.scrap2025.scrap2025.model.enums.SnsType
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * AuthRepository의 구현체. [AuthRemoteDataSource]를 통한 원격 인증 처리와 [TokenManager], [AppDatabase]를 통한 로컬
+ * 데이터 관리를 수행합니다.
+ */
 @Singleton
 class AuthRepositoryImpl
-@Inject constructor(
+@Inject
+constructor(
     private val authRemoteDataSource: AuthRemoteDataSource,
     private val tokenManager: TokenManager,
     private val database: AppDatabase,
@@ -23,7 +28,8 @@ class AuthRepositoryImpl
         return try {
             val loginResult = authRemoteDataSource.login(sns = snsType.value, token = socialToken)
             tokenManager.saveTokens(
-                accessToken = loginResult.accessToken, refreshToken = loginResult.refreshToken
+                accessToken = loginResult.accessToken,
+                refreshToken = loginResult.refreshToken
             )
             tokenManager.saveSnsType(snsType)
             Log.d(TAG, "Tokens and SnsType saved successfully")

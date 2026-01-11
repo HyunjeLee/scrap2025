@@ -12,12 +12,15 @@ import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/** ScrapRepository의 구현체. [ScrapRemoteDataSource]를 통해 원격 서버와 통신하며 스크랩 데이터를 관리합니다. */
 @Singleton
 class ScrapRepositoryImpl
-@Inject constructor(
+@Inject
+constructor(
     private val scrapRemoteDataSource: ScrapRemoteDataSource,
 ) : ScrapRepository {
 
+    // 데이터 변경 사항을 UI에 알리기 위한 스트림
     private val _refreshEvent = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
     override val refreshEvent: SharedFlow<Unit> = _refreshEvent.asSharedFlow()
 
@@ -25,7 +28,6 @@ class ScrapRepositoryImpl
         try {
             val response = scrapRemoteDataSource.getAllScrapsByCategoryId(categoryId)
             val scraps = response.scraps.map { it.toDomainModel() }
-
             emit(Result.success(scraps))
         } catch (e: Exception) {
             emit(Result.failure(e))
@@ -36,7 +38,6 @@ class ScrapRepositoryImpl
         try {
             val response = scrapRemoteDataSource.getFavoriteScraps()
             val scraps = response.scraps.map { it.toDomainModel() }
-
             emit(Result.success(scraps))
         } catch (e: Exception) {
             emit(Result.failure(e))
@@ -46,7 +47,6 @@ class ScrapRepositoryImpl
     override suspend fun getScrapById(id: Long): Result<ScrapItem> {
         return try {
             val scrap = scrapRemoteDataSource.getScrapById(id)
-
             Result.success(scrap.toDomainModel())
         } catch (e: Exception) {
             Result.failure(e)
@@ -56,14 +56,16 @@ class ScrapRepositoryImpl
     override suspend fun createScrap(item: ScrapItem): Result<Unit> {
         return try {
             scrapRemoteDataSource.createScrap(
-                categoryId = item.categoryId ?: 0L, request = CreateScrapRequest(
-                    scrapURL = item.url,
-                    imageURL = item.imageUrl,
-                    title = item.title,
-                    description = item.description,
-                    memo = item.memo,
-                    isFavorite = item.isFavorite
-                )
+                categoryId = item.categoryId ?: 0L,
+                request =
+                    CreateScrapRequest(
+                        scrapURL = item.url,
+                        imageURL = item.imageUrl,
+                        title = item.title,
+                        description = item.description,
+                        memo = item.memo,
+                        isFavorite = item.isFavorite
+                    )
             )
             _refreshEvent.emit(Unit)
             Result.success(Unit)
@@ -154,51 +156,63 @@ class ScrapRepositoryImpl
         sortDirection: String,
         page: Int,
         size: Int
-    ): Result<List<ScrapItem>> = try {
-        val request = SearchRequest(searchScope, categoryRemoteIds, startDate, endDate)
+    ): Result<List<ScrapItem>> =
+        try {
+            val request = SearchRequest(searchScope, categoryRemoteIds, startDate, endDate)
 
-        val remoteData = scrapRemoteDataSource.searchScraps(
-            query = query,
-            sort = sortType,
-            direction = sortDirection,
-            page = page,
-            size = size,
-            request = request
-        )
+            val remoteData =
+                scrapRemoteDataSource.searchScraps(
+                    query = query,
+                    sort = sortType,
+                    direction = sortDirection,
+                    page = page,
+                    size = size,
+                    request = request
+                )
 
-        val domainItems = remoteData.scraps.map { it.toDomainModel() }
-        Result.success(domainItems)
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
+            val domainItems = remoteData.scraps.map { it.toDomainModel() }
+            Result.success(domainItems)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
 
     override suspend fun searchFavoriteScraps(
         query: String,
         sortType: String?,
         sortDirection: String?,
-    ): Result<List<ScrapItem>> = try {
-        val remoteData = scrapRemoteDataSource.favoriteSearch(
-            query = query,
-            sort = sortType,
-            direction = sortDirection,
-        )
+    ): Result<List<ScrapItem>> =
+        try {
+            val remoteData =
+                scrapRemoteDataSource.favoriteSearch(
+                    query = query,
+                    sort = sortType,
+                    direction = sortDirection,
+                )
 
-        val domainItems = remoteData.scraps.map { it.toDomainModel() }
-        Result.success(domainItems)
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
+            val domainItems = remoteData.scraps.map { it.toDomainModel() }
+            Result.success(domainItems)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
 
     override suspend fun searchScrapsByCategory(
-        categoryRemoteId: Long, query: String, sortType: String?, sortDirection: String?
-    ): Result<List<ScrapItem>> = try {
-        val remoteData = scrapRemoteDataSource.searchScrapsByCategory(
-            categoryId = categoryRemoteId, query = query, sort = sortType, direction = sortDirection
-        )
+        categoryRemoteId: Long,
+        query: String,
+        sortType: String?,
+        sortDirection: String?
+    ): Result<List<ScrapItem>> =
+        try {
+            val remoteData =
+                scrapRemoteDataSource.searchScrapsByCategory(
+                    categoryId = categoryRemoteId,
+                    query = query,
+                    sort = sortType,
+                    direction = sortDirection
+                )
 
-        val domainItems = remoteData.scraps.map { it.toDomainModel() }
-        Result.success(domainItems)
-    } catch (e: Exception) {
-        Result.failure(e)
-    }
+            val domainItems = remoteData.scraps.map { it.toDomainModel() }
+            Result.success(domainItems)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
 }
