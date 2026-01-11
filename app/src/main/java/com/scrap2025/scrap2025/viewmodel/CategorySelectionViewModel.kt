@@ -30,8 +30,7 @@ constructor(
 ) : ViewModel() {
 
     val mode = savedStateHandle.toRoute<CategorySelection>().mode
-    val scrapId = savedStateHandle.toRoute<CategorySelection>().scrapId ?: -1L
-    val scrapIds = savedStateHandle.toRoute<CategorySelection>().scrapIds ?: emptyList()
+    val scrapIds = savedStateHandle.toRoute<CategorySelection>().scrapIds ?: emptyList()  // 해당 인자만 유지  // 단일은 1개의 값만
     val initialCategoryId = savedStateHandle.toRoute<CategorySelection>().initialCategoryId
     val initialCategoryTitle = savedStateHandle.toRoute<CategorySelection>().initialCategoryTitle
     val initialSelectedIds = savedStateHandle.toRoute<CategorySelection>().initialSelectedIds
@@ -76,15 +75,24 @@ constructor(
         }
     }
 
-    fun moveScrap(categoryId: Long, onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val result = scrapRepository.moveScrap(scrapId, categoryId)
-            result.onSuccess {
-                categoryRepository.refreshCategories()
-                onSuccess()
-            }
-        }
+    fun moveScrap(
+        categoryId: Long,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit
+    ) {
+        val scrapId = scrapIds.firstOrNull() ?: return // 아이템이 없으면 바로 종료
 
+        viewModelScope.launch {
+            scrapRepository.moveScrap(scrapId, categoryId)
+                .onSuccess {
+                    categoryRepository.refreshCategories()
+                    onSuccess()
+                }
+                .onFailure {
+                    onFailure()
+                    Log.e(TAG, " Error moveScrap", it)
+                }
+        }
     }
 
     // 선택된 아이템 이동
@@ -101,7 +109,7 @@ constructor(
                 }
                 .onFailure {
                     onFailure()
-                    Log.e(TAG, "Error moving selected items", it)
+                    Log.e(TAG, "Error moveScrapBulk", it)
                 }
 
         }

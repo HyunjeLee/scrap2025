@@ -33,7 +33,7 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
                 navigateToCategory = { navController.navigate(Category) },
                 navigateToCategorySelection = { scrapIds ->
                     navController.navigate(CategorySelection(
-                        mode = Mode.MOVE_BULK,
+                        mode = Mode.MOVE,
                         scrapIds = scrapIds,
                         initialCategoryId = mainViewModel.selectedCategoryId.value,
                         initialCategoryTitle = mainViewModel.selectedCategoryTitle.value,
@@ -63,7 +63,7 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
                     navController.navigate(
                         CategorySelection(
                             mode = Mode.MOVE,
-                            scrapId = scrapId,
+                            scrapIds = listOf(scrapId),
                             initialCategoryId = mainViewModel.selectedCategoryId.value,
                             initialCategoryTitle = mainViewModel.selectedCategoryTitle.value
                         )
