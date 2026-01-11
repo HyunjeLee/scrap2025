@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.scrap2025.scrap2025.data.remote.dto.ScrapMemoDto
-import com.scrap2025.scrap2025.navigation.destinaitons.EditMemo
+import com.scrap2025.scrap2025.navigation.destinations.EditMemo
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.scrap2025.scrap2025.navigation.destinaitons.CategoryGraph
+import com.scrap2025.scrap2025.navigation.destinations.CategoryGraph
 import com.scrap2025.scrap2025.navigation.graphs.categoryNavGraph
 import com.scrap2025.scrap2025.navigation.graphs.favoriteNavGraph
 import com.scrap2025.scrap2025.navigation.graphs.myPageNavGraph

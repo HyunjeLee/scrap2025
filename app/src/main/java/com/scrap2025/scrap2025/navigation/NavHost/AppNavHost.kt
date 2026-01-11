@@ -9,8 +9,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.scrap2025.scrap2025.navigation.destinaitons.Login
-import com.scrap2025.scrap2025.navigation.destinaitons.Main
+import com.scrap2025.scrap2025.navigation.destinations.Login
+import com.scrap2025.scrap2025.navigation.destinations.Main
 import com.scrap2025.scrap2025.navigation.graphs.mainNavGraph
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme

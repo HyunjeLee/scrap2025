@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.navigation.destinaitons
+package com.scrap2025.scrap2025.navigation.destinations
 
 import com.scrap2025.scrap2025.ui.category.screens.Mode
 import kotlinx.serialization.Serializable
