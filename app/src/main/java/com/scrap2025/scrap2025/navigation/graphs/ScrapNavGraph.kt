@@ -1,8 +1,5 @@
 package com.scrap2025.scrap2025.navigation.graphs
 
-import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
@@ -22,26 +19,29 @@ import com.scrap2025.scrap2025.ui.scrap.screens.ScrapDetailScreen
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreen
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
-fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
+fun NavGraphBuilder.scrapNavGraph(
+    navController: NavHostController,
+    mainViewModel: MainViewModel
+) {
     navigation<ScrapGraph>(startDestination = Scrap) {
         composable<Scrap> {
-            val mainViewModel: MainViewModel =
-                hiltViewModel(LocalContext.current as ViewModelStoreOwner)
-
             ScrapScreen(
                 navigateToAddScrap = { navController.navigate(AddScrap) },
                 navigateToCategory = { navController.navigate(Category) },
                 navigateToCategorySelection = { scrapIds ->
-                    navController.navigate(CategorySelection(
-                        mode = Mode.MOVE,
-                        scrapIds = scrapIds,
-                        initialCategoryId = mainViewModel.selectedCategoryId.value,
-                        initialCategoryTitle = mainViewModel.selectedCategoryTitle.value,
-                    ))
-                                              },
+                    navController.navigate(
+                        CategorySelection(
+                            mode = Mode.MOVE,
+                            scrapIds = scrapIds,
+                            initialCategoryId = mainViewModel.selectedCategoryId.value,
+                            initialCategoryTitle = mainViewModel.selectedCategoryTitle.value,
+                        )
+                    )
+                },
                 navigateToScrapDetail = { scrapId ->
                     navController.navigate(ScrapDetail(scrapId))
-                })
+                }
+            )
         }
 
         composable<AddScrap> { AddScrapScreen(onBack = { navController.popBackStack() }) }
@@ -49,9 +49,6 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
         composable<EditMemo> { EditMemoScreen(onBack = { navController.popBackStack() }) }
 
         composable<ScrapDetail> { backStackEntry ->
-            val mainViewModel: MainViewModel =
-                hiltViewModel(LocalContext.current as ViewModelStoreOwner)
-
             val scrapId = backStackEntry.toRoute<ScrapDetail>().scrapId
 
             ScrapDetailScreen(
@@ -68,7 +65,8 @@ fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
                             initialCategoryTitle = mainViewModel.selectedCategoryTitle.value
                         )
                     )
-                })
+                }
+            )
         }
     }
 }

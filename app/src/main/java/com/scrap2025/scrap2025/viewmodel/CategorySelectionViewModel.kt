@@ -76,15 +76,15 @@ constructor(
     }
 
     fun moveScrap(
-        categoryId: Long,
         onSuccess: () -> Unit,
         onFailure: () -> Unit
     ) {
         val scrapId = scrapIds.firstOrNull() ?: return // 아이템이 없으면 바로 종료
 
         viewModelScope.launch {
-            scrapRepository.moveScrap(scrapId, categoryId)
+            scrapRepository.moveScrap(scrapId, _selectedCategoryId.value)
                 .onSuccess {
+                    categoryRepository.setGlobalCategory(_selectedCategoryId.value, _selectedCategoryName.value)
                     categoryRepository.refreshCategories()
                     onSuccess()
                 }
@@ -97,13 +97,13 @@ constructor(
 
     // 선택된 아이템 이동
     fun moveScrapBulk(
-        categoryId: Long,
         onSuccess: () -> Unit,
         onFailure: () -> Unit
     ) {
         viewModelScope.launch {
-            scrapRepository.moveScrapBulk(scrapIds, categoryId)
+            scrapRepository.moveScrapBulk(scrapIds, _selectedCategoryId.value)
                 .onSuccess {
+                    categoryRepository.setGlobalCategory(_selectedCategoryId.value, _selectedCategoryName.value)
                     categoryRepository.refreshCategories()
                     onSuccess()
                 }

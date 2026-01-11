@@ -55,7 +55,7 @@ constructor(
         }
     }
 
-    override fun selectCategory(id: Long, title: String) {
+    override fun setGlobalCategory(id: Long, title: String) {
         _selectedCategoryId.value = id
         _selectedCategoryTitle.value = title
     }

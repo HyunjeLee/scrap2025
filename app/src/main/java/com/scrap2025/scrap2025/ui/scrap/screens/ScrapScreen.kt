@@ -150,7 +150,7 @@ fun ScrapScreen(
                                     id = id,
                                     newTitle = newTitle
                                 )
-                                mainViewModel.setGlobalCategory(id, newTitle)
+                                scrapViewModel.setGlobalCategory(id, newTitle)
                             },
                             onDeleteCategory = { screenState.showDeleteDialog = true }
                         )

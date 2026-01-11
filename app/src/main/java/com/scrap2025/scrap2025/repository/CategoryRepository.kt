@@ -18,7 +18,7 @@ interface CategoryRepository {
     val selectedCategoryTitle: StateFlow<String?>
 
     suspend fun refreshCategories()
-    fun selectCategory(id: Long, title: String)
+    fun setGlobalCategory(id: Long, title: String)
 
     /**
      * 새로운 카테고리 추가

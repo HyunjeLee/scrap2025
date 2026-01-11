@@ -78,11 +78,11 @@ constructor(
     }
 
     fun setGlobalCategory(id: Long, title: String) {
-        categoryRepository.selectCategory(id, title)
+        categoryRepository.setGlobalCategory(id, title)
     }
 
     fun setDefaultCategory() {
-        categoryRepository.defaultCategory?.apply { categoryRepository.selectCategory(id, title) }
+        categoryRepository.defaultCategory?.apply { categoryRepository.setGlobalCategory(id, title) }
     }
 
     private fun fetchDefaultCategories() {

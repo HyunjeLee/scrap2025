@@ -343,8 +343,8 @@ class ScrapViewModel
     }
 
     // 카테고리 선택
-    fun setSelectedCategory(categoryId: Long, categoryName: String) {
-        categoryRepository.selectCategory(categoryId, categoryName)
+    fun setGlobalCategory(categoryId: Long, categoryTitle: String) {
+        categoryRepository.setGlobalCategory(categoryId, categoryTitle)
     }
 
     fun updateCategoryTitle(id: Long, newTitle: String) {

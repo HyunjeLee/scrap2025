@@ -25,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.common.buttons.TwoButtons
@@ -38,7 +37,6 @@ import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.viewmodel.CategorySelectionViewModel
 import com.scrap2025.scrap2025.viewmodel.CategoryUiState
-import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 enum class Mode {
     MOVE ,ADD, SEARCH
@@ -52,7 +50,6 @@ fun CategorySelectionScreen(
     onConfirmSearch: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: CategorySelectionViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel = hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val context = LocalContext.current
     val mode = viewModel.mode
@@ -76,7 +73,6 @@ fun CategorySelectionScreen(
         when (mode) {
             Mode.MOVE -> {
                 val successCallback = {
-                    mainViewModel.setGlobalCategory(selectedCategoryId, selectedCategoryName)
                     onBack()
                     Toast.makeText(context, "이동 완료", Toast.LENGTH_SHORT).show()
                 }
@@ -84,11 +80,11 @@ fun CategorySelectionScreen(
 
                 when (viewModel.scrapIds.size == 1) {
                     true -> {  // Single
-                        viewModel.moveScrap(selectedCategoryId, successCallback, failureCallback)
+                        viewModel.moveScrap(successCallback, failureCallback)
                     }
 
                     false -> {  // Bulk
-                        viewModel.moveScrapBulk(selectedCategoryId, successCallback, failureCallback)
+                        viewModel.moveScrapBulk(successCallback, failureCallback)
                     }
                 }
             }

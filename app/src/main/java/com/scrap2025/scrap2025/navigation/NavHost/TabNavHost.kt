@@ -30,7 +30,7 @@ fun TabNavHost(tabNavController: NavHostController, modifier: Modifier = Modifie
         modifier = modifier.fillMaxSize()
     ) {
         categoryNavGraph(navController = tabNavController, mainViewModel = mainViewModel)
-        scrapNavGraph(navController = tabNavController)
+        scrapNavGraph(navController = tabNavController, mainViewModel = mainViewModel)
         favoriteNavGraph(navController = tabNavController)
         searchNavGraph(navController = tabNavController)
         myPageNavGraph()
