@@ -1,5 +1,7 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -118,12 +120,13 @@ fun ScrapDetailScreen(
             ScrapDetailContent(
                 scrapItem = scrapItem,
                 onBack = onBack,
-                onEditMemo = onEditMemo,
-                onMove = onMove,
                 onClipboardCopy = { url -> context.copyToClipboard(url) },
                 onImageClick = { url -> UrlNavigator.openUrl(context, url) },
                 modifier = modifier,
                 onDelete = { viewModel.showDeleteDialog() },
+                onEditMemo = onEditMemo,
+                onMove = onMove,
+                onShare = { shareScrap(context, scrapItem) },
                 onToggleFavorite = {
                     viewModel.toggleFavorite(
                         onSuccess = {},
@@ -481,6 +484,17 @@ fun BottomNavItem(
         Spacer(modifier = Modifier.height(6.dp))
         Text(text = label, style = TextStyle(fontSize = 12.sp), color = Color.Black)
     }
+}
+
+private fun shareScrap(context: Context, scrapItem: ScrapItem) {
+    val dataIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, "[스크랩]\n${scrapItem.title}\n${scrapItem.url}")
+        putExtra(Intent.EXTRA_TITLE, scrapItem.title)
+    }
+    val shareIntent = Intent.createChooser(dataIntent, null)
+    context.startActivity(shareIntent)
 }
 
 @Preview(showBackground = true, showSystemUi = true)

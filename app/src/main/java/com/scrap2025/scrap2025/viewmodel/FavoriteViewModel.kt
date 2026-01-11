@@ -229,16 +229,27 @@ class FavoriteViewModel
 
     fun deleteSelectedItems() {
         viewModelScope.launch {
-            _selectedScrapIds.value.forEach { id -> scrapRepository.deleteScrapItem(id) }
+            scrapRepository.deleteScrapBulk(_selectedScrapIds.value.toList())
             exitSelectionMode()
         }
     }
 
-    fun toggleFavoriteSelectedItems() {
+    fun toggleFavoriteSelectedItems(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            _selectedScrapIds.value.forEach { id -> scrapRepository.toggleFavorite(id) }
-            exitSelectionMode()
+            val result = scrapRepository.toggleFavoriteBulk(_selectedScrapIds.value.toList())
+            result.fold(onSuccess = {
+                onSuccess()
+                exitSelectionMode()
+            }, onFailure = { onFailure() })
         }
+    }
+
+    fun getSelectedScraps(): List<ScrapItem> {
+        val state = sortedFavoriteItems.value
+        if (state is ScrapUiState.Success) {
+            return state.items.filter { it.id in _selectedScrapIds.value }
+        }
+        return emptyList()
     }
 
     fun onQueryChange(newQuery: String) {

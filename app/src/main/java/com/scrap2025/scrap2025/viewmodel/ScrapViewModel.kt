@@ -319,17 +319,8 @@ class ScrapViewModel
         }
     }
 
-    // 선택된 아이템 이동
-    fun moveSelectedItems(categoryId: Long) {
-        viewModelScope.launch {
-            scrapRepository.moveScrapBulk(_selectedScrapIds.value.toList(), categoryId)
-
-            exitSelectionMode()
-        }
-    }
-
     // 선택된 아이템 공유
-    fun shareSelectedItems(): List<ScrapItem> {
+    fun getSelectedScraps(): List<ScrapItem> {
         val state = sortedScrapItems.value
         if (state is ScrapUiState.Success) {
             return state.items.filter { it.id in _selectedScrapIds.value }

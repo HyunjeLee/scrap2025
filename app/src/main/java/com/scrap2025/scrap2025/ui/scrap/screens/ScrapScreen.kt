@@ -1,5 +1,7 @@
 package com.scrap2025.scrap2025.ui.scrap.screens
 
+import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -25,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
+import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.SortDirection
 import com.scrap2025.scrap2025.model.enums.SortType
 import com.scrap2025.scrap2025.model.enums.ViewMode
@@ -332,6 +335,8 @@ private fun SetSelectionBottomBar(
     scrapViewModel: ScrapViewModel,
     mainViewModel: MainViewModel
 ) {
+    val context = LocalContext.current
+
     LaunchedEffect(isSelectionMode) {
         if (isSelectionMode) {
             mainViewModel.setBottomBar {
@@ -341,7 +346,10 @@ private fun SetSelectionBottomBar(
                         navigateToCategorySelection()
                         scrapViewModel.exitSelectionMode()
                     },
-                    onShare = { /* todo */ },
+                    onShare = {
+                        shareScraps(context, scrapViewModel.getSelectedScraps())
+                        scrapViewModel.exitSelectionMode()
+                    },
                     onFavorite = { onSuccess, onFailure ->
                         scrapViewModel.toggleFavoriteSelectedItems(onSuccess, onFailure)
                     }
@@ -351,6 +359,24 @@ private fun SetSelectionBottomBar(
             mainViewModel.setBottomBar(null)
         }
     }
+}
+
+private fun shareScraps(context: Context, scraps: List<ScrapItem>) {
+    if (scraps.isEmpty()) return
+
+    val shareText = scraps.joinToString(separator = "\n\n") { scrapItem ->
+        "[스크랩]\n${scrapItem.title}\n${scrapItem.url}"
+    }
+
+    val dataIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TITLE, "스크랩 ${scraps.size}개 공유하는 중..")
+        putExtra(Intent.EXTRA_TEXT, shareText)
+    }
+
+    val shareIntent = Intent.createChooser(dataIntent, null)
+    context.startActivity(shareIntent)
 }
 
 @Composable

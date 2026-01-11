@@ -1,5 +1,7 @@
 package com.scrap2025.scrap2025.ui.favorite.screens
 
+import android.content.Context
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -16,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
+import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.SortBar
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapFloatingButtons
@@ -54,6 +57,7 @@ fun rememberFavoriteScreenState(
 @Composable
 fun FavoriteScreen(
     navigateToScrapDetail: (Long) -> Unit,
+    navigateToCategorySelection: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: FavoriteViewModel = hiltViewModel(),
     mainViewModel: MainViewModel =
@@ -61,13 +65,22 @@ fun FavoriteScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val screenState = rememberFavoriteScreenState(viewMode = uiState.viewMode)
+    val context = LocalContext.current
 
     val selectionBottomBar: @Composable () -> Unit = {
         ScrapSelectionBottomBar(
             onDelete = { viewModel.deleteSelectedItems() },
-            onMove = { /* todo */ },
-            onShare = { /* todo */ },
-            onFavorite = { onSuccess, onFailure -> viewModel.toggleFavoriteSelectedItems() }
+            onMove = {
+                navigateToCategorySelection(uiState.selectedScrapIds.toList())
+                viewModel.exitSelectionMode()
+            },
+            onShare = {
+                shareScraps(context, viewModel.getSelectedScraps())
+                viewModel.exitSelectionMode()
+            },
+            onFavorite = { onSuccess, onFailure ->
+                viewModel.toggleFavoriteSelectedItems(onSuccess, onFailure)
+            }
         )
     }
 
@@ -147,4 +160,22 @@ fun FavoriteScreen(
         },
         modifier = modifier,
     )
+}
+
+private fun shareScraps(context: Context, scraps: List<ScrapItem>) {
+    if (scraps.isEmpty()) return
+
+    val shareText = scraps.joinToString(separator = "\n\n") { scrapItem ->
+        "[스크랩]\n${scrapItem.title}\n${scrapItem.url}"
+    }
+
+    val dataIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TITLE, "스크랩 ${scraps.size}개 공유하는 중..")
+        putExtra(Intent.EXTRA_TEXT, shareText)
+    }
+
+    val shareIntent = Intent.createChooser(dataIntent, null)
+    context.startActivity(shareIntent)
 }
