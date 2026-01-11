@@ -14,6 +14,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+sealed interface MainUiState {
+    data object Loading : MainUiState        // 토큰이 있는지 확인 중인 상태
+    data object LoginRequired : MainUiState  // 인증 정보가 없어 로그인이 필요한 상태
+    data object Initializing : MainUiState   // 토큰은 있으나, 카테고리 등 초기 데이터를 가져오는 중
+    data object Complete : MainUiState          // 모든 데이터 준비 완료 (메인 화면 진입 가능)
+}
+
 @HiltViewModel
 class MainViewModel
 @Inject
@@ -36,8 +43,8 @@ constructor(
 
     private var _pendingSharedUrl: String? = null
 
-    private val _isInitialized = MutableStateFlow(false)
-    val isInitialized: StateFlow<Boolean> = _isInitialized.asStateFlow()
+    private val _uiState = MutableStateFlow<MainUiState>(MainUiState.Loading)
+    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     val selectedCategoryId: StateFlow<Long?> = categoryRepository.selectedCategoryId
     val selectedCategoryTitle: StateFlow<String?> = categoryRepository.selectedCategoryTitle
@@ -45,10 +52,13 @@ constructor(
     init {
         viewModelScope.launch {
             accessToken.collect { token ->
-                if (token.isNullOrEmpty()) {  // 로그인이 안되어있다면
-                    _isInitialized.value = true
-                } else {  // 로그인이 되어 있다면
-                    fetchDefaultCategories()
+                when {
+                    token == "" -> _uiState.value = MainUiState.Loading
+                    token == null -> _uiState.value = MainUiState.LoginRequired
+                    else -> {
+                        _uiState.value = MainUiState.Initializing
+                        fetchDefaultCategories()
+                    }
                 }
             }
         }
@@ -88,7 +98,7 @@ constructor(
     private fun fetchDefaultCategories() {
         viewModelScope.launch {
             categoryRepository.refreshCategories()
-            _isInitialized.value = true
+            _uiState.value = MainUiState.Complete
         }
     }
 }

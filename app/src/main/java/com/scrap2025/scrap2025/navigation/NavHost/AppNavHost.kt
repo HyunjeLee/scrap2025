@@ -12,7 +12,6 @@ import androidx.navigation.compose.rememberNavController
 import com.scrap2025.scrap2025.navigation.destinations.Login
 import com.scrap2025.scrap2025.navigation.destinations.Main
 import com.scrap2025.scrap2025.navigation.graphs.mainNavGraph
-import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
@@ -22,10 +21,6 @@ fun AppNavHost(
 ) {
     val navController = rememberNavController()
     val accessToken by mainViewModel.accessToken.collectAsState()
-
-    if (accessToken == "") { // 토큰을 읽어오는 중
-        return LoadingScreen()
-    }
 
     val startRoute = if (accessToken != null) Main else Login
 

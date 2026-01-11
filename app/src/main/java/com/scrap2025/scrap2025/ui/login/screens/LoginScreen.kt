@@ -43,7 +43,7 @@ fun LoginScreen(
             )
         }
         LoginUiState.Loading, LoginUiState.Success  -> {
-            LoadingScreen()
+            LoadingScreen("로그인 중 ...")
         }
         is LoginUiState.Error -> {
             ErrorScreen((uiState as LoginUiState.Error).message)

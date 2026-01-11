@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import com.scrap2025.scrap2025.navigation.NavHost.AppNavHost
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.MainUiState
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,17 +24,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val isInitialized by mainViewModel.isInitialized.collectAsState()
+            val mainUiState by mainViewModel.uiState.collectAsState()
 
             Scrap2025Theme {
-                when (isInitialized) {
-                    true -> {
-                        AppNavHost()
-                    }
-
-                    false -> {
-                        LoadingScreen("로딩 중 입니다...")
-                    }
+                when (mainUiState) {
+                    MainUiState.LoginRequired, MainUiState.Complete -> AppNavHost()
+                    MainUiState.Loading -> LoadingScreen("로딩 중 ...")
+                    MainUiState.Initializing -> LoadingScreen("초기화 중 ...")
                 }
             }
         }
