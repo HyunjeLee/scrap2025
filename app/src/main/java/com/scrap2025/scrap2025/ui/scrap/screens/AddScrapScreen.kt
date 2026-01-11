@@ -75,7 +75,7 @@ fun AddScrapScreen(
 
     // 화면 진입 시 공유된 URL이 있는지 확인하고 소비
     LaunchedEffect(Unit) {
-        val sharedUrl = mainViewModel.sharedUrl.value
+        val sharedUrl = mainViewModel.consumePendingSharedUrl()
         if (sharedUrl != null) {
             viewModel.updateUrl(sharedUrl)
             mainViewModel.setSharedUrl(null)
