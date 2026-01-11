@@ -330,7 +330,7 @@ private fun SetSelectionBottomBar(
             mainViewModel.setBottomBar {
                 ScrapSelectionBottomBar(
                     onDelete = { scrapViewModel.deleteSelectedItems() },
-                    onMove = { /*scrapViewModel.moveSelectedItems(it) */ },
+                    onMove = {  /* navigate to CategorySelection */ },
                     onShare = { /* todo */ },
                     onFavorite = { onSuccess, onFailure ->
                         scrapViewModel.toggleFavoriteSelectedItems(onSuccess, onFailure)

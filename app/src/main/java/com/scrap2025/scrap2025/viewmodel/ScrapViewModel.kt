@@ -36,6 +36,7 @@ sealed interface ScrapUiState {
     data class Success(val items: List<ScrapItem>) : ScrapUiState
     data class Error(val message: String? = null) : ScrapUiState
 }
+private const val TAG = "ScrapViewModel"
 
 @HiltViewModel
 class ScrapViewModel
@@ -311,7 +312,7 @@ class ScrapViewModel
     fun deleteSelectedItems() {
         viewModelScope.launch {
             scrapRepository.deleteScrapBulk(_selectedScrapIds.value.toList()).onFailure {
-                Log.e("ScrapViewModel", "Error deleting selected items", it)
+                Log.e(TAG, "Error deleting selected items", it)
             }
 
             exitSelectionMode()

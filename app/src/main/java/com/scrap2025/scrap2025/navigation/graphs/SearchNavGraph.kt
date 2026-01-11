@@ -5,9 +5,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
-import com.scrap2025.scrap2025.navigation.CategorySelection
-import com.scrap2025.scrap2025.navigation.ScrapDetail
-import com.scrap2025.scrap2025.navigation.Search
+import com.scrap2025.scrap2025.navigation.destinaitons.CategorySelection
+import com.scrap2025.scrap2025.navigation.destinaitons.ScrapDetail
+import com.scrap2025.scrap2025.navigation.destinaitons.Search
 import com.scrap2025.scrap2025.ui.category.screens.Mode
 import com.scrap2025.scrap2025.ui.search.screens.SearchScreen
 import com.scrap2025.scrap2025.viewmodel.SearchViewModel

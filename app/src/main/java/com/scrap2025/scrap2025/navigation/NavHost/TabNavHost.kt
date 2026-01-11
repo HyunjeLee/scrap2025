@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.navigation
+package com.scrap2025.scrap2025.navigation.NavHost
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import com.scrap2025.scrap2025.navigation.destinaitons.CategoryGraph
 import com.scrap2025.scrap2025.navigation.graphs.categoryNavGraph
 import com.scrap2025.scrap2025.navigation.graphs.favoriteNavGraph
 import com.scrap2025.scrap2025.navigation.graphs.myPageNavGraph
