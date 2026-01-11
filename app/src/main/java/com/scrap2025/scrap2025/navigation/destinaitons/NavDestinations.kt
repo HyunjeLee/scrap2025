@@ -21,10 +21,11 @@ object Category : Route
 @Serializable
 data class CategorySelection(
     val mode: Mode,
-    val scrapId: Long? = null,
+    val scrapId: Long? = null,  // for move single
+    val scrapIds: List<Long>? = null,  // for move bulk
     val initialCategoryId: Long? = null,
     val initialCategoryTitle: String? = null,
-    val initialSelectedIds: List<Long> = emptyList()
+    val initialSelectedIds: List<Long> = emptyList()  // for search
 ) : Route
 
 @Serializable

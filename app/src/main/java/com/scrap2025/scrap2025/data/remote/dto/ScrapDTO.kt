@@ -60,7 +60,10 @@ data class ScrapDetailResponse(
 data class MoveScrapRequest(val moveCategoryId: Long)
 
 @Serializable
-data class MoveScrapListRequest(val scrapIds: List<Long>, val categoryId: Long)
+data class MoveScrapBulkRequest(
+    @SerialName("scrapIdList") val scrapIds: List<Long>,
+    @SerialName("moveCategoryId") val categoryId: Long
+)
 
 // CREATE
 @Serializable

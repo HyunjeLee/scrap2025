@@ -41,7 +41,7 @@ import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 enum class Mode {
-    MOVE, ADD, SEARCH
+    MOVE, MOVE_BULK ,ADD, SEARCH
 }
 
 @Composable
@@ -57,12 +57,12 @@ fun CategorySelectionScreen(
     val context = LocalContext.current
     val mode = viewModel.mode
     val title = when (mode) {
-        Mode.MOVE -> "이동하기"
+        Mode.MOVE, Mode.MOVE_BULK -> "이동하기"
         Mode.ADD -> "카테고리 선택하기"
         Mode.SEARCH -> "카테고리"
     }
     val confirmText = when (mode) {
-        Mode.MOVE -> "이동하기"
+        Mode.MOVE, Mode.MOVE_BULK -> "이동하기"
         Mode.ADD -> "다음"
         Mode.SEARCH -> "완료"
     }
@@ -82,6 +82,20 @@ fun CategorySelectionScreen(
                     onBack()
                     Toast.makeText(context, "스크랩이 성공적으로 이동되었습니다.", Toast.LENGTH_SHORT).show()
                 }
+            }
+
+            Mode.MOVE_BULK -> {
+                viewModel.moveScrapBulk(
+                    categoryId = selectedCategoryId,
+                    onSuccess = {
+                        mainViewModel.setGlobalCategory(selectedCategoryId, selectedCategoryName)
+                        onBack()
+
+                        Toast.makeText(context, "선택한 스크랩들이 성공적으로 이동되었습니다.", Toast.LENGTH_SHORT)
+                            .show()
+                    },
+                    onFailure = { Toast.makeText(context, "스크랩 이동 실패", Toast.LENGTH_SHORT).show() }
+                )
             }
 
             Mode.ADD -> {

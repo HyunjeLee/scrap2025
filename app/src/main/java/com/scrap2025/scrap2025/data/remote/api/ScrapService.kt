@@ -6,7 +6,7 @@ import com.scrap2025.scrap2025.data.remote.dto.CreateScrapResponse
 import com.scrap2025.scrap2025.data.remote.dto.DeleteSCrapBulkRequest
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListResponse
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListToggleRequest
-import com.scrap2025.scrap2025.data.remote.dto.MoveScrapListRequest
+import com.scrap2025.scrap2025.data.remote.dto.MoveScrapBulkRequest
 import com.scrap2025.scrap2025.data.remote.dto.MoveScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.ScrapDetailResponse
 import com.scrap2025.scrap2025.data.remote.dto.ScrapListResponse
@@ -68,8 +68,8 @@ interface ScrapService {
     ): Response<BaseResponse<JsonElement>>
 
     @PATCH("/auth/scraps/move")
-    suspend fun moveScrapList(
-        @Body body: MoveScrapListRequest
+    suspend fun moveScrapBulk(
+        @Body body: MoveScrapBulkRequest
     ): Response<BaseResponse<JsonElement?>>
 
     @PATCH("/auth/scraps/{scrap-id}/trash")

@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +18,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val TAG = "CategorySelectionViewModel"
+
 @HiltViewModel
 class CategorySelectionViewModel
 @Inject
@@ -27,7 +30,8 @@ constructor(
 ) : ViewModel() {
 
     val mode = savedStateHandle.toRoute<CategorySelection>().mode
-    val scrapId = savedStateHandle.toRoute<CategorySelection>().scrapId
+    val scrapId = savedStateHandle.toRoute<CategorySelection>().scrapId ?: -1L
+    val scrapIds = savedStateHandle.toRoute<CategorySelection>().scrapIds ?: emptyList()
     val initialCategoryId = savedStateHandle.toRoute<CategorySelection>().initialCategoryId
     val initialCategoryTitle = savedStateHandle.toRoute<CategorySelection>().initialCategoryTitle
     val initialSelectedIds = savedStateHandle.toRoute<CategorySelection>().initialSelectedIds
@@ -73,14 +77,33 @@ constructor(
     }
 
     fun moveScrap(categoryId: Long, onSuccess: () -> Unit) {
-        if (scrapId != null) {
-            viewModelScope.launch {
-                val result = scrapRepository.moveScrap(scrapId, categoryId)
-                result.onSuccess {
+        viewModelScope.launch {
+            val result = scrapRepository.moveScrap(scrapId, categoryId)
+            result.onSuccess {
+                categoryRepository.refreshCategories()
+                onSuccess()
+            }
+        }
+
+    }
+
+    // 선택된 아이템 이동
+    fun moveScrapBulk(
+        categoryId: Long,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit
+    ) {
+        viewModelScope.launch {
+            scrapRepository.moveScrapBulk(scrapIds, categoryId)
+                .onSuccess {
                     categoryRepository.refreshCategories()
                     onSuccess()
                 }
-            }
+                .onFailure {
+                    onFailure()
+                    Log.e(TAG, "Error moving selected items", it)
+                }
+
         }
     }
 

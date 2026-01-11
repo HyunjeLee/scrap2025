@@ -6,7 +6,7 @@ import com.scrap2025.scrap2025.data.remote.dto.CreateScrapResponse
 import com.scrap2025.scrap2025.data.remote.dto.DeleteSCrapBulkRequest
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListResponse
 import com.scrap2025.scrap2025.data.remote.dto.FavoriteListToggleRequest
-import com.scrap2025.scrap2025.data.remote.dto.MoveScrapListRequest
+import com.scrap2025.scrap2025.data.remote.dto.MoveScrapBulkRequest
 import com.scrap2025.scrap2025.data.remote.dto.MoveScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.ScrapDetailResponse
 import com.scrap2025.scrap2025.data.remote.dto.ScrapListResponse
@@ -99,8 +99,8 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
     }
 
     override suspend fun moveScrapBulk(scrapIds: List<Long>, categoryId: Long): JsonElement? {
-        val request = MoveScrapListRequest(scrapIds = scrapIds, categoryId = categoryId)
-        val response = scrapService.moveScrapList(request)
+        val request = MoveScrapBulkRequest(scrapIds = scrapIds, categoryId = categoryId)
+        val response = scrapService.moveScrapBulk(request)
         if (response.isSuccessful) {
             return response.body()?.result
         } else {

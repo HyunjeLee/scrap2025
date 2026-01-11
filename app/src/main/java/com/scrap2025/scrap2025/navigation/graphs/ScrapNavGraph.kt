@@ -25,11 +25,20 @@ import com.scrap2025.scrap2025.viewmodel.MainViewModel
 fun NavGraphBuilder.scrapNavGraph(navController: NavHostController) {
     navigation<ScrapGraph>(startDestination = Scrap) {
         composable<Scrap> {
+            val mainViewModel: MainViewModel =
+                hiltViewModel(LocalContext.current as ViewModelStoreOwner)
+
             ScrapScreen(
                 navigateToAddScrap = { navController.navigate(AddScrap) },
                 navigateToCategory = { navController.navigate(Category) },
-                //                navigateToCategorySelection = {
-                // navController.navigate(CategorySelection(Mode.MOVE)) },
+                navigateToCategorySelection = { scrapIds ->
+                    navController.navigate(CategorySelection(
+                        mode = Mode.MOVE_BULK,
+                        scrapIds = scrapIds,
+                        initialCategoryId = mainViewModel.selectedCategoryId.value,
+                        initialCategoryTitle = mainViewModel.selectedCategoryTitle.value,
+                    ))
+                                              },
                 navigateToScrapDetail = { scrapId ->
                     navController.navigate(ScrapDetail(scrapId))
                 })

@@ -90,6 +90,7 @@ fun rememberScrapScreenState(
 fun ScrapScreen(
     navigateToAddScrap: () -> Unit,
     navigateToCategory: () -> Unit,
+    navigateToCategorySelection: (List<Long>) -> Unit,
     navigateToScrapDetail: (Long) -> Unit,
     modifier: Modifier = Modifier,
     scrapViewModel: ScrapViewModel = hiltViewModel(),
@@ -104,7 +105,12 @@ fun ScrapScreen(
             categoryName = uiState.categoryName
         )
 
-    SetSelectionBottomBar(uiState.isSelectionMode, scrapViewModel, mainViewModel)
+    SetSelectionBottomBar(
+        uiState.isSelectionMode,
+        { navigateToCategorySelection(uiState.selectedScrapIds.toList()) },
+        scrapViewModel,
+        mainViewModel
+    )
     HandleCategoryDeleteEvents(
         scrapViewModel = scrapViewModel,
         mainViewModel = mainViewModel,
@@ -322,6 +328,7 @@ fun ScrapScreenContentSelectionModePreview() {
 @Composable
 private fun SetSelectionBottomBar(
     isSelectionMode: Boolean,
+    navigateToCategorySelection: () -> Unit,
     scrapViewModel: ScrapViewModel,
     mainViewModel: MainViewModel
 ) {
@@ -330,7 +337,10 @@ private fun SetSelectionBottomBar(
             mainViewModel.setBottomBar {
                 ScrapSelectionBottomBar(
                     onDelete = { scrapViewModel.deleteSelectedItems() },
-                    onMove = {  /* navigate to CategorySelection */ },
+                    onMove = {
+                        navigateToCategorySelection()
+                        scrapViewModel.exitSelectionMode()
+                    },
                     onShare = { /* todo */ },
                     onFavorite = { onSuccess, onFailure ->
                         scrapViewModel.toggleFavoriteSelectedItems(onSuccess, onFailure)
