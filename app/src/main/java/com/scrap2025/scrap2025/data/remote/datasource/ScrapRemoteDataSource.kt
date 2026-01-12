@@ -13,8 +13,21 @@ import com.scrap2025.scrap2025.data.remote.dto.SearchScrapResponse
 import kotlinx.serialization.json.JsonElement
 
 interface ScrapRemoteDataSource {
-    suspend fun getAllScrapsByCategoryId(categoryId: Long): ScrapListResponse
-    suspend fun getFavoriteScraps(): FavoriteListResponse
+    suspend fun getAllScrapsByCategoryId(
+        categoryId: Long,
+        sort: String? = null,
+        direction: String? = null,
+        page: Int? = null,
+        size: Int? = null
+    ): ScrapListResponse
+
+    suspend fun getFavoriteScraps(
+        sort: String? = null,
+        direction: String? = null,
+        page: Int? = null,
+        size: Int? = null
+    ): FavoriteListResponse
+
     suspend fun updateScrapFavorite(scrapId: Long): JsonElement
     suspend fun updateScrapListFavorite(scrapIds: List<Long>): JsonElement
     suspend fun getScrapById(scrapId: Long): ScrapDetailResponse
@@ -34,10 +47,15 @@ interface ScrapRemoteDataSource {
     ): SearchListResponse
 
     suspend fun favoriteSearch(
-        query: String, sort: String?, direction: String?
+        query: String,
+        sort: String?,
+        direction: String?
     ): SearchFavoriteResponse
 
     suspend fun searchScrapsByCategory(
-        categoryId: Long, query: String, sort: String?, direction: String?
+        categoryId: Long,
+        query: String,
+        sort: String?,
+        direction: String?
     ): SearchScrapResponse
 }

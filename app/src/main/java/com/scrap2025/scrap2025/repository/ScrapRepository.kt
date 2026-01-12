@@ -14,13 +14,24 @@ interface ScrapRepository {
      * @param categoryId 조회할 카테고리 ID
      * @return 스크랩 목록 변화를 감지하는 Flow
      */
-    fun getAllScrapsByCategory(categoryId: Long): Flow<Result<List<ScrapItem>>>
+    fun getAllScrapsByCategory(
+        categoryId: Long,
+        sort: String? = null,
+        direction: String? = null,
+        page: Int? = null,
+        size: Int? = null
+    ): Flow<Result<List<ScrapItem>>>
 
     /**
      * 즐겨찾기 설정된 모든 스크랩 목록을 조회합니다.
      * @return 즐겨찾기 목록 변화를 감지하는 Flow
      */
-    fun getAllFavoriteScraps(): Flow<Result<List<ScrapItem>>>
+    fun getAllFavoriteScraps(
+        sort: String? = null,
+        direction: String? = null,
+        page: Int? = null,
+        size: Int? = null
+    ): Flow<Result<List<ScrapItem>>>
 
     /**
      * 특정 ID의 스크랩 상세 정보를 조회합니다.

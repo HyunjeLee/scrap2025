@@ -21,8 +21,15 @@ import javax.inject.Inject
 class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: ScrapService) :
     ScrapRemoteDataSource {
 
-    override suspend fun getAllScrapsByCategoryId(categoryId: Long): ScrapListResponse {
-        val response = scrapService.getAllScrapsByCategoryId(categoryId)
+    override suspend fun getAllScrapsByCategoryId(
+        categoryId: Long,
+        sort: String?,
+        direction: String?,
+        page: Int?,
+        size: Int?
+    ): ScrapListResponse {
+        val response =
+            scrapService.getAllScrapsByCategoryId(categoryId, sort, direction, page, size)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
         } else {
@@ -30,8 +37,13 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
         }
     }
 
-    override suspend fun getFavoriteScraps(): FavoriteListResponse {
-        val response = scrapService.getFavoriteScraps()
+    override suspend fun getFavoriteScraps(
+        sort: String?,
+        direction: String?,
+        page: Int?,
+        size: Int?
+    ): FavoriteListResponse {
+        val response = scrapService.getFavoriteScraps(sort, direction, page, size)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
         } else {
@@ -68,7 +80,8 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
     }
 
     override suspend fun createScrap(
-        categoryId: Long, request: CreateScrapRequest
+        categoryId: Long,
+        request: CreateScrapRequest
     ): CreateScrapResponse {
         val response = scrapService.createScrap(categoryId, request)
         if (response.isSuccessful) {
@@ -144,7 +157,9 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
     }
 
     override suspend fun favoriteSearch(
-        query: String, sort: String?, direction: String?
+        query: String,
+        sort: String?,
+        direction: String?
     ): SearchFavoriteResponse {
         val response = scrapService.favoriteSearch(query, sort, direction)
         if (response.isSuccessful) {
@@ -155,7 +170,10 @@ class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: Sc
     }
 
     override suspend fun searchScrapsByCategory(
-        categoryId: Long, query: String, sort: String?, direction: String?
+        categoryId: Long,
+        query: String,
+        sort: String?,
+        direction: String?
     ): SearchScrapResponse {
         val response = scrapService.searchScrapsByCategory(categoryId, query, sort, direction)
         if (response.isSuccessful) {

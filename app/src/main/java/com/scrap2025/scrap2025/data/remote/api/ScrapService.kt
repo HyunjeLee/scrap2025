@@ -27,11 +27,19 @@ import retrofit2.http.Query
 interface ScrapService {
     @GET("/auth/scraps")
     suspend fun getAllScrapsByCategoryId(
-        @Query("category") categoryId: Long
+        @Query("category") categoryId: Long,
+        @Query("sort") sort: String? = null,
+        @Query("direction") direction: String? = null,
+        @Query("page") page: Int? = null,
+        @Query("size") size: Int? = null
     ): Response<BaseResponse<ScrapListResponse>>
 
     @GET("/auth/scraps/favorite")
     suspend fun getFavoriteScraps(
+        @Query("sort") sort: String? = null,
+        @Query("direction") direction: String? = null,
+        @Query("page") page: Int? = null,
+        @Query("size") size: Int? = null
     ): Response<BaseResponse<FavoriteListResponse>>
 
     @PATCH("/auth/scraps/{scrap-id}/favorite")
@@ -85,10 +93,10 @@ interface ScrapService {
     @POST("/auth/search")
     suspend fun searchScraps(
         @Query("q") query: String,
-        @Query("sort") sort: String?,
-        @Query("direction") direction: String?,
-        @Query("page") page: Int?,
-        @Query("size") size: Int?,
+        @Query("sort") sort: String? = null,
+        @Query("direction") direction: String? = null,
+        @Query("page") page: Int? = null,
+        @Query("size") size: Int? = null,
         @Body body: SearchRequest
     ): Response<BaseResponse<SearchListResponse>>
 

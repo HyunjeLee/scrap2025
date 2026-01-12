@@ -24,9 +24,22 @@ constructor(
     private val _refreshEvent = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
     override val refreshEvent: SharedFlow<Unit> = _refreshEvent.asSharedFlow()
 
-    override fun getAllScrapsByCategory(categoryId: Long): Flow<Result<List<ScrapItem>>> = flow {
+    override fun getAllScrapsByCategory(
+        categoryId: Long,
+        sort: String?,
+        direction: String?,
+        page: Int?,
+        size: Int?
+    ): Flow<Result<List<ScrapItem>>> = flow {
         try {
-            val response = scrapRemoteDataSource.getAllScrapsByCategoryId(categoryId)
+            val response =
+                scrapRemoteDataSource.getAllScrapsByCategoryId(
+                    categoryId,
+                    sort,
+                    direction,
+                    page,
+                    size
+                )
             val scraps = response.scraps.map { it.toDomainModel() }
             emit(Result.success(scraps))
         } catch (e: Exception) {
@@ -34,9 +47,14 @@ constructor(
         }
     }
 
-    override fun getAllFavoriteScraps(): Flow<Result<List<ScrapItem>>> = flow {
+    override fun getAllFavoriteScraps(
+        sort: String?,
+        direction: String?,
+        page: Int?,
+        size: Int?
+    ): Flow<Result<List<ScrapItem>>> = flow {
         try {
-            val response = scrapRemoteDataSource.getFavoriteScraps()
+            val response = scrapRemoteDataSource.getFavoriteScraps(sort, direction, page, size)
             val scraps = response.scraps.map { it.toDomainModel() }
             emit(Result.success(scraps))
         } catch (e: Exception) {

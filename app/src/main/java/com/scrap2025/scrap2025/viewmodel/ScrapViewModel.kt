@@ -129,7 +129,11 @@ class ScrapViewModel
         Quartic(categoryId, query, type, direction)
     }.flatMapLatest { (categoryId, query, type, direction) ->
         if (query.isBlank()) {
-            scrapRepository.getAllScrapsByCategory(categoryId).map { result ->
+            scrapRepository.getAllScrapsByCategory(
+                categoryId = categoryId,
+                sort = type.name,
+                direction = direction.name
+            ).map { result ->
                 result.fold(onSuccess = { items ->
                     ScrapUiState.Success(
                         sortScrapItems(items, type, direction)

@@ -94,7 +94,9 @@ class FavoriteViewModel
         Triple(query, type, direction)
     }.flatMapLatest { (query, type, direction) ->
         if (query.isBlank()) {
-            scrapRepository.getAllFavoriteScraps().map { result ->
+            scrapRepository.getAllFavoriteScraps(
+                sort = type.name, direction = direction.name
+            ).map { result ->
                 result.fold(onSuccess = { items ->
                     ScrapUiState.Success(
                         sortScrapItems(items, type, direction)
@@ -135,10 +137,7 @@ class FavoriteViewModel
 
     /** uiState - 모든 상태를 관찰하여 UI 레이어로 전달 */
     val uiState: StateFlow<FavoriteState> = combine(
-        sortedFavoriteItems,
-        preferenceFlow,
-        selectionFlow,
-        queryState
+        sortedFavoriteItems, preferenceFlow, selectionFlow, queryState
     ) { items, prefs, selection, query ->
         FavoriteState(
             scrapItemsState = items,
