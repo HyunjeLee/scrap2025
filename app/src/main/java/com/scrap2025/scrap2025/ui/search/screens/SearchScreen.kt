@@ -174,6 +174,7 @@ fun SearchScreen(
         ScrapListContent(
             showCategory = true,
             scrapItemsState = uiState.searchResults,
+            pagedItems = null,
             viewMode = uiState.viewMode,
             isPreferencesLoaded = true,
             listState = listState,

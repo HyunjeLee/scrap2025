@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.SortDirection
 import com.scrap2025.scrap2025.model.enums.SortType
@@ -108,6 +109,10 @@ fun ScrapScreen(
             categoryName = uiState.categoryName
         )
 
+    val pagedItems =
+        (uiState.scrapItemsState as? ScrapUiState.Paged)?.pagedData
+            ?.collectAsLazyPagingItems()
+
     SetSelectionBottomBar(
         uiState.isSelectionMode,
         { navigateToCategorySelection(uiState.selectedScrapIds.toList()) },
@@ -131,13 +136,36 @@ fun ScrapScreen(
                         val totalCount =
                             when (val state = uiState.scrapItemsState) {
                                 is ScrapUiState.Success -> state.items.size
+                                is ScrapUiState.Paged -> pagedItems?.itemSnapshotList?.items?.size ?: 0
                                 else -> 0
                             }
                         SelectionTopBar(
                             categoryTitle = screenState.categoryTitle,
                             selectedCount = uiState.selectedScrapIds.size,
                             totalCount = totalCount,
-                            onSelectAll = { scrapViewModel.selectAllScrapItems() },
+                            onSelectAll = {
+                                when (val state = uiState.scrapItemsState) {
+                                    is ScrapUiState.Success ->
+                                        scrapViewModel.selectAllScrapItems(
+                                            state.items.map { it.id }.toSet()
+                                        )
+
+                                    is ScrapUiState.Paged -> {
+                                        pagedItems?.let { items ->
+                                            val loadedIds =
+                                                items.itemSnapshotList
+                                                    .items
+                                                    .map { it.id }
+                                                    .toSet()
+                                            scrapViewModel.selectAllScrapItems(
+                                                loadedIds
+                                            )
+                                        }
+                                    }
+
+                                    else -> {}
+                                }
+                            },
                             onDeselectAll = { scrapViewModel.deselectAllScrapItems() }
                         )
                     } else {
@@ -170,6 +198,7 @@ fun ScrapScreen(
                 content = { contentModifier ->
                     ScrapListContent(
                         scrapItemsState = uiState.scrapItemsState,
+                        pagedItems = pagedItems,
                         viewMode = uiState.viewMode,
                         isPreferencesLoaded = uiState.isPreferencesLoaded,
                         isSelectionMode = uiState.isSelectionMode,
@@ -226,10 +255,7 @@ fun ScrapScreenContent(
     floatingActionButton: @Composable (Modifier) -> Unit = {},
     dialogs: @Composable () -> Unit = {},
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
+    Box(modifier = modifier.fillMaxSize().background(BackgroundColor)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             topBar()
@@ -266,6 +292,7 @@ fun ScrapScreenContentPreview() {
                 ScrapListContent(
                     showCategory = false,
                     scrapItemsState = ScrapUiState.Success(emptyList()),
+                    pagedItems = null,
                     viewMode = ViewMode.GRID,
                     isPreferencesLoaded = true,
                     isSelectionMode = false,
@@ -312,6 +339,7 @@ fun ScrapScreenContentSelectionModePreview() {
                 ScrapListContent(
                     showCategory = false,
                     scrapItemsState = ScrapUiState.Success(emptyList()),
+                    pagedItems = null,
                     viewMode = ViewMode.LIST,
                     isPreferencesLoaded = true,
                     isSelectionMode = true,

@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.repository
 
+import androidx.paging.PagingData
 import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
@@ -9,18 +10,13 @@ interface ScrapRepository {
     /** 전역 스크랩 데이터 갱신 신호 (상세 화면 수정 시 목록 화면 자동 갱신 등 UI 동기화용) */
     val refreshEvent: SharedFlow<Unit>
 
-    /**
-     * 특정 카테고리의 스크랩 목록을 조회합니다.
-     * @param categoryId 조회할 카테고리 ID
-     * @return 스크랩 목록 변화를 감지하는 Flow
-     */
-    fun getAllScrapsByCategory(
+    /** 특정 카테고리의 스크랩 목록을 PagingData Flow로 조회합니다. */
+    fun getScrapPagingFlow(
         categoryId: Long,
         sort: String? = null,
         direction: String? = null,
-        page: Int? = null,
-        size: Int? = null
-    ): Flow<Result<List<ScrapItem>>>
+        pageSize: Int = 10
+    ): Flow<PagingData<ScrapItem>>
 
     /**
      * 즐겨찾기 설정된 모든 스크랩 목록을 조회합니다.

@@ -131,6 +131,7 @@ fun FavoriteScreen(
         content = { contentModifier ->
             ScrapListContent(
                 scrapItemsState = uiState.scrapItemsState,
+                pagedItems = null,
                 viewMode = uiState.viewMode,
                 isPreferencesLoaded = uiState.isPreferencesLoaded,
                 isSelectionMode = uiState.isSelectionMode,

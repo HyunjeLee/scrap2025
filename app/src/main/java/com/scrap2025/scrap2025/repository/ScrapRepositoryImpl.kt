@@ -1,8 +1,12 @@
 package com.scrap2025.scrap2025.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.scrap2025.scrap2025.data.remote.datasource.ScrapRemoteDataSource
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.SearchRequest
+import com.scrap2025.scrap2025.data.remote.paging.ScrapPagingSource
 import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,27 +28,24 @@ constructor(
     private val _refreshEvent = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
     override val refreshEvent: SharedFlow<Unit> = _refreshEvent.asSharedFlow()
 
-    override fun getAllScrapsByCategory(
-        categoryId: Long,
-        sort: String?,
-        direction: String?,
-        page: Int?,
-        size: Int?
-    ): Flow<Result<List<ScrapItem>>> = flow {
-        try {
-            val response =
-                scrapRemoteDataSource.getAllScrapsByCategoryId(
-                    categoryId,
-                    sort,
-                    direction,
-                    page,
-                    size
+    override fun getScrapPagingFlow(
+        categoryId: Long, sort: String?, direction: String?, pageSize: Int
+    ): Flow<PagingData<ScrapItem>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = pageSize,
+                enablePlaceholders = false,
+                prefetchDistance = 5,
+                initialLoadSize = pageSize,
+            ),
+            pagingSourceFactory = {
+                ScrapPagingSource(
+                    scrapRemoteDataSource = scrapRemoteDataSource,
+                    categoryId = categoryId,
+                    sort = sort,
+                    direction = direction
                 )
-            val scraps = response.scraps.map { it.toDomainModel() }
-            emit(Result.success(scraps))
-        } catch (e: Exception) {
-            emit(Result.failure(e))
-        }
+            }).flow
     }
 
     override fun getAllFavoriteScraps(

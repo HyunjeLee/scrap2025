@@ -3,6 +3,8 @@ package com.scrap2025.scrap2025.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.SortDirection
@@ -11,6 +13,7 @@ import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -24,8 +27,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
@@ -34,6 +35,7 @@ import javax.inject.Inject
 sealed interface ScrapUiState {
     data object Loading : ScrapUiState
     data class Success(val items: List<ScrapItem>) : ScrapUiState
+    data class Paged(val pagedData: Flow<PagingData<ScrapItem>>) : ScrapUiState
     data class Error(val message: String? = null) : ScrapUiState
 }
 
@@ -130,18 +132,20 @@ class ScrapViewModel
         Quartic(categoryId, query, type, direction)
     }.flatMapLatest { (categoryId, query, type, direction) ->
         if (query.isBlank()) {
-            scrapRepository.getAllScrapsByCategory(
-                categoryId = categoryId,
-                sort = type.name,
-                direction = direction.name
-            ).map { result ->
-                result.fold(onSuccess = { items ->
-                    ScrapUiState.Success(
-                        sortScrapItems(items, type, direction)
+            // Paging을 사용하는 Flow 생성
+            flow {
+                emit(
+                    ScrapUiState.Paged(
+                        scrapRepository.getScrapPagingFlow(
+                            categoryId = categoryId,
+                            sort = type.name,
+                            direction = direction.name
+                        ).cachedIn(viewModelScope)
                     )
-                }, onFailure = { ScrapUiState.Error(it.message) })
-            }.onStart { emit(ScrapUiState.Loading) }
+                )
+            }
         } else {
+            // 검색의 경우 일단 기존 로직 유지 (또는 검색도 페이징 가능하지만 일단 요청사항에 집중)
             flow {
                 emit(ScrapUiState.Loading)
                 val searchResult = scrapRepository.searchScrapsByCategory(
@@ -300,11 +304,8 @@ class ScrapViewModel
     }
 
     // 전체 선택
-    fun selectAllScrapItems() {
-        val state = sortedScrapItems.value
-        if (state is ScrapUiState.Success) {
-            _selectedScrapIds.value = state.items.map { it.id }.toSet()
-        }
+    fun selectAllScrapItems(ids: Set<Long>) {
+        _selectedScrapIds.value = ids
     }
 
     // 전체 선택 해제
