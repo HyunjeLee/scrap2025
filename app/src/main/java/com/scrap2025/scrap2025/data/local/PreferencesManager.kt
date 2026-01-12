@@ -12,7 +12,8 @@ import com.scrap2025.scrap2025.model.enums.ViewMode
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "scrap_preferences")
+private val Context.dataStore: DataStore<Preferences> by
+preferencesDataStore(name = "scrap_preferences")
 
 class PreferencesManager(context: Context) {
     private val dataStore: DataStore<Preferences> = context.dataStore
@@ -39,8 +40,7 @@ class PreferencesManager(context: Context) {
     // 정렬 방향 Flow (기본값: ASCENDING)
     val sortDirection: Flow<SortDirection> =
         dataStore.data.map { preferences ->
-            val sortDirectionString =
-                preferences[SORT_DIRECTION_KEY] ?: SortDirection.ASC.name
+            val sortDirectionString = preferences[SORT_DIRECTION_KEY] ?: SortDirection.ASC.name
             try {
                 SortDirection.valueOf(sortDirectionString)
             } catch (e: IllegalArgumentException) {
@@ -59,14 +59,22 @@ class PreferencesManager(context: Context) {
             }
         }
 
-    // 정렬 타입 저장
-    suspend fun setSortType(sortType: SortType) {
-        dataStore.edit { preferences -> preferences[SORT_TYPE_KEY] = sortType.name }
-    }
+//    // 정렬 타입 저장  // 정렬 타입 교체 시 방향도 동시에 초기화되므로 생략
+//    suspend fun setSortType(sortType: SortType) {
+//        dataStore.edit { preferences -> preferences[SORT_TYPE_KEY] = sortType.name }
+//    }
 
     // 정렬 방향 저장
     suspend fun setSortDirection(sortDirection: SortDirection) {
         dataStore.edit { preferences -> preferences[SORT_DIRECTION_KEY] = sortDirection.name }
+    }
+
+    // 정렬 타입과 방향 동시에 저장
+    suspend fun setSortTypeAndDirection(sortType: SortType, sortDirection: SortDirection) {
+        dataStore.edit { preferences ->
+            preferences[SORT_TYPE_KEY] = sortType.name
+            preferences[SORT_DIRECTION_KEY] = sortDirection.name
+        }
     }
 
     // 뷰모드 저장

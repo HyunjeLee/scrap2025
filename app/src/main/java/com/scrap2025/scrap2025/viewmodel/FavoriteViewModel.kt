@@ -92,7 +92,7 @@ class FavoriteViewModel
         debouncedQuery, sortType, sortDirection, scrapRepository.refreshEvent
     ) { query, type, direction, _ ->
         Triple(query, type, direction)
-    }.flatMapLatest { (query, type, direction) ->
+    }.distinctUntilChanged().debounce(100L).flatMapLatest { (query, type, direction) ->
         if (query.isBlank()) {
             scrapRepository.getAllFavoriteScraps(
                 sort = type.name, direction = direction.name
@@ -179,8 +179,7 @@ class FavoriteViewModel
         viewModelScope.launch {
             val newSortType = if (sortType.value == SortType.SCRAP_DATE) SortType.TITLE
             else SortType.SCRAP_DATE
-            preferencesManager.setSortType(newSortType)
-            preferencesManager.setSortDirection(SortDirection.ASC)
+            preferencesManager.setSortTypeAndDirection(newSortType, SortDirection.ASC)
         }
     }
 

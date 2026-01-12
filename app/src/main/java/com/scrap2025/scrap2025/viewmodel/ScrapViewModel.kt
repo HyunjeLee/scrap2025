@@ -36,6 +36,7 @@ sealed interface ScrapUiState {
     data class Success(val items: List<ScrapItem>) : ScrapUiState
     data class Error(val message: String? = null) : ScrapUiState
 }
+
 private const val TAG = "ScrapViewModel"
 
 @HiltViewModel
@@ -102,7 +103,7 @@ class ScrapViewModel
     private val immediateFilters =
         combine(selectedCategoryIdFlow, sortType, sortDirection) { categoryId, type, direction ->
             Triple(categoryId ?: -1L, type, direction)
-        }.distinctUntilChanged()
+        }.distinctUntilChanged().debounce(100L)
 
     /** ScrapUiState - UI에 필요한 모든 상태를 하나의 객체로 관리 */
     data class ScrapState(
@@ -248,8 +249,7 @@ class ScrapViewModel
             } else {
                 SortType.SCRAP_DATE
             }
-            preferencesManager.setSortType(newSortType)
-            preferencesManager.setSortDirection(SortDirection.ASC)
+            preferencesManager.setSortTypeAndDirection(newSortType, SortDirection.ASC)
         }
     }
 
