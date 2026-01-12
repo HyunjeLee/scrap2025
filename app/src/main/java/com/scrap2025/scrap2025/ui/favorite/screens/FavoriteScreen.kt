@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.SortBar
@@ -60,12 +61,14 @@ fun FavoriteScreen(
     navigateToCategorySelection: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: FavoriteViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel =
-        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
+    mainViewModel: MainViewModel = hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val screenState = rememberFavoriteScreenState(viewMode = uiState.viewMode)
     val context = LocalContext.current
+
+    val pagedItems =
+        (uiState.scrapItemsState as? ScrapUiState.Paged)?.pagedData?.collectAsLazyPagingItems()
 
     val selectionBottomBar: @Composable () -> Unit = {
         ScrapSelectionBottomBar(
@@ -75,7 +78,16 @@ fun FavoriteScreen(
                 viewModel.exitSelectionMode()
             },
             onShare = {
-                shareScraps(context, viewModel.getSelectedScraps())
+                val selectedItems = when (val state = uiState.scrapItemsState) {
+                    is ScrapUiState.Success -> state.items.filter { it.id in uiState.selectedScrapIds }
+
+                    is ScrapUiState.Paged -> pagedItems?.itemSnapshotList?.items?.filter {
+                        it.id in uiState.selectedScrapIds
+                    } ?: emptyList()
+
+                    else -> emptyList()
+                }
+                shareScraps(context, selectedItems)
                 viewModel.exitSelectionMode()
             },
             onFavorite = { onSuccess, onFailure ->
@@ -84,7 +96,7 @@ fun FavoriteScreen(
         )
     }
 
-    LaunchedEffect(uiState.isSelectionMode) {
+    LaunchedEffect(uiState.isSelectionMode, uiState, pagedItems) {
         when (uiState.isSelectionMode) {
             true -> mainViewModel.setBottomBar(selectionBottomBar)
             false -> mainViewModel.setBottomBar(null)
@@ -97,18 +109,34 @@ fun FavoriteScreen(
     ScrapScreenContent(
         topBar = {
             if (uiState.isSelectionMode) {
-                val totalCount =
-                    when (val state = uiState.scrapItemsState) {
-                        is ScrapUiState.Success -> state.items.size
-                        else -> 0
-                    }
+                val totalCount = when (val state = uiState.scrapItemsState) {
+                    is ScrapUiState.Success -> state.items.size
+                    is ScrapUiState.Paged -> pagedItems?.itemSnapshotList?.items?.size ?: 0
+
+                    else -> 0
+                }
                 SelectionTopBar(
                     categoryTitle = "즐겨찾기",
                     selectedCount = uiState.selectedScrapIds.size,
                     totalCount = totalCount,
-                    onSelectAll = { viewModel.selectAllScrapItems() },
-                    onDeselectAll = { viewModel.deselectAllScrapItems() }
-                )
+                    onSelectAll = {
+                        when (val state = uiState.scrapItemsState) {
+                            is ScrapUiState.Success -> viewModel.selectAllScrapItems(
+                                state.items.map { it.id }.toSet()
+                            )
+
+                            is ScrapUiState.Paged -> {
+                                pagedItems?.let { items ->
+                                    val loadedIds =
+                                        items.itemSnapshotList.items.map { it.id }.toSet()
+                                    viewModel.selectAllScrapItems(loadedIds)
+                                }
+                            }
+
+                            else -> {}
+                        }
+                    },
+                    onDeselectAll = { viewModel.deselectAllScrapItems() })
             } else {
                 ScrapTopBar(
                     categoryId = -1L,
@@ -131,7 +159,7 @@ fun FavoriteScreen(
         content = { contentModifier ->
             ScrapListContent(
                 scrapItemsState = uiState.scrapItemsState,
-                pagedItems = null,
+                pagedItems = pagedItems,
                 viewMode = uiState.viewMode,
                 isPreferencesLoaded = uiState.isPreferencesLoaded,
                 isSelectionMode = uiState.isSelectionMode,

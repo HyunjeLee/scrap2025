@@ -2,6 +2,7 @@ package com.scrap2025.scrap2025.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.enums.SearchScope
 import com.scrap2025.scrap2025.model.enums.SortDirection
@@ -50,10 +51,9 @@ sealed interface SearchWarning {
 
 @HiltViewModel
 class SearchViewModel
-@Inject constructor(
-    categoryRepository: CategoryRepository,
-    private val scrapRepository: ScrapRepository
-) : ViewModel() {
+@Inject
+constructor(categoryRepository: CategoryRepository, private val scrapRepository: ScrapRepository) :
+    ViewModel() {
     // picker에서 사용할 '오늘' 날짜의 UTC 00:00 밀리초 계산
     val nowMillis = LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
@@ -64,23 +64,25 @@ class SearchViewModel
     val effect: SharedFlow<SearchWarning> = _effect.asSharedFlow()
 
     // ID 리스트와 전체 카테고리 목록을 결합하여 UI용 리스트 생성
-    val selectedCategoryItems: StateFlow<List<CategoryItem>> = combine(
-        categoryRepository.allCategories,
-        uiState.map { it.selectedCategoryIds }.distinctUntilChanged()
-    ) { categoriesResult, selectedIds ->
-        categoriesResult
-            .fold(
+    val selectedCategoryItems: StateFlow<List<CategoryItem>> =
+        combine(
+            categoryRepository.allCategories,
+            uiState.map { it.selectedCategoryIds }.distinctUntilChanged()
+        ) { categoriesResult, selectedIds ->
+            categoriesResult.fold(
                 onSuccess = { allCategories ->
                     selectedIds.mapNotNull { id ->
                         allCategories.find { it.id == id }
                     }
                 },
-                onFailure = { emptyList<CategoryItem>() })
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000L),
-        initialValue = emptyList()
-    )
+                onFailure = { emptyList<CategoryItem>() }
+            )
+        }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
 
     init {
         // 초기 날짜 선택값을 오늘 -> 오늘 로 설정
@@ -88,14 +90,18 @@ class SearchViewModel
 
         // 검색 조건 관찰: 쿼리, 범위, 카테고리, 날짜, 정렬 중 하나라도 바뀌면 검색 수행
         viewModelScope.launch {
-            uiState.map {
-                // 검색 결과(searchResults)만 제외하고 나머지를 묶음
-                Triple(
-                    Triple(it.query, it.searchRanges, it.selectedCategoryIds),
-                    Triple(it.startDate, it.endDate, it.sortType),
-                    it.sortDirection
-                )
-            }.distinctUntilChanged().debounce(500L).collect { performSearch() }
+            uiState
+                .map {
+                    // 검색 결과(searchResults)만 제외하고 나머지를 묶음
+                    Triple(
+                        Triple(it.query, it.searchRanges, it.selectedCategoryIds),
+                        Triple(it.startDate, it.endDate, it.sortType),
+                        it.sortDirection
+                    )
+                }
+                .distinctUntilChanged()
+                .debounce(500L)
+                .collect { performSearch() }
         }
     }
 
@@ -111,11 +117,12 @@ class SearchViewModel
         }
 
         _uiState.update { state ->
-            val newRanges = if (state.searchRanges.contains(range)) {
-                state.searchRanges - range
-            } else {
-                state.searchRanges + range
-            }
+            val newRanges =
+                if (state.searchRanges.contains(range)) {
+                    state.searchRanges - range
+                } else {
+                    state.searchRanges + range
+                }
             state.copy(searchRanges = newRanges)
         }
     }
@@ -136,19 +143,21 @@ class SearchViewModel
 
     fun toggleSortType() {
         _uiState.update { state ->
-            val newType = if (state.sortType == SortType.SCRAP_DATE) SortType.TITLE
-            else SortType.SCRAP_DATE
+            val newType =
+                if (state.sortType == SortType.SCRAP_DATE) SortType.TITLE
+                else SortType.SCRAP_DATE
             state.copy(sortType = newType, sortDirection = SortDirection.ASC)
         }
     }
 
     fun toggleSortDirection() {
         _uiState.update { state ->
-            val newDirection = if (state.sortDirection == SortDirection.ASC) {
-                SortDirection.DESC
-            } else {
-                SortDirection.ASC
-            }
+            val newDirection =
+                if (state.sortDirection == SortDirection.ASC) {
+                    SortDirection.DESC
+                } else {
+                    SortDirection.ASC
+                }
             state.copy(sortDirection = newDirection)
         }
     }
@@ -160,7 +169,7 @@ class SearchViewModel
         }
     }
 
-    /** 서버와의 통신을 시뮬레이션하거나 준비하는 함수 로컬 DB는 일절 사용하지 않으며, 모든 파라미터를 서버에 넘겨줄 준비를 합니다. */
+    /** 서버와의 통신을 통해 검색 결과를 페이징하여 가져옵니다. */
     fun performSearch() {
         val state = _uiState.value
 
@@ -170,27 +179,20 @@ class SearchViewModel
             return
         }
 
-        viewModelScope.launch {
-            _uiState.update { it.copy(searchResults = ScrapUiState.Loading) }
-            val result = scrapRepository.searchScraps(
-                query = state.query,
-                searchScope = state.searchRanges.toList(),
-                categoryRemoteIds = state.selectedCategoryIds,
-                startDate = state.startDate,
-                endDate = state.endDate,
-                sortType = state.sortType.name,
-                sortDirection = state.sortDirection.name,
-                page = 0,
-                size = 10
-            )
-            result.fold(onSuccess = { items ->
-                _uiState.update { it.copy(searchResults = ScrapUiState.Success(items)) }
-            }, onFailure = { throwable ->
-                _uiState.update {
-                    it.copy(searchResults = ScrapUiState.Error(throwable.message))
-                }
-            })
-        }
+        val pagingFlow =
+            scrapRepository
+                .getSearchScrapPagingFlow(
+                    query = state.query,
+                    searchScope = state.searchRanges.toList(),
+                    categoryRemoteIds = state.selectedCategoryIds,
+                    startDate = state.startDate,
+                    endDate = state.endDate,
+                    sortType = state.sortType.name,
+                    sortDirection = state.sortDirection.name
+                )
+                .cachedIn(viewModelScope)
+
+        _uiState.update { it.copy(searchResults = ScrapUiState.Paged(pagingFlow)) }
 
         // 로그를 통해 서버로 전달될 파라미터 확인 (디버깅용)
         println(
@@ -207,18 +209,20 @@ class SearchViewModel
 
     fun formatMillisToDate(millis: Long): String {
         val date = Date(millis)
-        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-            timeZone = getTimeZone("UTC")
-        }
+        val formatter =
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                timeZone = getTimeZone("UTC")
+            }
         return formatter.format(date)
     }
 
     fun parseDateToMillis(dateStr: String): Long? {
         if (dateStr.isEmpty()) return null
         return try {
-            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
-                timeZone = getTimeZone("UTC")
-            }
+            val formatter =
+                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).apply {
+                    timeZone = getTimeZone("UTC")
+                }
             formatter.parse(dateStr)?.time
         } catch (e: Exception) {
             null

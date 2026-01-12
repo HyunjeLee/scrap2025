@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.SortDirection
@@ -110,10 +111,11 @@ fun ScrapScreen(
         )
 
     val pagedItems =
-        (uiState.scrapItemsState as? ScrapUiState.Paged)?.pagedData
-            ?.collectAsLazyPagingItems()
+        (uiState.scrapItemsState as? ScrapUiState.Paged)?.pagedData?.collectAsLazyPagingItems()
 
     SetSelectionBottomBar(
+        uiState,
+        pagedItems,
         uiState.isSelectionMode,
         { navigateToCategorySelection(uiState.selectedScrapIds.toList()) },
         scrapViewModel,
@@ -358,6 +360,8 @@ fun ScrapScreenContentSelectionModePreview() {
 
 @Composable
 private fun SetSelectionBottomBar(
+    uiState: ScrapViewModel.ScrapState,
+    pagedItems: LazyPagingItems<ScrapItem>?,
     isSelectionMode: Boolean,
     navigateToCategorySelection: () -> Unit,
     scrapViewModel: ScrapViewModel,
@@ -365,7 +369,7 @@ private fun SetSelectionBottomBar(
 ) {
     val context = LocalContext.current
 
-    LaunchedEffect(isSelectionMode) {
+    LaunchedEffect(isSelectionMode, uiState, pagedItems) {
         if (isSelectionMode) {
             mainViewModel.setBottomBar {
                 ScrapSelectionBottomBar(
@@ -375,7 +379,22 @@ private fun SetSelectionBottomBar(
                         scrapViewModel.exitSelectionMode()
                     },
                     onShare = {
-                        shareScraps(context, scrapViewModel.getSelectedScraps())
+                        val selectedItems =
+                            when (val state = uiState.scrapItemsState) {
+                                is ScrapUiState.Success ->
+                                    state.items.filter {
+                                        it.id in uiState.selectedScrapIds
+                                    }
+
+                                is ScrapUiState.Paged ->
+                                    pagedItems?.itemSnapshotList?.items?.filter {
+                                        it.id in uiState.selectedScrapIds
+                                    }
+                                        ?: emptyList()
+
+                                else -> emptyList()
+                            }
+                        shareScraps(context, selectedItems)
                         scrapViewModel.exitSelectionMode()
                     },
                     onFavorite = { onSuccess, onFailure ->
@@ -392,16 +411,18 @@ private fun SetSelectionBottomBar(
 private fun shareScraps(context: Context, scraps: List<ScrapItem>) {
     if (scraps.isEmpty()) return
 
-    val shareText = scraps.joinToString(separator = "\n\n") { scrapItem ->
-        "[스크랩]\n${scrapItem.title}\n${scrapItem.url}"
-    }
+    val shareText =
+        scraps.joinToString(separator = "\n\n") { scrapItem ->
+            "[스크랩]\n${scrapItem.title}\n${scrapItem.url}"
+        }
 
-    val dataIntent = Intent().apply {
-        action = Intent.ACTION_SEND
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TITLE, "스크랩 ${scraps.size}개 공유하는 중..")
-        putExtra(Intent.EXTRA_TEXT, shareText)
-    }
+    val dataIntent =
+        Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TITLE, "스크랩 ${scraps.size}개 공유하는 중..")
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }
 
     val shareIntent = Intent.createChooser(dataIntent, null)
     context.startActivity(shareIntent)

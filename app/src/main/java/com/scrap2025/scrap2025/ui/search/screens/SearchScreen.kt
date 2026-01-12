@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.SortBar
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDateRangePickerDialog
@@ -43,6 +44,7 @@ import com.scrap2025.scrap2025.ui.search.components.SearchHeader
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 import com.scrap2025.scrap2025.viewmodel.SearchViewModel
 import com.scrap2025.scrap2025.viewmodel.SearchWarning
 import kotlinx.coroutines.launch
@@ -58,6 +60,9 @@ fun SearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     val selectedCategoryItems by viewModel.selectedCategoryItems.collectAsState()
 
+    val pagedItems =
+        (uiState.searchResults as? ScrapUiState.Paged)?.pagedData?.collectAsLazyPagingItems()
+
     val listState = rememberLazyListState()
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
@@ -66,15 +71,18 @@ fun SearchScreen(
     var showDatePicker by remember { mutableStateOf(false) }
 
     // 파생 상태: 스크롤 위치에서 버튼 표시 여부 계산
-    val showScrollToTop by remember(uiState.viewMode) {
+    val showScrollToTop by
+    remember(uiState.viewMode) {
         derivedStateOf {
             when (uiState.viewMode) {
                 ViewMode.LIST -> {
-                    listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+                    listState.firstVisibleItemIndex > 0 ||
+                            listState.firstVisibleItemScrollOffset > 0
                 }
 
                 ViewMode.GRID -> {
-                    gridState.firstVisibleItemIndex > 0 || gridState.firstVisibleItemScrollOffset > 0
+                    gridState.firstVisibleItemIndex > 0 ||
+                            gridState.firstVisibleItemScrollOffset > 0
                 }
             }
         }
@@ -102,12 +110,14 @@ fun SearchScreen(
             onDateSelected = { start, end ->
                 if (start != null && end != null) {
                     viewModel.onDateChange(
-                        viewModel.formatMillisToDate(start), viewModel.formatMillisToDate(end)
+                        viewModel.formatMillisToDate(start),
+                        viewModel.formatMillisToDate(end)
                     )
                 }
                 showDatePicker = false
             },
-            onDismiss = { showDatePicker = false })
+            onDismiss = { showDatePicker = false }
+        )
     }
 
     Scaffold(
@@ -137,7 +147,8 @@ fun SearchScreen(
                     viewMode = uiState.viewMode,
                     onSortTypeToggle = { viewModel.toggleSortType() },
                     onSortDirectionToggle = { viewModel.toggleSortDirection() },
-                    onViewModeToggle = { viewModel.toggleViewMode() })
+                    onViewModeToggle = { viewModel.toggleViewMode() }
+                )
             }
         },
         floatingActionButton = {
@@ -169,12 +180,13 @@ fun SearchScreen(
                     )
                 }
             }
-        }) { paddingValues ->
+        }
+    ) { paddingValues ->
         // 3. 스크랩 리스트 영역
         ScrapListContent(
             showCategory = true,
             scrapItemsState = uiState.searchResults,
-            pagedItems = null,
+            pagedItems = pagedItems,
             viewMode = uiState.viewMode,
             isPreferencesLoaded = true,
             listState = listState,

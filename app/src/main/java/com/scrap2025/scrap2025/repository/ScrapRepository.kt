@@ -18,16 +18,24 @@ interface ScrapRepository {
         pageSize: Int = 10
     ): Flow<PagingData<ScrapItem>>
 
-    /**
-     * 즐겨찾기 설정된 모든 스크랩 목록을 조회합니다.
-     * @return 즐겨찾기 목록 변화를 감지하는 Flow
-     */
-    fun getAllFavoriteScraps(
+    /** 즐겨찾기 설정된 모든 스크랩 목록을 PagingData Flow로 조회합니다. */
+    fun getFavoriteScrapPagingFlow(
         sort: String? = null,
         direction: String? = null,
-        page: Int? = null,
-        size: Int? = null
-    ): Flow<Result<List<ScrapItem>>>
+        pageSize: Int = 10
+    ): Flow<PagingData<ScrapItem>>
+
+    /** 통합 검색 결과를 PagingData Flow로 조회합니다. */
+    fun getSearchScrapPagingFlow(
+        query: String,
+        searchScope: List<String>,
+        categoryRemoteIds: List<Long>,
+        startDate: String,
+        endDate: String,
+        sortType: String,
+        sortDirection: String,
+        pageSize: Int = 10
+    ): Flow<PagingData<ScrapItem>>
 
     /**
      * 특정 ID의 스크랩 상세 정보를 조회합니다.
@@ -94,31 +102,6 @@ interface ScrapRepository {
      * @return 성공 여부
      */
     suspend fun moveScrapBulk(scrapIds: List<Long>, categoryId: Long): Result<Unit>
-
-    /**
-     * 향상된 통합 검색 기능을 제공합니다.
-     * @param query 검색어
-     * @param searchScope 검색 범위 (TITLE, DESCRIPTION 등)
-     * @param categoryRemoteIds 대상 카테고리 ID 리스트
-     * @param startDate 시작 날짜 (YYYY-MM-DD)
-     * @param endDate 종료 날짜 (YYYY-MM-DD)
-     * @param sortType 정렬 기준 (CREATED_AT, UPDATED_AT 등)
-     * @param sortDirection 정렬 방향 (ASC, DESC)
-     * @param page 페이지 번호
-     * @param size 페이지당 개수
-     * @return 검색된 스크랩 목록 결과
-     */
-    suspend fun searchScraps(
-        query: String,
-        searchScope: List<String>,
-        categoryRemoteIds: List<Long>,
-        startDate: String,
-        endDate: String,
-        sortType: String,
-        sortDirection: String,
-        page: Int,
-        size: Int
-    ): Result<List<ScrapItem>>
 
     /**
      * 즐겨찾기 목록 내에서 검색을 수행합니다.

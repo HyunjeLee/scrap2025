@@ -6,13 +6,14 @@ import androidx.paging.PagingData
 import com.scrap2025.scrap2025.data.remote.datasource.ScrapRemoteDataSource
 import com.scrap2025.scrap2025.data.remote.dto.CreateScrapRequest
 import com.scrap2025.scrap2025.data.remote.dto.SearchRequest
+import com.scrap2025.scrap2025.data.remote.paging.FavoritePagingSource
 import com.scrap2025.scrap2025.data.remote.paging.ScrapPagingSource
+import com.scrap2025.scrap2025.data.remote.paging.SearchPagingSource
 import com.scrap2025.scrap2025.model.ScrapItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,15 +30,19 @@ constructor(
     override val refreshEvent: SharedFlow<Unit> = _refreshEvent.asSharedFlow()
 
     override fun getScrapPagingFlow(
-        categoryId: Long, sort: String?, direction: String?, pageSize: Int
+        categoryId: Long,
+        sort: String?,
+        direction: String?,
+        pageSize: Int
     ): Flow<PagingData<ScrapItem>> {
         return Pager(
-            config = PagingConfig(
-                pageSize = pageSize,
-                enablePlaceholders = false,
-                prefetchDistance = 5,
-                initialLoadSize = pageSize,
-            ),
+            config =
+                PagingConfig(
+                    pageSize = pageSize,
+                    enablePlaceholders = false,
+                    prefetchDistance = 5,
+                    initialLoadSize = pageSize,
+                ),
             pagingSourceFactory = {
                 ScrapPagingSource(
                     scrapRemoteDataSource = scrapRemoteDataSource,
@@ -45,22 +50,71 @@ constructor(
                     sort = sort,
                     direction = direction
                 )
-            }).flow
+            }
+        )
+            .flow
     }
 
-    override fun getAllFavoriteScraps(
+    override fun getFavoriteScrapPagingFlow(
         sort: String?,
         direction: String?,
-        page: Int?,
-        size: Int?
-    ): Flow<Result<List<ScrapItem>>> = flow {
-        try {
-            val response = scrapRemoteDataSource.getFavoriteScraps(sort, direction, page, size)
-            val scraps = response.scraps.map { it.toDomainModel() }
-            emit(Result.success(scraps))
-        } catch (e: Exception) {
-            emit(Result.failure(e))
-        }
+        pageSize: Int
+    ): Flow<PagingData<ScrapItem>> {
+        return Pager(
+            config =
+                PagingConfig(
+                    pageSize = pageSize,
+                    enablePlaceholders = false,
+                    prefetchDistance = 5,
+                    initialLoadSize = pageSize
+                ),
+            pagingSourceFactory = {
+                FavoritePagingSource(
+                    scrapRemoteDataSource = scrapRemoteDataSource,
+                    sort = sort,
+                    direction = direction
+                )
+            }
+        )
+            .flow
+    }
+
+    override fun getSearchScrapPagingFlow(
+        query: String,
+        searchScope: List<String>,
+        categoryRemoteIds: List<Long>,
+        startDate: String,
+        endDate: String,
+        sortType: String,
+        sortDirection: String,
+        pageSize: Int
+    ): Flow<PagingData<ScrapItem>> {
+        val searchRequest =
+            SearchRequest(
+                searchScope = searchScope,
+                categoryScope = categoryRemoteIds,
+                startDate = startDate,
+                endDate = endDate
+            )
+        return Pager(
+            config =
+                PagingConfig(
+                    pageSize = pageSize,
+                    enablePlaceholders = false,
+                    prefetchDistance = 5,
+                    initialLoadSize = pageSize
+                ),
+            pagingSourceFactory = {
+                SearchPagingSource(
+                    scrapRemoteDataSource = scrapRemoteDataSource,
+                    query = query,
+                    sort = sortType,
+                    direction = sortDirection,
+                    searchRequest = searchRequest
+                )
+            }
+        )
+            .flow
     }
 
     override suspend fun getScrapById(id: Long): Result<ScrapItem> {
@@ -164,36 +218,6 @@ constructor(
             Result.failure(e)
         }
     }
-
-    override suspend fun searchScraps(
-        query: String,
-        searchScope: List<String>,
-        categoryRemoteIds: List<Long>,
-        startDate: String,
-        endDate: String,
-        sortType: String,
-        sortDirection: String,
-        page: Int,
-        size: Int
-    ): Result<List<ScrapItem>> =
-        try {
-            val request = SearchRequest(searchScope, categoryRemoteIds, startDate, endDate)
-
-            val remoteData =
-                scrapRemoteDataSource.searchScraps(
-                    query = query,
-                    sort = sortType,
-                    direction = sortDirection,
-                    page = page,
-                    size = size,
-                    request = request
-                )
-
-            val domainItems = remoteData.scraps.map { it.toDomainModel() }
-            Result.success(domainItems)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
 
     override suspend fun searchFavoriteScraps(
         query: String,
