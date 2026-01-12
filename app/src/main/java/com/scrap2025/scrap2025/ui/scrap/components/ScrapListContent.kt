@@ -78,7 +78,10 @@ fun ScrapListContent(
                 when (viewMode) {
                     ViewMode.LIST -> {
                         LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
-                            items(scrapItems) { scrapItem ->
+                            items(
+                                items = scrapItems,
+                                key = { scrapItem -> scrapItem.id }
+                            ) { scrapItem ->
                                 ScrapItemCardList(
                                     scrapItem = scrapItem,
                                     showCategory = showCategory,
@@ -101,7 +104,10 @@ fun ScrapListContent(
                             horizontalArrangement = Arrangement.spacedBy(20.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            items(scrapItems) { scrapItem ->
+                            items(
+                                items = scrapItems,
+                                key = {scrapItem -> scrapItem.id}
+                            ) { scrapItem ->
                                 ScrapItemCardGrid(
                                     scrapItem = scrapItem,
                                     showCategory = showCategory,
