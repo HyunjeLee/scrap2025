@@ -77,8 +77,7 @@ class LinkPreviewRepositoryImpl @Inject constructor() : LinkPreviewRepository {
             url = url,
             title = refinedTitle,
             description = description,
-            imageUrl = imageUrl?.let { if (it.length > 400) null else it },
-//            imageUrl = imageUrl,  // todo: 서버에서 수정 후 원상복귀 할 것
+            imageUrl = imageUrl?.let { if (it.length > 1000) null else it },
             siteName = siteName
         )
     }
