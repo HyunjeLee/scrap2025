@@ -56,6 +56,7 @@ constructor(categoryRepository: CategoryRepository, private val scrapRepository:
     ViewModel() {
     // picker에서 사용할 '오늘' 날짜의 UTC 00:00 밀리초 계산
     val nowMillis = LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    val aWeekAgoMillis = LocalDate.now().minusDays(7).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
     private val _uiState = MutableStateFlow(SearchState())
     val uiState: StateFlow<SearchState> = _uiState.asStateFlow()
@@ -86,7 +87,7 @@ constructor(categoryRepository: CategoryRepository, private val scrapRepository:
 
     init {
         // 초기 날짜 선택값을 오늘 -> 오늘 로 설정
-        onDateChange(formatMillisToDate(nowMillis), formatMillisToDate(nowMillis))
+        onDateChange(formatMillisToDate(aWeekAgoMillis), formatMillisToDate(nowMillis))
 
         // 검색 조건 관찰: 쿼리, 범위, 카테고리, 날짜, 정렬 중 하나라도 바뀌면 검색 수행
         viewModelScope.launch {
