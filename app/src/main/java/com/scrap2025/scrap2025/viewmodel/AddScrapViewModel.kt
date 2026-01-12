@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.viewmodel
 
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.model.LinkPreview
@@ -72,7 +73,28 @@ constructor(
     }
 
     fun updateUrl(newUrl: String) {
-        _url.value = newUrl.trim()
+        val refinedUrl =
+            if (newUrl.length > 400) {
+                // 검색어(q) 파라미터만 남기고 나머지 수천 자의 추적 데이터 제거
+                try {
+                    val uri = newUrl.toUri()
+                    val query = uri.getQueryParameter("q")
+                    if (query != null)
+                        uri.buildUpon()
+                            .clearQuery()
+                            .appendQueryParameter("q", query)
+                            .build()
+                            .toString()
+                    else
+                        newUrl
+                } catch (e: Exception) {
+                    newUrl
+                }
+            } else {
+                newUrl
+            }
+
+        _url.value = refinedUrl.trim()
     }
 
     fun updateMemo(newMemo: String) {
@@ -101,7 +123,6 @@ constructor(
      * @param linkPreview 링크 미리보기 데이터 (선택사항)
      */
     fun addScrapItem(
-        url: String,
         memo: String,
         linkPreview: LinkPreview? = null,
         categoryId: Long
@@ -113,9 +134,9 @@ constructor(
             val newItem =
                 ScrapItem(
                     id = 0L, // Server will assign the real ID
-                    title = linkPreview?.title ?: url,
+                    title = linkPreview?.title ?: "제목 없음",
                     description = linkPreview?.description ?: "",
-                    url = url,
+                    url = _url.value,
                     imageUrl = linkPreview?.imageUrl,
                     createdDate = LocalDateTime.now(),
                     isFavorite = false,

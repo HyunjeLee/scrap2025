@@ -110,7 +110,6 @@ fun AddScrapScreen(
         onMemoChange = { viewModel.updateMemo(it) },
         onAddScrap = { currentUrl, currentMemo, linkPreview ->
             viewModel.addScrapItem(
-                url = currentUrl,
                 memo = currentMemo,
                 linkPreview = linkPreview,
                 categoryId = globalCategoryId ?: 0L

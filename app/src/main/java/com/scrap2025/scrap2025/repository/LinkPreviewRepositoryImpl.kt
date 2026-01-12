@@ -16,7 +16,7 @@ class LinkPreviewRepositoryImpl @Inject constructor() : LinkPreviewRepository {
     companion object {
         private const val TAG = "LinkPreviewRepository"
         private const val TIMEOUT_MS = 10000 // 10초
-        private const val USER_AGENT = "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36"
+        private const val USER_AGENT = "facebookexternalhit/1.1; KakaoTalk/9.0.0" // kakaoTalk Scraper based on facebook
     }
 
     override suspend fun fetchLinkPreview(url: String): Result<LinkPreview> =
@@ -59,13 +59,26 @@ class LinkPreviewRepositoryImpl @Inject constructor() : LinkPreviewRepository {
 
         val siteName = document.selectFirst("meta[property=og:site_name]")?.attr("content")
 
+        // 지도 서비스(네이버/카카오) 및 사이트명과 제목이 중복되는 경우 보정
+        // 제목이 사이트 이름과 같거나 서비스명(네이버 지도, 카카오맵)일 때 처리
+        val serviceNames = listOf("네이버 지도", "카카오맵", "Naver Map", "Kakao Maps", siteName)
+
+        // 본문에 실제 장소 이름이 들어있는 경우가 많으므로 제목으로 끌어올림
+        // 예: "공주칼국수 : 서울 영등포구..." -> 제목: 공주칼국수
+        val refinedTitle =
+            if (title.trim() in serviceNames && !description.isNullOrEmpty())
+                description.split(":").firstOrNull()?.trim() ?: description
+            else
+                title
+
         Log.d(TAG, "Extracted - Title: $title, Image: $imageUrl")
 
         return LinkPreview(
             url = url,
-            title = title,
+            title = refinedTitle,
             description = description,
-            imageUrl = imageUrl,
+            imageUrl = imageUrl?.let { if (it.length > 400) null else it },
+//            imageUrl = imageUrl,  // todo: 서버에서 수정 후 원상복귀 할 것
             siteName = siteName
         )
     }
