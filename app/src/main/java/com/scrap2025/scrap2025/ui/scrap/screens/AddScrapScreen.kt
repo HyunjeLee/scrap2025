@@ -341,9 +341,9 @@ fun AddScrapScreenContent(
                             containerColor = MainColorDeep,
                             contentColor = Color.White
                         ),
-                    enabled = !isLoading
+                    enabled = !isLoading && !isLoadingPreview
                 ) {
-                    if (isLoading) {
+                    if (isLoading || isLoadingPreview) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             color = Color.White
