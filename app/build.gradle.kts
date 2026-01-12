@@ -117,6 +117,10 @@ dependencies {
     // compose-shadow plus
     implementation(libs.compose.shadows.plus)
 
+    // Paging 3
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
+
     // for test
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
