@@ -19,7 +19,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,9 +39,11 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.theme.GrayColor
+import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScrapListContent(
     scrapItemsState: ScrapUiState,
@@ -56,9 +62,7 @@ fun ScrapListContent(
 ) {
     when (val result = scrapItemsState) {
         is ScrapUiState.Loading -> {
-            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = MainColorDeep)
-            }
+            LoadingScreen()
         }
 
         is ScrapUiState.Error -> {
@@ -81,9 +85,7 @@ fun ScrapListContent(
 
         is ScrapUiState.Success -> {
             if (!isPreferencesLoaded) {
-                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MainColorDeep)
-                }
+                LoadingScreen()
             } else {
                 val scrapItems = result.items
                 when (viewMode) {
@@ -165,92 +167,110 @@ fun ScrapListContent(
                 }
 
                 else -> {
-                    when (viewMode) {
-                        ViewMode.LIST -> {
-                            LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
-                                items(
-                                    count = pagedItems.itemCount,
-                                    key = pagedItems.itemKey { it.id },
-                                    contentType = pagedItems.itemContentType { "scrap" }
-                                ) { index ->
-                                    val scrapItem = pagedItems[index]
-                                    if (scrapItem != null) {
-                                        ScrapItemCardList(
-                                            scrapItem = scrapItem,
-                                            showCategory = showCategory,
-                                            isSelectionMode = isSelectionMode,
-                                            isSelected = selectedScrapIds.contains(scrapItem.id),
-                                            onClick = { onItemClick(scrapItem.id) },
-                                            onLongClick = { onItemLongClick(scrapItem.id) },
-                                            onSelectionToggle = {
-                                                onItemSelectionToggle(scrapItem.id)
-                                            }
-                                        )
-                                    }
-                                }
+                    val isRefreshing = pagedItems.loadState.refresh is LoadState.Loading
+                    val pullToRefreshState = rememberPullToRefreshState()
 
-                                // 하단 추가 로딩 (Append)
-                                if (pagedItems.loadState.append is LoadState.Loading) {
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(24.dp),
-                                                color = MainColorDeep
+                    PullToRefreshBox(
+                        state = pullToRefreshState,
+                        isRefreshing = isRefreshing,
+                        onRefresh = { pagedItems.refresh() },
+                        indicator = {
+                            PullToRefreshDefaults.Indicator(
+                                state = pullToRefreshState,
+                                isRefreshing = isRefreshing,
+                                color = MainColorDeep,
+                                containerColor = MainColor,
+                                modifier = Modifier.align(Alignment.TopCenter)
+                            )
+                        },
+                    ) {
+                        when (viewMode) {
+                            ViewMode.LIST -> {
+                                LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
+                                    items(
+                                        count = pagedItems.itemCount,
+                                        key = pagedItems.itemKey { it.id },
+                                        contentType = pagedItems.itemContentType { "scrap" }
+                                    ) { index ->
+                                        val scrapItem = pagedItems[index]
+                                        if (scrapItem != null) {
+                                            ScrapItemCardList(
+                                                scrapItem = scrapItem,
+                                                showCategory = showCategory,
+                                                isSelectionMode = isSelectionMode,
+                                                isSelected = selectedScrapIds.contains(scrapItem.id),
+                                                onClick = { onItemClick(scrapItem.id) },
+                                                onLongClick = { onItemLongClick(scrapItem.id) },
+                                                onSelectionToggle = {
+                                                    onItemSelectionToggle(scrapItem.id)
+                                                }
                                             )
+                                        }
+                                    }
+
+                                    // 하단 추가 로딩 (Append)
+                                    if (pagedItems.loadState.append is LoadState.Loading) {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(24.dp),
+                                                    color = MainColorDeep
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        ViewMode.GRID -> {
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(2),
-                                state = gridState,
-                                modifier = modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                items(
-                                    count = pagedItems.itemCount,
-                                    key = pagedItems.itemKey { it.id },
-                                    contentType = pagedItems.itemContentType { "scrap" }
-                                ) { index ->
-                                    val scrapItem = pagedItems[index]
-                                    if (scrapItem != null) {
-                                        ScrapItemCardGrid(
-                                            scrapItem = scrapItem,
-                                            showCategory = showCategory,
-                                            isSelectionMode = isSelectionMode,
-                                            isSelected = selectedScrapIds.contains(scrapItem.id),
-                                            onClick = { onItemClick(scrapItem.id) },
-                                            onLongClick = { onItemLongClick(scrapItem.id) },
-                                            onSelectionToggle = {
-                                                onItemSelectionToggle(scrapItem.id)
-                                            }
-                                        )
-                                    }
-                                }
-
-                                // 하단 추가 로딩 (Append)
-                                if (pagedItems.loadState.append is LoadState.Loading) {
-                                    item(span = { GridItemSpan(maxLineSpan) }) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(24.dp),
-                                                color = MainColorDeep
+                            ViewMode.GRID -> {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(2),
+                                    state = gridState,
+                                    modifier = modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    items(
+                                        count = pagedItems.itemCount,
+                                        key = pagedItems.itemKey { it.id },
+                                        contentType = pagedItems.itemContentType { "scrap" }
+                                    ) { index ->
+                                        val scrapItem = pagedItems[index]
+                                        if (scrapItem != null) {
+                                            ScrapItemCardGrid(
+                                                scrapItem = scrapItem,
+                                                showCategory = showCategory,
+                                                isSelectionMode = isSelectionMode,
+                                                isSelected = selectedScrapIds.contains(scrapItem.id),
+                                                onClick = { onItemClick(scrapItem.id) },
+                                                onLongClick = { onItemLongClick(scrapItem.id) },
+                                                onSelectionToggle = {
+                                                    onItemSelectionToggle(scrapItem.id)
+                                                }
                                             )
+                                        }
+                                    }
+
+                                    // 하단 추가 로딩 (Append)
+                                    if (pagedItems.loadState.append is LoadState.Loading) {
+                                        item(span = { GridItemSpan(maxLineSpan) }) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(24.dp),
+                                                    color = MainColorDeep
+                                                )
+                                            }
                                         }
                                     }
                                 }
