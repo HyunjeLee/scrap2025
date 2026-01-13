@@ -35,16 +35,17 @@ fun LoginScreen(
         LoginUiState.Idle -> {
             LoginScreenContent(
                 onLoginClick = { snsType ->
-                    viewModel.login(snsType) { provider ->
-                        provider.login(context)
-                    }
+                    viewModel.login(snsType) { provider -> provider.login(context) }
                 },
+                onTestLogin = { viewModel.loginWithTestToken() },
                 modifier = modifier
             )
         }
-        LoginUiState.Loading, LoginUiState.Success  -> {
+
+        LoginUiState.Loading, LoginUiState.Success -> {
             LoadingScreen("로그인 중 ...")
         }
+
         is LoginUiState.Error -> {
             ErrorScreen((uiState as LoginUiState.Error).message)
         }

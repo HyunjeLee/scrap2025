@@ -32,6 +32,30 @@ constructor(
 
     companion object {
         private const val TAG = "LoginViewModel"
+        private const val TEST_ACCESS_TOKEN =
+            "eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiYWI1MGU1YjctZWEwMC00Mzc4LWE0ZTMtMjM2YmI3OWU0OTdlIiwiaWF0IjoxNzY3NTA1MzI5LCJleHAiOjE3ODMwNTczMjl9.p4oczlS6KG5OZODxtjgb5O_iYCIDhSu1qqT1A4EeLrc"
+        private const val TEST_REFRESH_TOKEN =
+            "refreshToken: eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiUkVGUkVTSCIsInN1YiI6ImFiNTBlNWI3LWVhMDAtNDM3OC1hNGUzLTIzNmJiNzllNDk3ZSIsImlhdCI6MTc2NzUwNTMzMCwiZXhwIjoxNzk5MDQxMzMwLCJqdGkiOiI3NDEyNTA4MTEyNTU3NDcxNjYwIn0.rsw6Rb6g8nwshAXYuRao7EYphJ6uYx5B-hSmPTumAIs"
+    }
+
+    fun loginWithTestToken() {
+        _uiState.value = LoginUiState.Loading
+
+        viewModelScope.launch {
+            val result = authRepository.testLogin(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)
+
+            result
+                .onSuccess {
+                    _uiState.value = LoginUiState.Success
+                    Log.d(TAG, "테스트 로그인 성공")
+                }
+                .onFailure { exception ->
+                    val errorMsg = "테스트 로그인 실패: ${exception.message}"
+                    _uiState.value = LoginUiState.Error(errorMsg)
+                    Log.e(TAG, errorMsg)
+                }
+
+        }
     }
 
     fun login(
