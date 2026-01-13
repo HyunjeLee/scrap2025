@@ -1,8 +1,11 @@
 package com.scrap2025.scrap2025.ui.common.dialogs
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +35,7 @@ import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import java.text.SimpleDateFormat
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.Date
@@ -81,7 +86,7 @@ fun CommonDateRangePickerDialog(
                     color = if (isConfirmEnabled) MainColorDeep else Color.Gray,
                     fontWeight = if (isConfirmEnabled) FontWeight.Bold else null
                 )
-                }
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text(text = "취소", color = Color.Gray) }
@@ -94,15 +99,50 @@ fun CommonDateRangePickerDialog(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommonDateRangePickerContent(state: DateRangePickerState) {
-    DateRangePicker(
-        state = state,
+    // 날짜 기준점 계산 및 remember를 통한 캐싱
+    val datePresets = remember {
+        val now = LocalDate.now()
+
+        listOf(
+            DatePreset("오늘", now.toUtcMillis(), now.toUtcMillis()),
+            DatePreset("최근 일주일", now.minusWeeks(1).toUtcMillis(), now.toUtcMillis()),
+            DatePreset("최근 1년", now.minusYears(1).toUtcMillis(), now.toUtcMillis())
+        )
+    }
+
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MainColorDeep)
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            datePresets.forEach { preset ->
+                val isSelected =
+                    (state.selectedStartDateMillis == preset.startMillis) && (state.selectedEndDateMillis == preset.endMillis)
+
+                Text(
+                    modifier = Modifier.clickable {
+                        state.setSelection(preset.startMillis, preset.endMillis)
+                    },
+                    text = preset.label,
+                    color = MainColor,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+        }
+
+        DateRangePicker(
+            state = state,
             title = {
                 Column(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .background(MainColorDeep)
-                            .padding(start = 24.dp, top = 16.dp)
+                            .padding(start = 24.dp)
                 ) {
                     val year =
                         state.selectedStartDateMillis?.let { formatMillisToText(it, "yyyy년") }
@@ -129,7 +169,9 @@ fun CommonDateRangePickerContent(state: DateRangePickerState) {
                             formatMillisToText(it, "M월 d일 (E)")
                         }
                     val endDateText =
-                        state.selectedEndDateMillis?.let { formatMillisToText(it, "M월 d일 (E)") }
+                        state.selectedEndDateMillis?.let {
+                            formatMillisToText(it, "M월 d일 (E)")
+                        }
 
                     val headlineText =
                         when {
@@ -151,7 +193,7 @@ fun CommonDateRangePickerContent(state: DateRangePickerState) {
                     )
                 }
             },
-        showModeToggle = false,  // 상단 펜 아이콘 숨기기
+            showModeToggle = false, // 상단 Pen 아이콘 숨기기
             colors =
                 DatePickerDefaults.colors(
                     containerColor = Color.White,
@@ -160,8 +202,9 @@ fun CommonDateRangePickerContent(state: DateRangePickerState) {
                     dayInSelectionRangeContainerColor = MainColorLight,
                     todayContentColor = Color.Black,
                     todayDateBorderColor = MainColorDeep
-                    )
-    )
+                )
+        )
+    }
 }
 
 /** 밀리초를 지정된 포맷의 텍스트로 변환하는 유틸리티 함수 */
@@ -170,6 +213,12 @@ private fun formatMillisToText(millis: Long, pattern: String): String {
     val date = Date.from(instant)
     return SimpleDateFormat(pattern, Locale.KOREA).format(date)
 }
+
+private fun LocalDate.toUtcMillis(): Long =
+    this.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+private data class DatePreset(val label: String, val startMillis: Long, val endMillis: Long)
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "DatePicker Content Internal")
