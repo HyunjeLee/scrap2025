@@ -94,7 +94,7 @@ fun EditMemoScreenContent(
                         .background(BackgroundColor)
                 ) {
                     // 톱바
-                    TopBar(onBackClick = onBack)
+                    TopBar(title = "메모 수정하기", onBackClick = onBack)
 
                     // 메모 수정
                     Box(
@@ -157,7 +157,7 @@ fun EditMemoScreenContent(
                             ),
                         ) {
                             Text(
-                                text = "추가하기", style = TextStyle(
+                                text = "수정하기", style = TextStyle(
                                     fontSize = 18.sp, fontWeight = FontWeight.SemiBold
                                 )
                             )

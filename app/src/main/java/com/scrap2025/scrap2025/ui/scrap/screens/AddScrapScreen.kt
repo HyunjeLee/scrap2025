@@ -365,7 +365,11 @@ fun AddScrapScreenContent(
 }
 
 @Composable
-fun TopBar(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
+fun TopBar(
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    title: String = "스크랩 추가하기",
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -388,7 +392,7 @@ fun TopBar(onBackClick: () -> Unit, modifier: Modifier = Modifier) {
 
         // 제목
         Text(
-            text = "스크랩 추가하기",
+            text = title,
             style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
             color = Color.Black,
         )
