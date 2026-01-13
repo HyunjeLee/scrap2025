@@ -192,7 +192,8 @@ fun ScrapDetailContent(
                             spotColor = Color.Black.copy(alpha = 0.1f)
                         )
                         .clip(RoundedCornerShape(15.dp))
-                        .background(Color.White),
+                        .background(Color.White)
+                        .clickable { onImageClick(scrapItem.url) },
                 contentAlignment = Alignment.Center
             ) {
                 scrapItem.imageUrl?.let { imageUrl ->
@@ -200,21 +201,11 @@ fun ScrapDetailContent(
                         model = imageUrl,
                         contentDescription = "스크랩 이미지",
                         modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .clickable {
-                                    onImageClick(scrapItem.url)
-                                },
+                            Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 }
-                    ?: run {
-                        Box(
-                            modifier
-                                .fillMaxSize()
-                                .background(LightGrayColor)
-                        )
-                    }
+                    ?: run { Box(modifier = Modifier.fillMaxSize().background(LightGrayColor)) }
             }
 
             // URL & 본문내용 영역
