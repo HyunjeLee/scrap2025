@@ -37,13 +37,18 @@ constructor(
     val uiState: StateFlow<ScrapDetailUiState> = _uiState.asStateFlow()
 
     init {
-        fetchScrapDetail()
-    }
-
-    private fun fetchScrapDetail() {
         viewModelScope.launch {
-            _uiState.value = ScrapDetailUiState.Loading
-
+            scrapRepository.refreshEvent.collect {
+                // 이미 성공 상태라면 로딩바 없이 silent하게 업데이트
+                fetchScrapDetail(showLoading = _uiState.value !is ScrapDetailUiState.Success)
+            }
+        }
+    }
+    private fun fetchScrapDetail(showLoading: Boolean = true) {
+        viewModelScope.launch {
+            if (showLoading) {
+                _uiState.value = ScrapDetailUiState.Loading
+            }
             scrapRepository.getScrapById(scrapId)
                 .fold(
                     onSuccess = {
