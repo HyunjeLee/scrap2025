@@ -34,11 +34,11 @@ import com.scrap2025.scrap2025.model.enums.SortDirection
 import com.scrap2025.scrap2025.model.enums.SortType
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
+import com.scrap2025.scrap2025.ui.common.components.ScrapSearchBar
 import com.scrap2025.scrap2025.ui.common.components.SortBar
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapFloatingButtons
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapListContent
-import com.scrap2025.scrap2025.ui.scrap.components.ScrapSearchBar
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapSelectionBottomBar
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapTopBar
 import com.scrap2025.scrap2025.ui.scrap.components.SelectionTopBar
@@ -184,7 +184,10 @@ fun ScrapScreen(
                             },
                             onDeleteCategory = { screenState.showDeleteDialog = true }
                         )
-                        ScrapSearchBar(uiState.query, { scrapViewModel.onQueryChange(it) })
+                        ScrapSearchBar(
+                            query = uiState.query,
+                            onQueryChange = { scrapViewModel.onQueryChange(it) },
+                        )
                         SortBar(
                             sortType = uiState.sortType,
                             sortDirection = uiState.sortDirection,
@@ -257,7 +260,9 @@ fun ScrapScreenContent(
     floatingActionButton: @Composable (Modifier) -> Unit = {},
     dialogs: @Composable () -> Unit = {},
 ) {
-    Box(modifier = modifier.fillMaxSize().background(BackgroundColor)
+    Box(modifier = modifier
+        .fillMaxSize()
+        .background(BackgroundColor)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             topBar()
@@ -280,7 +285,7 @@ fun ScrapScreenContentPreview() {
                     onUpdateCategory = { _, _ -> },
                     onDeleteCategory = {}
                 )
-                ScrapSearchBar("", {})
+                ScrapSearchBar(query = "", onQueryChange = {})
                 SortBar(
                     sortType = SortType.SCRAP_DATE,
                     sortDirection = SortDirection.ASC,

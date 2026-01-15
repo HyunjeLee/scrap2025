@@ -21,10 +21,10 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.ViewMode
+import com.scrap2025.scrap2025.ui.common.components.ScrapSearchBar
 import com.scrap2025.scrap2025.ui.common.components.SortBar
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapFloatingButtons
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapListContent
-import com.scrap2025.scrap2025.ui.scrap.components.ScrapSearchBar
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapSelectionBottomBar
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapTopBar
 import com.scrap2025.scrap2025.ui.scrap.components.SelectionTopBar
@@ -145,7 +145,10 @@ fun FavoriteScreen(
                     onUpdateCategory = { _, _ -> /* 즐겨찾기 제목 수정 불가 */ },
                     onDeleteCategory = { /* 즐겨찾기 카테고리 삭제 불가 */ },
                 )
-                ScrapSearchBar(uiState.query, { viewModel.onQueryChange(it) })
+                ScrapSearchBar(
+                    query = uiState.query,
+                    onQueryChange = { viewModel.onQueryChange(it) },
+                )
                 SortBar(
                     sortType = uiState.sortType,
                     sortDirection = uiState.sortDirection,

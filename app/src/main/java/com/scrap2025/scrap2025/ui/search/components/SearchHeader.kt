@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.rounded.Add
@@ -40,8 +39,8 @@ import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.model.enums.SearchScope
+import com.scrap2025.scrap2025.ui.common.components.ScrapSearchBar
 import com.scrap2025.scrap2025.ui.theme.Duotone
-import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LineGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
@@ -69,57 +68,14 @@ fun SearchHeader(
         Text(
             text = "검색",
             style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(top = 19.dp, bottom = 16.dp, start = 21.dp)
+            modifier = Modifier.padding(top = 19.dp, bottom = 12.dp, start = 21.dp)
         )
 
         // 검색창
-        Box(
-            modifier =
-                Modifier
-                    .padding(horizontal = 21.dp, vertical = 5.dp)
-                    .fillMaxWidth()
-                    .height(44.dp)
-                    .background(MainColorLight, RoundedCornerShape(8.dp))
-                    .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_search_bar),
-                    contentDescription = "검색",
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                BasicTextField(
-                    value = query,
-                    onValueChange = onQueryChange,
-                    modifier = Modifier.weight(1f),
-                    textStyle = TextStyle(fontSize = 15.sp),
-                    decorationBox = { innerTextField ->
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            if (query.isEmpty()) {
-                                Text(text = "검색하기", color = GrayColor, fontSize = 15.sp)
-                            }
-                            // 3. 실제 입력창 영역도 동일한 중앙 기준선에 배치됩니다.
-                            innerTextField()
-                        }
-                    }
-                )
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { onQueryChange("") }, modifier = Modifier.size(24.dp)) {
-                        Icon(
-                            imageVector = Icons.Filled.Cancel,
-                            contentDescription = "지우기",
-                            tint = GrayColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-            }
-        }
+        ScrapSearchBar(
+            query = query,
+            onQueryChange = onQueryChange,
+        )
 
         HorizontalDivider(color = LineGrayColor)
 
