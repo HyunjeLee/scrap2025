@@ -1,8 +1,10 @@
 package com.scrap2025.scrap2025.data.remote.auth
 
+import android.util.Log
 import com.scrap2025.scrap2025.data.local.TokenManager
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject
@@ -22,7 +24,11 @@ class AuthInterceptor
             return chain.proceed(originalRequest)  // 수정없이 원본 통신
         }
 
-        val token = runBlocking { tokenManager.accessToken.firstOrNull() }
+        val token = runBlocking {
+            withTimeoutOrNull(2500) {
+                tokenManager.accessToken.first { !it.isNullOrEmpty() }
+            }
+        }
 
         val newRequest = if (!token.isNullOrBlank()) {
             originalRequest.newBuilder()
@@ -30,6 +36,8 @@ class AuthInterceptor
                 .header("Authorization", "Bearer $token")
                 .build()
         } else {
+            Log.d("AuthInterceptor", "Token is null or blank")
+
             originalRequest
         }
 

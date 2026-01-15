@@ -50,7 +50,7 @@ object NetworkModule {
         }
 
         return Retrofit.Builder()
-            .baseUrl(DEVELOP_URL)
+            .baseUrl(RELEASE_URL)
             .client(okHttpClient)
             .addConverterFactory(
                 json.asConverterFactory("application/json; charset=utf-8".toMediaType())

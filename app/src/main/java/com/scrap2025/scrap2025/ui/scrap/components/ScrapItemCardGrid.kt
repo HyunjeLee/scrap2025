@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.ui.scrap.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,7 @@ import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ScrapItemCardGrid(
     scrapItem: ScrapItem,

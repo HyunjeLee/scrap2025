@@ -32,6 +32,30 @@ constructor(
 
     companion object {
         private const val TAG = "LoginViewModel"
+        private const val TEST_ACCESS_TOKEN =
+            "eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiOGFiZDUwYTktYmViZC00MDJjLWIzM2MtNTFhM2EwNjg1ZDYxIiwiaWF0IjoxNzY4NDc4NjI1LCJleHAiOjE3ODQwMzA2MjV9.uDBQY_o_WSRnfV2cDgiZjy2AMuZRO7lsLhzKkBasyRA"
+        private const val TEST_REFRESH_TOKEN =
+            "INVALIDATION"
+    }
+
+    fun loginWithTestToken() {
+        _uiState.value = LoginUiState.Loading
+
+        viewModelScope.launch {
+            val result = authRepository.testLogin(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)
+
+            result
+                .onSuccess {
+                    _uiState.value = LoginUiState.Success
+                    Log.d(TAG, "테스트 로그인 성공")
+                }
+                .onFailure { exception ->
+                    val errorMsg = "테스트 로그인 실패: ${exception.message}"
+                    _uiState.value = LoginUiState.Error(errorMsg)
+                    Log.e(TAG, errorMsg)
+                }
+
+        }
     }
 
     fun login(

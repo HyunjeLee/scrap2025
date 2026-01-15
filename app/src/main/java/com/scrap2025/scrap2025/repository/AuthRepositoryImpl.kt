@@ -24,6 +24,19 @@ constructor(
         private const val TAG = "AuthRepository"
     }
 
+    override suspend fun testLogin(testAccessToken: String, testRefreshToken: String): Result<Unit> {
+        return try {
+            tokenManager.saveTokens(testAccessToken, testRefreshToken)
+            tokenManager.saveSnsType(SnsType.KAKAO)
+            Log.d(TAG, "Tokens and SnsType saved successfully")
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "Login exception", e)
+            Result.failure(e)
+        }
+    }
+
     override suspend fun loginToServer(snsType: SnsType, socialToken: String): Result<Unit> {
         return try {
             val loginResult = authRemoteDataSource.login(sns = snsType.value, token = socialToken)

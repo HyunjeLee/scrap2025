@@ -4,6 +4,10 @@ import com.scrap2025.scrap2025.model.enums.SnsType
 
 /** 인증 관련 데이터 처리를 담당하는 리포지토리 인터페이스 */
 interface AuthRepository {
+
+    /** 운영계를 통한 테스트 토큰 */
+    suspend fun testLogin(testAccessToken: String, testRefreshToken: String): Result<Unit>
+
     /**
      * 서버에 로그인을 요청하고 토큰을 저장합니다.
      * @param snsType 로그인하는 SNS 종류 (KAKAO, NAVER 등)

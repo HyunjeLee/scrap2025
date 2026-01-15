@@ -39,10 +39,10 @@ private val MainTextStyle =
     TextStyle(fontSize = 22.sp, fontWeight = FontWeight.SemiBold, lineHeight = 28.sp)
 private val ButtonTextStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
 
-
 @Composable
 fun LoginScreenContent(
     onLoginClick: (SnsType) -> Unit,
+    onTestLogin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
 
@@ -103,6 +103,7 @@ fun LoginScreenContent(
             Spacer(modifier = Modifier.height(20.dp))
             KakaoLoginButton {
                 /* 카카오 로그인 로직 */
+                onTestLogin()
             }
             Spacer(modifier = Modifier.height(12.dp))
             NaverLoginButton {
@@ -122,7 +123,7 @@ private fun KakaoLoginButton(onClick: () -> Unit) {
             .height(50.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE500)),
         shape = RoundedCornerShape(8.dp)
-    ) { Text(text = "카카오 로그인", style = ButtonTextStyle, color = Color.Black) }
+    ) { Text(text = "테스트 로그인", style = ButtonTextStyle, color = Color.Black) }
 }
 
 @Composable
@@ -152,5 +153,5 @@ private fun NaverLoginButton(onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 private fun LoginScreenPreview() {
-    Scrap2025Theme { LoginScreenContent(onLoginClick = {}) }
+    Scrap2025Theme { LoginScreenContent(onLoginClick = {}, onTestLogin = {}) }
 }
