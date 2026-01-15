@@ -86,15 +86,21 @@ class FavoriteViewModel
     // Quartic 헬퍼 클래스 (4개 파라미터 combine용)
     data class Quartic<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 
-    // 정렬된 즐겨찾기 스크랩 아이템 목록
-    val sortedFavoriteItems: StateFlow<ScrapUiState> = combine(
+    private val intermediateFilters = combine(
         debouncedQuery,
         sortType,
-        sortDirection,
-        scrapRepository.refreshEvent
-    ) { query, type, direction, _ ->
+        sortDirection
+    ) { query, type, direction ->
         Triple(query, type, direction)
-    }.distinctUntilChanged().debounce(100L).flatMapLatest { (query, type, direction) ->
+    }.distinctUntilChanged().debounce(100L)
+
+    // 정렬된 즐겨찾기 스크랩 아이템 목록
+    val sortedFavoriteItems: StateFlow<ScrapUiState> = combine(
+        intermediateFilters,
+        scrapRepository.refreshEvent
+    ) { filters, _ ->
+        filters
+    }.flatMapLatest { (query, type, direction) ->
         if (query.isBlank()) {
             flow {
                 emit(
