@@ -18,7 +18,7 @@ android {
         applicationId = "com.scrap2025.scrap2025"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
+        versionCode = 6
         versionName = "1.0.0-alpha.${versionCode}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
