@@ -1,6 +1,7 @@
 package com.scrap2025.scrap2025
 
 import android.app.Application
+import android.util.Log
 import com.navercorp.nid.NidOAuth
 import dagger.hilt.android.HiltAndroidApp
 
@@ -10,13 +11,27 @@ class ScrapApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // 네이버 로그인 SDK 초기화
-        // BuildConfig를 통해 local.properties에서 읽어온 값 사용
-        NidOAuth.initialize(
-            context = this,
-            clientId = BuildConfig.NAVER_CLIENT_ID,
-            clientSecret = BuildConfig.NAVER_CLIENT_SECRET,
-            clientName = BuildConfig.NAVER_CLIENT_NAME
-        )
+        initNaverLogin()
     }
+
+    private fun initNaverLogin() {
+        val id = BuildConfig.NAVER_CLIENT_ID
+        val secret = BuildConfig.NAVER_CLIENT_SECRET
+        val name = BuildConfig.NAVER_CLIENT_NAME
+
+        // 모든 값이 있고, "null"이라는 문자열이 아닐 때만 실행
+        if (listOf(id, secret, name).all { it.isSafe() }) {
+            NidOAuth.initialize(
+                context = this,
+                clientId = id,
+                clientSecret = secret,
+                clientName = name
+            )
+        } else {
+            Log.e("ScrapApplication", "Naver Login configuration is missing or invalid.")
+        }
+    }
+
+    // "null" 문자열 체크와 비어있는지 체크를 하나로 묶은 확장 함수
+    private fun String.isSafe() = isNotEmpty() && this != "null"
 }
