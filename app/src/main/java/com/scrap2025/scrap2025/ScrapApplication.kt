@@ -19,8 +19,4 @@ class ScrapApplication : Application() {
             clientName = BuildConfig.NAVER_CLIENT_NAME
         )
     }
-
-// LOCAL-FIRST -> SERVER-FIRST
-//    override val workManagerConfiguration: Configuration
-//        get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
 }
