@@ -33,9 +33,9 @@ constructor(
     companion object {
         private const val TAG = "LoginViewModel"
         private const val TEST_ACCESS_TOKEN =
-            "eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiYWI1MGU1YjctZWEwMC00Mzc4LWE0ZTMtMjM2YmI3OWU0OTdlIiwiaWF0IjoxNzY3NTA1MzI5LCJleHAiOjE3ODMwNTczMjl9.p4oczlS6KG5OZODxtjgb5O_iYCIDhSu1qqT1A4EeLrc"
+            "eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiQUNDRVNTIiwic3ViIjoiOGFiZDUwYTktYmViZC00MDJjLWIzM2MtNTFhM2EwNjg1ZDYxIiwiaWF0IjoxNzY4NDc4NjI1LCJleHAiOjE3ODQwMzA2MjV9.uDBQY_o_WSRnfV2cDgiZjy2AMuZRO7lsLhzKkBasyRA"
         private const val TEST_REFRESH_TOKEN =
-            "refreshToken: eyJhbGciOiJIUzI1NiJ9.eyJ0eXBlIjoiUkVGUkVTSCIsInN1YiI6ImFiNTBlNWI3LWVhMDAtNDM3OC1hNGUzLTIzNmJiNzllNDk3ZSIsImlhdCI6MTc2NzUwNTMzMCwiZXhwIjoxNzk5MDQxMzMwLCJqdGkiOiI3NDEyNTA4MTEyNTU3NDcxNjYwIn0.rsw6Rb6g8nwshAXYuRao7EYphJ6uYx5B-hSmPTumAIs"
+            "INVALIDATION"
     }
 
     fun loginWithTestToken() {
