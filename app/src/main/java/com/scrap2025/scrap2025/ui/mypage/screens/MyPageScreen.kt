@@ -167,7 +167,7 @@ fun MyPageScreenContent(
 
         // Menu Items
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-        MenuItem(text = "고객센터") {}
+//        MenuItem(text = "고객센터") {}
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "로그아웃") { onLogout(snsType) }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
