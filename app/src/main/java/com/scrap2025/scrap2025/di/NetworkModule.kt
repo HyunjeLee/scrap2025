@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.di
 
+import com.scrap2025.scrap2025.BuildConfig
 import com.scrap2025.scrap2025.data.remote.api.AuthService
 import com.scrap2025.scrap2025.data.remote.api.CategoryService
 import com.scrap2025.scrap2025.data.remote.api.ScrapService
@@ -21,10 +22,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
-    private const val DEVELOP_URL = "https://dev.teamscrap.co.kr"
-    private const val RELEASE_URL = "https://teamscrap.co.kr/"
-
     @Provides
     @Singleton
     fun provideOkHttpClient(
@@ -50,7 +47,7 @@ object NetworkModule {
         }
 
         return Retrofit.Builder()
-            .baseUrl(RELEASE_URL)
+            .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(
                 json.asConverterFactory("application/json; charset=utf-8".toMediaType())

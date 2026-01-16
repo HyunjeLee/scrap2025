@@ -67,6 +67,38 @@ android {
         compose = true
         buildConfig = true
     }
+
+    flavorDimensions += "environment"
+
+    productFlavors {
+        val developUrl = "\"https://dev.teamscrap.co.kr/\""
+        val productionUrl = "\"https://teamscrap.co.kr/\""
+
+        // 개발용 Flavor
+        create("dev") {
+            dimension = "environment"
+
+            // 한 폰에 두 앱을 깔기 위해 패키지명 뒤에 .dev를 붙임
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+
+            // 개발 서버 URL 주입
+            buildConfigField("String", "BASE_URL", developUrl)
+
+            // 앱 이름을 '스크랩(DEV)'으로 변경 (resValue 사용)
+            resValue("string", "app_name", "스크랩(DEV)")
+        }
+        // 운영용 Flavor
+        create("prod") {
+            dimension = "environment"
+
+            // 운영 서버 URL 주입
+            buildConfigField("String", "BASE_URL", productionUrl)
+
+            // 실제 앱 이름
+            resValue("string", "app_name", "스크랩")
+        }
+    }
 }
 
 dependencies {

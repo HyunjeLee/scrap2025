@@ -29,8 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.scrap2025.scrap2025.BuildConfig
 import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.model.enums.SnsType
+import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
@@ -77,6 +79,11 @@ fun LoginScreenContent(
                     modifier = Modifier.size(30.dp)
                 )
             }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = BuildConfig.VERSION_NAME,
+                style = TextStyle(fontSize = 8.sp, color = GrayColor),
+            )
         }
 
         // 하단 버튼 영역
