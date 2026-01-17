@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,24 +52,43 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
     var isLoading by remember { mutableStateOf(true) }
     var progress by remember { mutableStateOf(0.0f) }
     var hasError by remember { mutableStateOf(false) }
+    var webViewRef by remember { mutableStateOf<WebView?>(null) }
 
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false) // Use full screen
     ) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+        ) {
             // Top Toolbar
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(Color(0xFFF5F5F5))) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(Color(0xFFF5F5F5))
+            ) {
                 IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterStart)) {
                     Icon(Icons.Default.Close, contentDescription = "Close")
                 }
 
                 Text(text = "직접 확인해서 추가하기", modifier = Modifier.align(Alignment.Center))
+
+                // Manual Trigger Button
+                TextButton(
+                    onClick = { webViewRef?.let { extractMetadata(it) } },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 8.dp)
+                ) {
+                    Text(
+                        text = "가져오기",
+                        color = Color.Blue // Or MainColor if available, using standard Color
+                        // for now to avoid dependency lookup if not imported
+                    )
+                }
             }
 
             // Loading Bar
@@ -83,10 +104,9 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
                 modifier = Modifier.fillMaxSize(),
                 factory = { context ->
                     WebView(context).apply {
+                        webViewRef = this
                         settings.javaScriptEnabled = true
                         settings.domStorageEnabled = true
-                        settings.userAgentString =
-                            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" // Desktop Chrome
 
                         // Register JS Interface
                         addJavascriptInterface(
@@ -141,10 +161,21 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
                                 override fun onPageFinished(view: WebView?, url: String?) {
                                     Log.d("WebViewScrap", "onPageFinished: $url")
                                     isLoading = false
-                                    if (!hasError) {
-                                        // Inject JS to extract metadata ONLY if no error
-                                        // occurred
-                                        extractMetadata(this@apply)
+                                    // Auto-extract removed. User must click 'Import'
+                                }
+
+                                override fun shouldOverrideUrlLoading(
+                                    view: WebView?,
+                                    request: WebResourceRequest?
+                                ): Boolean {
+                                    val url = request?.url?.toString() ?: return false
+                                    return if (url.startsWith("http://") ||
+                                        url.startsWith("https://")
+                                    ) {
+                                        false
+                                    } else {
+                                        Log.d("WebViewScrap", "Blocked URL scheme: $url")
+                                        true
                                     }
                                 }
 
