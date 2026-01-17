@@ -1,0 +1,219 @@
+package com.scrap2025.scrap2025.ui.common.components
+
+import android.graphics.Bitmap
+import android.util.Log
+import android.webkit.JavascriptInterface
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.scrap2025.scrap2025.model.LinkPreview
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+
+// Data class for parsing JSON returned from JS
+@Serializable
+data class ParsedMetadata(
+    val title: String? = null,
+    val description: String? = null,
+    val imageUrl: String? = null
+)
+
+@Composable
+fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (LinkPreview) -> Unit) {
+    var isLoading by remember { mutableStateOf(true) }
+    var progress by remember { mutableStateOf(0.0f) }
+    var hasError by remember { mutableStateOf(false) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false) // Use full screen
+    ) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)) {
+            // Top Toolbar
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(Color(0xFFF5F5F5))) {
+                IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterStart)) {
+                    Icon(Icons.Default.Close, contentDescription = "Close")
+                }
+
+                Text(text = "직접 확인해서 추가하기", modifier = Modifier.align(Alignment.Center))
+            }
+
+            // Loading Bar
+            if (isLoading) {
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            // WebView Area
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { context ->
+                    WebView(context).apply {
+                        settings.javaScriptEnabled = true
+                        settings.domStorageEnabled = true
+                        settings.userAgentString =
+                            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" // Desktop Chrome
+
+                        // Register JS Interface
+                        addJavascriptInterface(
+                            object {
+                                @JavascriptInterface
+                                fun processMetadata(jsonString: String) {
+                                    Log.d(
+                                        "WebViewScrap",
+                                        "processMetadata called with: $jsonString"
+                                    )
+                                    try {
+                                        val metadata =
+                                            Json { ignoreUnknownKeys = true }
+                                                .decodeFromString<ParsedMetadata>(
+                                                    jsonString
+                                                )
+                                        Log.d("WebViewScrap", "Parsed metadata: $metadata")
+                                        val preview =
+                                            LinkPreview(
+                                                url = url,
+                                                title = metadata.title ?: url,
+                                                description = metadata.description
+                                                    ?: "",
+                                                imageUrl = metadata.imageUrl,
+                                                siteName = null
+                                            )
+                                        // Callback on Main Thread
+                                        post {
+                                            Log.d("WebViewScrap", "Posting onScrapComplete")
+                                            onScrapComplete(preview)
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e("WebViewScrap", "Metadata parsing failed", e)
+                                    }
+                                }
+                            },
+                            "AndroidApp"
+                        )
+
+                        webViewClient =
+                            object : WebViewClient() {
+                                override fun onPageStarted(
+                                    view: WebView?,
+                                    url: String?,
+                                    favicon: Bitmap?
+                                ) {
+                                    Log.d("WebViewScrap", "onPageStarted: $url")
+                                    isLoading = true
+                                    hasError = false
+                                }
+
+                                override fun onPageFinished(view: WebView?, url: String?) {
+                                    Log.d("WebViewScrap", "onPageFinished: $url")
+                                    isLoading = false
+                                    if (!hasError) {
+                                        // Inject JS to extract metadata ONLY if no error
+                                        // occurred
+                                        extractMetadata(this@apply)
+                                    }
+                                }
+
+                                override fun onReceivedError(
+                                    view: WebView?,
+                                    request: WebResourceRequest?,
+                                    error: WebResourceError?
+                                ) {
+                                    super.onReceivedError(view, request, error)
+                                    Log.e(
+                                        "WebViewScrap",
+                                        "onReceivedError: ${error?.description}, errorCode: ${error?.errorCode}"
+                                    )
+                                    hasError = true
+                                }
+
+                                override fun onReceivedHttpError(
+                                    view: WebView?,
+                                    request: WebResourceRequest?,
+                                    errorResponse: WebResourceResponse?
+                                ) {
+                                    super.onReceivedHttpError(view, request, errorResponse)
+                                    Log.e(
+                                        "WebViewScrap",
+                                        "onReceivedHttpError: ${errorResponse?.statusCode}"
+                                    )
+                                    hasError = true
+                                }
+                            }
+
+                        webChromeClient =
+                            object : WebChromeClient() {
+                                override fun onProgressChanged(
+                                    view: WebView?,
+                                    newProgress: Int
+                                ) {
+                                    progress = newProgress / 100f
+                                }
+                            }
+
+                        Log.d("WebViewScrap", "Loading URL: $url")
+                        loadUrl(url)
+                    }
+                }
+            )
+        }
+    }
+}
+
+// JS Script for metadata extraction
+private fun extractMetadata(webView: WebView) {
+    val script =
+        """
+        (function() {
+            var ogTitle = document.querySelector('meta[property="og:title"]')?.content;
+            var ogImage = document.querySelector('meta[property="og:image"]')?.content;
+            var ogDesc = document.querySelector('meta[property="og:description"]')?.content;
+            var title = document.title;
+            
+            var data = {
+                title: ogTitle || title,
+                imageUrl: ogImage,
+                description: ogDesc
+            };
+            
+            // Call AndroidApp Interface
+            window.AndroidApp.processMetadata(JSON.stringify(data));
+        })();
+    """.trimIndent()
+
+    webView.evaluateJavascript(script, null)
+}

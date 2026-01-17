@@ -160,4 +160,15 @@ constructor(
         _memo.value = ""
         _linkPreviewUiState.value = null
     }
+
+    /** 웹뷰에서 직접 파싱해온 데이터를 적용합니다 */
+    fun onManualPreviewSuccess(preview: LinkPreview) {
+        android.util.Log.d("AddScrapViewModel", "onManualPreviewSuccess: $preview")
+        viewModelScope.launch {
+            // URL 필드 업데이트
+            _url.value = preview.url
+            // 미리보기 상태를 성공으로 강제 설정
+            _linkPreviewUiState.value = LinkPreviewUiState.Success(preview)
+        }
+    }
 }

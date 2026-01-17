@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,12 +24,16 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.model.LinkPreview
 import com.scrap2025.scrap2025.model.toScrapItem
+import com.scrap2025.scrap2025.ui.common.components.WebViewScrapDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
@@ -72,6 +78,9 @@ fun AddScrapScreen(
     val memo by viewModel.memo.collectAsState()
     val isLoading = addScrapState is AddScrapUiState.Loading
     val globalCategoryId by mainViewModel.selectedCategoryId.collectAsState()
+
+    // 웹뷰 다이얼로그 표시 여부 상태
+    var showWebView by remember { mutableStateOf(false) }
 
     // 화면 진입 시 공유된 URL이 있는지 확인하고 소비
     LaunchedEffect(Unit) {
@@ -115,9 +124,27 @@ fun AddScrapScreen(
                 categoryId = globalCategoryId ?: 0L
             )
         },
+        onShowWebView = { showWebView = true },
         onBack = { onBack() },
         modifier = modifier
     )
+
+    // 웹뷰 다이얼로그 표시
+    if (showWebView) {
+        val targetUrl =
+            url.ifBlank { "https://m.naver.com" }.let {
+                if (it.startsWith("http://") || it.startsWith("https://")) it else "https://$it"
+            }
+
+        WebViewScrapDialog(
+            url = targetUrl,
+            onDismiss = { showWebView = false },
+            onScrapComplete = { preview ->
+                showWebView = false
+                viewModel.onManualPreviewSuccess(preview)
+            }
+        )
+    }
 }
 
 /** AddScrapScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
@@ -130,6 +157,7 @@ fun AddScrapScreenContent(
     onUrlChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
     onAddScrap: (url: String, memo: String, linkPreview: LinkPreview?) -> Unit,
+    onShowWebView: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -188,12 +216,37 @@ fun AddScrapScreenContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 링크 라벨
-                Text(
-                    text = "링크",
-                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                    color = Color.Black,
-                    modifier = Modifier.padding(start = 20.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "링크",
+                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 20.dp)
+                    )
+
+                    // 웹뷰 버튼
+                    TextButton(
+                        onClick = onShowWebView,
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(30.dp)
+                    ) {
+                        Text(
+                            text = "웹페이지에서 가져오기",
+                            style =
+                                TextStyle(
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                            color = MainColorDeep
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -411,6 +464,7 @@ fun AddScrapScreenContentPreview() {
             onUrlChange = {},
             onMemoChange = {},
             onAddScrap = { _, _, _ -> },
+            onShowWebView = {},
             onBack = {}
         )
     }
