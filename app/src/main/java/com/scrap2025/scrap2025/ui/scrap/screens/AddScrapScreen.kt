@@ -3,9 +3,11 @@ package com.scrap2025.scrap2025.ui.scrap.screens
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,18 +19,23 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.model.LinkPreview
 import com.scrap2025.scrap2025.model.toScrapItem
+import com.scrap2025.scrap2025.ui.common.components.WebViewScrapDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
@@ -72,6 +80,9 @@ fun AddScrapScreen(
     val memo by viewModel.memo.collectAsState()
     val isLoading = addScrapState is AddScrapUiState.Loading
     val globalCategoryId by mainViewModel.selectedCategoryId.collectAsState()
+
+    // 웹뷰 다이얼로그 표시 여부 상태
+    var showWebView by remember { mutableStateOf(false) }
 
     // 화면 진입 시 공유된 URL이 있는지 확인하고 소비
     LaunchedEffect(Unit) {
@@ -115,9 +126,28 @@ fun AddScrapScreen(
                 categoryId = globalCategoryId ?: 0L
             )
         },
+        onShowWebView = { showWebView = true },
         onBack = { onBack() },
         modifier = modifier
     )
+
+    // 웹뷰 다이얼로그 표시
+    if (showWebView) {
+        val targetUrl =
+            url.ifBlank { "https://m.naver.com" }.let { url ->
+                if (url.startsWith("http://") || url.startsWith("https://")) url
+                else "https://$url"
+            }
+
+        WebViewScrapDialog(
+            url = targetUrl,
+            onDismiss = { showWebView = false },
+            onScrapComplete = { preview ->
+                showWebView = false
+                viewModel.onManualPreviewSuccess(preview)
+            }
+        )
+    }
 }
 
 /** AddScrapScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
@@ -130,18 +160,11 @@ fun AddScrapScreenContent(
     onUrlChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
     onAddScrap: (url: String, memo: String, linkPreview: LinkPreview?) -> Unit,
+    onShowWebView: () -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
-    // 링크 미리보기 데이터 추출
-    val linkPreview =
-        when (linkPreviewUiState) {
-            is LinkPreviewUiState.Success -> linkPreviewUiState.preview
-            else -> null
-        }
-    val isLoadingPreview = linkPreviewUiState is LinkPreviewUiState.Loading
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = modifier
@@ -158,42 +181,107 @@ fun AddScrapScreenContent(
                     .weight(1f)
             ) {
 
-                // 링크 미리보기 영역
-                if (isLoadingPreview) {
-                    Spacer(modifier = Modifier.height(16.dp))
+                // 링크 미리보기 영역 (State 기반 분기 처리)
+                when (linkPreviewUiState) {
+                    is LinkPreviewUiState.Loading -> {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp)
+                                    .height(80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(40.dp),
+                                color = MainColorDeep
+                            )
+                        }
+                    }
 
-                    Box(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
-                                .height(80.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(40.dp),
-                            color = MainColorDeep
+                    is LinkPreviewUiState.Success -> {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        ScrapItemCardList(
+                            scrapItem = linkPreviewUiState.preview.toScrapItem(),
+                            isSelectionMode = false,
+                            showCategory = false
                         )
                     }
-                } else if (linkPreview != null) {
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    ScrapItemCardList(
-                        scrapItem = linkPreview.toScrapItem(),
-                        isSelectionMode = false,
-                        showCategory = false
-                    )
+                    is LinkPreviewUiState.Error -> {
+                        // 에러 시 빈 공간 대신 "유도 UI" 노출
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .height(80.dp) // 미리보기 카드와 비슷한 높이
+                                .background(MainColorLight, RoundedCornerShape(8.dp))
+                                .clickable { onShowWebView() }, // 클릭 시 바로 웹뷰 열기
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Warning, // 혹은 적절한 아이콘
+                                    contentDescription = null,
+                                    tint = MainColorDeep,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "정보를 못 찾겠어요. 직접 가져올까요?",
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        color = MainColorDeep,
+//                                        textDecoration = TextDecoration.Underline
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    null -> {}
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 링크 라벨
-                Text(
-                    text = "링크",
-                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                    color = Color.Black,
-                    modifier = Modifier.padding(start = 20.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "링크",
+                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 20.dp)
+                    )
+
+                    // 웹뷰 버튼
+                    if (linkPreviewUiState is LinkPreviewUiState.Success) {
+                        TextButton(
+                            onClick = onShowWebView,
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.height(30.dp)
+                        ) {
+                            Text(
+                                text = "웹페이지에서 직접 가져오기",
+                                style =
+                                    TextStyle(
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+//                                    textDecoration = TextDecoration.Underline,
+                                    ),
+                                color = MainColorDeep
+                            )
+                        }
+                    }
+
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -250,11 +338,10 @@ fun AddScrapScreenContent(
 
                 // 메모 입력 필드
                 Box(
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp)
-                            .padding(bottom = 16.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
                 ) {
                     TextField(
                         value = memo,
@@ -324,12 +411,20 @@ fun AddScrapScreenContent(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 // 추가하기 버튼
+                val isPreviewLoading = linkPreviewUiState is LinkPreviewUiState.Loading
                 Button(
                     onClick = {
                         if (url.isBlank()) {
                             Toast.makeText(context, "링크를 입력해주세요", Toast.LENGTH_SHORT).show()
                         } else {
-                            onAddScrap(url.trim(), memo.trim(), linkPreview)
+                            // LinkPreview 추출 로직
+                            val currentLinkPreview =
+                                if (linkPreviewUiState is LinkPreviewUiState.Success) {
+                                    linkPreviewUiState.preview
+                                } else {
+                                    null
+                                }
+                            onAddScrap(url.trim(), memo.trim(), currentLinkPreview)
                         }
                     },
                     modifier = Modifier
@@ -341,9 +436,10 @@ fun AddScrapScreenContent(
                             containerColor = MainColorDeep,
                             contentColor = Color.White
                         ),
-                    enabled = !isLoading && !isLoadingPreview
+                    // 로딩 중이거나 미리보기 로딩 중이면 버튼 비활성화
+                    enabled = !isLoading && !isPreviewLoading
                 ) {
-                    if (isLoading || isLoadingPreview) {
+                    if (isLoading || isPreviewLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
                             color = Color.White
@@ -401,16 +497,17 @@ fun TopBar(
 
 @Preview(showBackground = true)
 @Composable
-fun AddScrapScreenContentPreview() {
+fun AddScrapScreenContentParsingErrorPreview() {
     Scrap2025Theme {
         AddScrapScreenContent(
             isLoading = false,
-            linkPreviewUiState = null,
+            linkPreviewUiState = LinkPreviewUiState.Error(),
             url = "",
             memo = "",
             onUrlChange = {},
             onMemoChange = {},
             onAddScrap = { _, _, _ -> },
+            onShowWebView = {},
             onBack = {}
         )
     }
