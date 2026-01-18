@@ -58,11 +58,29 @@ class KakaoLoginProvider @Inject constructor() : SocialLoginProvider {
         }
     }
 
-    override suspend fun logout(): Result<Unit> {
-        return Result.success(Unit)
+    override suspend fun logout(): Result<Unit> = suspendCancellableCoroutine { continuation ->
+        UserApiClient.instance.logout { error ->
+            if (error != null) {
+                Log.e(TAG, "로그아웃 실패. SDK에서 토큰 폐기됨", error)
+                continuation.resume(Result.failure(error))
+            }
+            else {
+                Log.i(TAG, "로그아웃 성공. SDK에서 토큰 폐기됨")
+                continuation.resume(Result.success(Unit))
+            }
+        }
     }
 
-    override suspend fun disconnect(): Result<Unit> {
-        return Result.success(Unit)
+    override suspend fun disconnect(): Result<Unit> = suspendCancellableCoroutine { continuation ->
+        UserApiClient.instance.unlink { error ->
+            if (error != null) {
+                Log.e(TAG, "연결 해제 실패", error)
+                continuation.resume(Result.failure(error))
+            }
+            else {
+                Log.i(TAG, "연결 해제 성공. SDK에서 토큰 폐기 됨")
+                continuation.resume(Result.success(Unit))
+            }
+        }
     }
 }
