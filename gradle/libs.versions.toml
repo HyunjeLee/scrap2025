@@ -15,6 +15,7 @@ coil = "2.7.0"
 datastorePreferences = "1.1.1"
 hiltNavigationCompose = "1.2.0"
 oauth = "5.11.0"
+kakaoLogin = "2.23.1"
 jsoup = "1.21.2"
 retrofit = "2.9.0"
 okhttp = "4.12.0"
@@ -52,6 +53,7 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 naver-oauth = { group = "com.navercorp.nid", name = "oauth", version.ref = "oauth" }
+kakao-oauth = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakaoLogin" }
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 converter-kotlinx-serialization = { module = "com.squareup.retrofit2:converter-kotlinx-serialization", version.ref = "converterKotlinxSerialization" }
