@@ -134,8 +134,9 @@ fun AddScrapScreen(
     // 웹뷰 다이얼로그 표시
     if (showWebView) {
         val targetUrl =
-            url.ifBlank { "https://m.naver.com" }.let {
-                if (it.startsWith("http://") || it.startsWith("https://")) it else "https://$it"
+            url.ifBlank { "https://m.naver.com" }.let { url ->
+                if (url.startsWith("http://") || url.startsWith("https://")) url
+                else "https://$url"
             }
 
         WebViewScrapDialog(
