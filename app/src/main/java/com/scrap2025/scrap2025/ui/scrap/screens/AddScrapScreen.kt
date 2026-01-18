@@ -230,7 +230,7 @@ fun AddScrapScreenContent(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "정보를 못 찾겠어요. 직접 지정할까요?",
+                                    text = "정보를 못 찾겠어요. 직접 가져올까요?",
                                     style = TextStyle(
                                         fontSize = 14.sp,
                                         color = MainColorDeep,
