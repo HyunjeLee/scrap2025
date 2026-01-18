@@ -45,6 +45,8 @@ android {
         buildConfigField("String", "NAVER_CLIENT_ID", "\"${getSecret("NAVER_CLIENT_ID")}\"")
         buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${getSecret("NAVER_CLIENT_SECRET")}\"")
         buildConfigField("String", "NAVER_CLIENT_NAME", "\"${properties.getProperty("NAVER_CLIENT_NAME", "scrap2025")}\"")
+
+        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = getSecret("KAKAO_NATIVE_APP_KEY")
     }
 
     buildTypes {
@@ -119,6 +121,8 @@ dependencies {
 
     // Naver Login SDK
     implementation(libs.naver.oauth)
+    // Kakao Login SDK
+    implementation(libs.kakao.oauth)
 
     // Network
     implementation(libs.retrofit)
