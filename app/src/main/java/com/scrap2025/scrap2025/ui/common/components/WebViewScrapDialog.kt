@@ -201,17 +201,57 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
                                         request: WebResourceRequest?
                                     ): Boolean {
                                         val url = request?.url?.toString() ?: return false
-                                        return if (url.startsWith("http://") ||
+
+                                        if (url.startsWith("http://") ||
                                             url.startsWith("https://")
                                         ) {
-                                            false
-                                        } else {
-                                            Log.d(
-                                                "WebViewScrap",
-                                                "Blocked URL scheme: $url"
-                                            )
-                                            true
+                                            return false
                                         }
+
+                                        // Handle intent:// schemes
+                                        if (url.startsWith("intent://")) {
+                                            try {
+                                                // Extract fallback URL manually to avoid
+                                                // Android dependency issues in this scope
+                                                // if possible,
+                                                // but using string parsing is reliable for
+                                                // the standard format.
+                                                // Format:
+                                                // intent://...?#Intent;...;S.browser_fallback_url=...;end
+                                                val fallbackUrl =
+                                                    url.substringAfter(
+                                                        "S.browser_fallback_url=",
+                                                        ""
+                                                    )
+                                                        .substringBefore(";")
+
+                                                if (fallbackUrl.isNotEmpty()) {
+                                                    // Decode if necessary
+                                                    // (browser_fallback_url is often
+                                                    // URL-encoded)
+                                                    val decodedUrl =
+                                                        java.net.URLDecoder.decode(
+                                                            fallbackUrl,
+                                                            "UTF-8"
+                                                        )
+                                                    Log.d(
+                                                        "WebViewScrap",
+                                                        "Redirecting to fallback URL: $decodedUrl"
+                                                    )
+                                                    view?.loadUrl(decodedUrl)
+                                                    return true // Handled by manual load
+                                                }
+                                            } catch (e: Exception) {
+                                                Log.e(
+                                                    "WebViewScrap",
+                                                    "Failed to parse intent fallback",
+                                                    e
+                                                )
+                                            }
+                                        }
+
+                                        Log.d("WebViewScrap", "Blocked URL scheme: $url")
+                                        return true
                                     }
 
                                     override fun onReceivedError(
