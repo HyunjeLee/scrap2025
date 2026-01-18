@@ -109,8 +109,7 @@ fun LoginScreenContent(
             }
             Spacer(modifier = Modifier.height(20.dp))
             KakaoLoginButton {
-                /* 카카오 로그인 로직 */
-                onTestLogin()
+                onLoginClick(SnsType.KAKAO)
             }
             Spacer(modifier = Modifier.height(12.dp))
             NaverLoginButton {
@@ -130,7 +129,7 @@ private fun KakaoLoginButton(onClick: () -> Unit) {
             .height(50.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE500)),
         shape = RoundedCornerShape(8.dp)
-    ) { Text(text = "테스트 로그인", style = ButtonTextStyle, color = Color.Black) }
+    ) { Text(text = "카카오 로그인", style = ButtonTextStyle, color = Color.Black) }
 }
 
 @Composable
