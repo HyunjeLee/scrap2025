@@ -59,7 +59,7 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
     var isInitialLoad by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        delay(2000) // Hide redirects for 2 seconds
+        delay(2500) // Hide redirects for 2 seconds
         isInitialLoad = false
     }
 
