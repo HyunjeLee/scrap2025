@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -38,6 +37,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.scrap2025.scrap2025.model.LinkPreview
+import com.scrap2025.scrap2025.ui.theme.BackgroundColor
+import com.scrap2025.scrap2025.ui.theme.MainColorDeep
+import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -50,6 +52,8 @@ data class ParsedMetadata(
     val imageUrl: String? = null
 )
 
+private const val TAG = "WebViewScrap"
+
 @Composable
 fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (LinkPreview) -> Unit) {
     var isLoading by remember { mutableStateOf(true) }
@@ -59,7 +63,7 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
     var isInitialLoad by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        delay(2500) // Hide redirects for 2 seconds
+        delay(2500) // Hide redirects for 2.5 seconds
         isInitialLoad = false
     }
 
@@ -67,56 +71,13 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false) // Use full screen
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-        ) {
-            // Top Toolbar
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(Color(0xFFF5F5F5))
-            ) {
-                IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.CenterStart)) {
-                    Icon(Icons.Default.Close, contentDescription = "Close")
-                }
-
-                Text(text = "직접 확인해서 추가하기", modifier = Modifier.align(Alignment.Center))
-
-                // Manual Trigger Button
-                TextButton(
-                    onClick = { webViewRef?.let { extractMetadata(it) } },
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
-                ) {
-                    Text(
-                        text = "가져오기",
-                        color = Color.Blue // Or MainColor if available, using standard Color
-                        // for now to avoid dependency lookup if not imported
-                    )
-                }
-            }
-
-            // Loading Bar (Shows during page loads OR during initial 2s delay)
-            if (isLoading || isInitialLoad) {
-                LinearProgressIndicator(
-                    progress = {
-                        if (isInitialLoad) 0.5f else progress
-                    }, // Fake progress for initial delay
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-
-            // WebView Area
-            // WebView and Overlay Container
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
+        WebViewScrapDialogContent(
+            title = "직접 확인해서 가져오기",
+            onDismiss = onDismiss,
+            onImport = { webViewRef?.let { extractMetadata(it) } },
+            isLoading = isLoading || isInitialLoad,
+            progress = if (isInitialLoad) 0.5f else progress,
+            webViewContent = {
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { context ->
@@ -130,191 +91,203 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
                                 object {
                                     @JavascriptInterface
                                     fun processMetadata(jsonString: String) {
-                                        Log.d(
-                                            "WebViewScrap",
-                                            "processMetadata called with: $jsonString"
-                                        )
+                                        Log.d(TAG, "processMetadata called with: $jsonString")
                                         try {
-                                            val metadata =
-                                                Json { ignoreUnknownKeys = true }
-                                                    .decodeFromString<
-                                                            ParsedMetadata>(
-                                                        jsonString
-                                                    )
-                                            Log.d(
-                                                "WebViewScrap",
-                                                "Parsed metadata: $metadata"
+                                            val metadata = Json { ignoreUnknownKeys = true
+                                            }.decodeFromString<ParsedMetadata>(jsonString)
+
+                                            Log.d(TAG, "Parsed metadata: $metadata")
+
+                                            val preview = LinkPreview(
+                                                url = url,
+                                                title = metadata.title ?: url,
+                                                description = metadata.description ?: "",
+                                                imageUrl = metadata.imageUrl,
+                                                siteName = null
                                             )
-                                            val preview =
-                                                LinkPreview(
-                                                    url = url,
-                                                    title = metadata.title ?: url,
-                                                    description =
-                                                        metadata.description
-                                                            ?: "",
-                                                    imageUrl = metadata.imageUrl,
-                                                    siteName = null
-                                                )
+
                                             // Callback on Main Thread
                                             post {
-                                                Log.d(
-                                                    "WebViewScrap",
-                                                    "Posting onScrapComplete"
+                                                Log.d(TAG, "Posting onScrapComplete"
                                                 )
                                                 onScrapComplete(preview)
                                             }
                                         } catch (e: Exception) {
-                                            Log.e(
-                                                "WebViewScrap",
-                                                "Metadata parsing failed",
-                                                e
-                                            )
+                                            Log.e(TAG, "Metadata parsing failed", e)
                                         }
                                     }
-                                },
-                                "AndroidApp"
+                                }, "AndroidApp"
                             )
 
-                            webViewClient =
-                                object : WebViewClient() {
-                                    override fun onPageStarted(
-                                        view: WebView?,
-                                        url: String?,
-                                        favicon: Bitmap?
-                                    ) {
-                                        Log.d("WebViewScrap", "onPageStarted: $url")
-                                        isLoading = true
-                                        hasError = false
+                            webViewClient = object : WebViewClient() {
+                                override fun onPageStarted(
+                                    view: WebView?, url: String?, favicon: Bitmap?
+                                ) {
+                                    Log.d(TAG, "onPageStarted: $url")
+
+                                    isLoading = true
+                                    hasError = false
+                                }
+
+                                override fun onPageFinished(
+                                    view: WebView?, url: String?
+                                ) {
+                                    Log.d(TAG, "onPageFinished: $url")
+
+                                    isLoading = false
+                                }
+
+                                override fun shouldOverrideUrlLoading(
+                                    view: WebView?, request: WebResourceRequest?
+                                ): Boolean {
+                                    val url = request?.url?.toString() ?: return false
+
+                                    if (url.startsWith("http://") || url.startsWith("https://")) {
+                                        return false
                                     }
 
-                                    override fun onPageFinished(
-                                        view: WebView?,
-                                        url: String?
-                                    ) {
-                                        Log.d("WebViewScrap", "onPageFinished: $url")
-                                        isLoading = false
-                                        // Auto-extract removed. User must click 'Import'
-                                    }
+                                    // Handle intent:// schemes
+                                    if (url.startsWith("intent://")) {
+                                        try {
+                                            // Extract fallback URL manually
+                                            val fallbackUrl = url.substringAfter(
+                                                "S.browser_fallback_url=", ""
+                                            ).substringBefore(";")
 
-                                    override fun shouldOverrideUrlLoading(
-                                        view: WebView?,
-                                        request: WebResourceRequest?
-                                    ): Boolean {
-                                        val url = request?.url?.toString() ?: return false
-
-                                        if (url.startsWith("http://") ||
-                                            url.startsWith("https://")
-                                        ) {
-                                            return false
-                                        }
-
-                                        // Handle intent:// schemes
-                                        if (url.startsWith("intent://")) {
-                                            try {
-                                                // Extract fallback URL manually to avoid
-                                                // Android dependency issues in this scope
-                                                // if possible,
-                                                // but using string parsing is reliable for
-                                                // the standard format.
-                                                // Format:
-                                                // intent://...?#Intent;...;S.browser_fallback_url=...;end
-                                                val fallbackUrl =
-                                                    url.substringAfter(
-                                                        "S.browser_fallback_url=",
-                                                        ""
-                                                    )
-                                                        .substringBefore(";")
-
-                                                if (fallbackUrl.isNotEmpty()) {
-                                                    // Decode if necessary
-                                                    // (browser_fallback_url is often
-                                                    // URL-encoded)
-                                                    val decodedUrl =
-                                                        java.net.URLDecoder.decode(
-                                                            fallbackUrl,
-                                                            "UTF-8"
-                                                        )
-                                                    Log.d(
-                                                        "WebViewScrap",
-                                                        "Redirecting to fallback URL: $decodedUrl"
-                                                    )
-                                                    view?.loadUrl(decodedUrl)
-                                                    return true // Handled by manual load
-                                                }
-                                            } catch (e: Exception) {
-                                                Log.e(
-                                                    "WebViewScrap",
-                                                    "Failed to parse intent fallback",
-                                                    e
+                                            if (fallbackUrl.isNotEmpty()) {
+                                                // Decode if necessary
+                                                // (browser_fallback_url is often
+                                                // URL-encoded)
+                                                val decodedUrl = java.net.URLDecoder.decode(
+                                                    fallbackUrl, "UTF-8"
                                                 )
+                                                Log.d(TAG, "Redirecting to fallback URL: $decodedUrl")
+
+                                                view?.loadUrl(decodedUrl)
+                                                return true // Handled by manual load
                                             }
+                                        } catch (e: Exception) {
+                                            Log.e(TAG, "Failed to parse intent fallback", e)
                                         }
-
-                                        Log.d("WebViewScrap", "Blocked URL scheme: $url")
-                                        return true
                                     }
 
-                                    override fun onReceivedError(
-                                        view: WebView?,
-                                        request: WebResourceRequest?,
-                                        error: WebResourceError?
-                                    ) {
-                                        super.onReceivedError(view, request, error)
-                                        Log.e(
-                                            "WebViewScrap",
-                                            "onReceivedError: ${error?.description}, errorCode: ${error?.errorCode}"
-                                        )
-                                        hasError = true
-                                    }
-
-                                    override fun onReceivedHttpError(
-                                        view: WebView?,
-                                        request: WebResourceRequest?,
-                                        errorResponse: WebResourceResponse?
-                                    ) {
-                                        super.onReceivedHttpError(
-                                            view,
-                                            request,
-                                            errorResponse
-                                        )
-                                        Log.e(
-                                            "WebViewScrap",
-                                            "onReceivedHttpError: ${errorResponse?.statusCode}"
-                                        )
-                                        hasError = true
-                                    }
+                                    Log.d(TAG, "Blocked URL scheme: $url")
+                                    return true
                                 }
 
-                            webChromeClient =
-                                object : WebChromeClient() {
-                                    override fun onProgressChanged(
-                                        view: WebView?,
-                                        newProgress: Int
-                                    ) {
-                                        progress = newProgress / 100f
-                                    }
+                                override fun onReceivedError(
+                                    view: WebView?,
+                                    request: WebResourceRequest?,
+                                    error: WebResourceError?
+                                ) {
+                                    super.onReceivedError(view, request, error)
+                                    Log.e(TAG, "onReceivedError: ${error?.description}, errorCode: ${error?.errorCode}")
+                                    hasError = true
                                 }
 
-                            Log.d("WebViewScrap", "Loading URL: $url")
+                                override fun onReceivedHttpError(
+                                    view: WebView?,
+                                    request: WebResourceRequest?,
+                                    errorResponse: WebResourceResponse?
+                                ) {
+                                    super.onReceivedHttpError(
+                                        view, request, errorResponse
+                                    )
+                                    Log.e(TAG, "onReceivedHttpError: ${errorResponse?.statusCode}")
+                                    hasError = true
+                                }
+                            }
+
+                            webChromeClient = object : WebChromeClient() {
+                                override fun onProgressChanged(
+                                    view: WebView?,
+                                    newProgress: Int
+                                ) {
+                                    progress = newProgress / 100f
+                                }
+                            }
+
+                            Log.d(TAG, "Loading URL: $url")
                             loadUrl(url)
                         }
                     }
                 )
+            })
+    }
+}
 
-                // Full screen overlay for initial load to hide redirects
-                if (isInitialLoad) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.White),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator(color = Color.Black)
-                            Text(text = "페이지 연결 중...", modifier = Modifier.padding(top = 16.dp))
-                        }
-                    }
-                }
+/**
+ * WebViewScrapDialogContent: UI 전용 Composable
+ * - Preview 가능하도록 로직과 분리됨
+ * - Slot API(webViewContent)를 통해 실제 WebView 또는 가짜 박스를 주입받음
+ */
+@Composable
+fun WebViewScrapDialogContent(
+    title: String,
+    onDismiss: () -> Unit,
+    onImport: () -> Unit,
+    isLoading: Boolean,
+    progress: Float,
+    webViewContent: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BackgroundColor)
+    ) {
+        // Top Toolbar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(MainColorLight)
+        ) {
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Close",
+                    tint = MainColorDeep
+                )
+            }
+
+            Text(
+                text = title,
+                modifier = Modifier.align(Alignment.Center)
+            )
+
+            // Manual Trigger Button
+            TextButton(
+                onClick = onImport,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 8.dp)
+            ) { Text(text = "가져오기", color = MainColorDeep) }
+        }
+
+        // Loading Bar (Shows during page loads OR during initial 2s delay)
+        if (isLoading) {
+            LinearProgressIndicator(
+                progress = { progress },
+                color = MainColorDeep,
+                trackColor = MainColorLight,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+
+        // WebView Area
+        // WebView and Overlay Container
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            webViewContent()
+
+            if (isLoading && progress < 0.6f) {
+                LoadingScreen("페이지 연결 중...")
             }
         }
     }
@@ -322,8 +295,7 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
 
 // JS Script for metadata extraction
 private fun extractMetadata(webView: WebView) {
-    val script =
-        """
+    val script = """
         (function() {
             var ogTitle = document.querySelector('meta[property="og:title"]')?.content;
             var ogImage = document.querySelector('meta[property="og:image"]')?.content;
@@ -342,4 +314,23 @@ private fun extractMetadata(webView: WebView) {
     """.trimIndent()
 
     webView.evaluateJavascript(script, null)
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun WebViewScrapDialogContentPreview() {
+    WebViewScrapDialogContent(
+        title = "직접 확인해서 추가하기",
+        onDismiss = {},
+        onImport = {},
+        isLoading = true,
+        progress = 0.5f,
+        webViewContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.LightGray),
+                contentAlignment = Alignment.Center
+            ) { Text("WebView Placeholder") }
+        })
 }
