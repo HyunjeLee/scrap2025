@@ -2,6 +2,7 @@ package com.scrap2025.scrap2025
 
 import android.app.Application
 import android.util.Log
+import com.kakao.sdk.common.KakaoSdk
 import com.navercorp.nid.NidOAuth
 import dagger.hilt.android.HiltAndroidApp
 
@@ -12,6 +13,7 @@ class ScrapApplication : Application() {
         super.onCreate()
 
         initNaverLogin()
+        initKakaoLogin()
     }
 
     private fun initNaverLogin() {
@@ -30,6 +32,12 @@ class ScrapApplication : Application() {
         } else {
             Log.e("ScrapApplication", "Naver Login configuration is missing or invalid.")
         }
+    }
+
+    private fun initKakaoLogin() {
+        val nativeAppKey = BuildConfig.KAKAO_NATIVE_APP_KEY
+
+        KakaoSdk.init(this, nativeAppKey)
     }
 
     // "null" 문자열 체크와 비어있는지 체크를 하나로 묶은 확장 함수
