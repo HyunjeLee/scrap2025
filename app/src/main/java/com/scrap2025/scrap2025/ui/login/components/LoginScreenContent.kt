@@ -127,9 +127,23 @@ private fun KakaoLoginButton(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFE500)),
-        shape = RoundedCornerShape(8.dp)
-    ) { Text(text = "카카오 로그인", style = ButtonTextStyle, color = Color.Black) }
+        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE500)),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_kakao),
+                tint = Color.Unspecified,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(text = "카카오 로그인", style = ButtonTextStyle, color = Color(0xFF000000).copy(alpha = 0.85f))
+        }
+    }
 }
 
 @Composable
@@ -144,7 +158,7 @@ private fun NaverLoginButton(onClick: () -> Unit) {
                 containerColor = Color(0xFF03A94D),
                 contentColor = Color.White
             ),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(12.dp),
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_naver),
