@@ -114,6 +114,13 @@ android {
                     storePassword = properties.getProperty("STORE_PASSWORD")
                     keyAlias = properties.getProperty("KEY_ALIAS")
                     keyPassword = properties.getProperty("KEY_PASSWORD")
+
+                    // [디버깅 로그 추가]
+                    println("Signing Config Check:")
+                    println("  StoreFile: ${storeFile?.absolutePath} (Exists: ${storeFile?.exists()})")
+                    println("  StorePassword: ${if(storePassword.isNullOrEmpty()) "MISSING" else "PRESENT"}")
+                    println("  KeyAlias: ${if(keyAlias.isNullOrEmpty()) "MISSING" else "PRESENT"}")
+                    println("  KeyPassword: ${if(keyPassword.isNullOrEmpty()) "MISSING" else "PRESENT"}")
                 }
             } catch (e: Exception) {
                 println("Release signing config not found in local.properties: $e")
