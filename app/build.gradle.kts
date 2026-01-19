@@ -1,8 +1,5 @@
-@file:OptIn(ExperimentalEncodingApi::class)
-
+import java.util.Base64
 import java.util.Properties
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 plugins {
     alias(libs.plugins.android.application)
@@ -27,20 +24,41 @@ android {
     }
 
     // CI/CD 환경을 위한 키스토어 파일 자동 생성 로직
-    val storeFilePath = properties.getProperty("STORE_FILE")
-    if (!storeFilePath.isNullOrEmpty()) {
+    val storeFilePath = properties.getProperty("STORE_FILE") ?: "release-key.jks"
+    if (storeFilePath.isNotEmpty()) {
         val storeFile = rootProject.file(storeFilePath)
-        // 파일이 없으면서 Base64 키가 있는 경우에만 복구 시도
-        if (!storeFile.exists() && properties.containsKey("RELEASE_KEYSTORE_BASE64")) {
-            println("Generating keystore file from Base64 content...")
+
+        // 무조건 Base64 키가 있으면 복구 시도 (파일이 있든 없든 덮어쓰기)
+        if (properties.containsKey("RELEASE_KEYSTORE_BASE64")) {
+            println("--- Keystore Generation Start ---")
             try {
                 val encoded = properties.getProperty("RELEASE_KEYSTORE_BASE64")
-                val decoded = Base64.decode(encoded)
+                println("Base64 String Length: ${encoded.length}")
+
+                // 불필요한 공백/따옴표 제거
+                val cleanEncoded = encoded.replace("\n", "").replace(" ", "").replace("\"", "")
+
+                val decoded = Base64.getDecoder().decode(cleanEncoded)
+                println("Decoded Bytes Size: ${decoded.size}")
+                if (storeFile.exists()) {
+                    println("Deleting existing keystore file...")
+                    storeFile.delete()
+                }
                 storeFile.parentFile?.mkdirs()
                 storeFile.writeBytes(decoded)
+
+                println("Keystore generated at: ${storeFile.absolutePath}")
+
+                // 파일 무결성 검사 (첫 바이트 확인)
+                if (decoded.isNotEmpty()) {
+                    // 0x30 (48) 이어야 PKCS12/JKS 헤더일 가능성이 높음
+                    println("First Byte (Hex): ${String.format("%02X", decoded[0])}")
+                }
             } catch (e: Exception) {
                 println("Failed to generate keystore: ${e.message}")
+                e.printStackTrace()
             }
+            println("--- Keystore Generation End ---")
         }
     }
 
@@ -62,11 +80,27 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "NAVER_CLIENT_ID", "\"${getSecret("NAVER_CLIENT_ID")}\"")
-        buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${getSecret("NAVER_CLIENT_SECRET")}\"")
-        buildConfigField("String", "NAVER_CLIENT_NAME", "\"${properties.getProperty("NAVER_CLIENT_NAME", "scrap2025")}\"")
+        buildConfigField(
+            type = "String",
+            name = "NAVER_CLIENT_ID",
+            value = "\"${getSecret("NAVER_CLIENT_ID")}\""
+        )
+        buildConfigField(
+            type = "String",
+            name = "NAVER_CLIENT_SECRET",
+            value = "\"${getSecret("NAVER_CLIENT_SECRET")}\""
+        )
+        buildConfigField(
+            type = "String",
+            name = "NAVER_CLIENT_NAME",
+            value = "\"${properties.getProperty("NAVER_CLIENT_NAME", "scrap2025")}\""
+        )
 
-        buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"${getSecret("KAKAO_NATIVE_APP_KEY")}\"")
+        buildConfigField(
+            type = "String",
+            name = "KAKAO_NATIVE_APP_KEY",
+            value = "\"${getSecret("KAKAO_NATIVE_APP_KEY")}\""
+        )
         manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = getSecret("KAKAO_NATIVE_APP_KEY")
     }
 
@@ -128,7 +162,11 @@ android {
             versionNameSuffix = "-dev"
 
             // 개발 서버 URL 주입
-            buildConfigField("String", "BASE_URL", developUrl)
+            buildConfigField(
+                type = "String",
+                name = "BASE_URL",
+                value = developUrl
+            )
 
             // 앱 이름을 '스크랩(DEV)'으로 변경 (resValue 사용)
             resValue("string", "app_name", "스크랩(DEV)")
@@ -138,7 +176,11 @@ android {
             dimension = "environment"
 
             // 운영 서버 URL 주입
-            buildConfigField("String", "BASE_URL", productionUrl)
+            buildConfigField(
+                type = "String",
+                name = "BASE_URL",
+                value = productionUrl
+            )
 
             // 실제 앱 이름
             resValue("string", "app_name", "스크랩")
