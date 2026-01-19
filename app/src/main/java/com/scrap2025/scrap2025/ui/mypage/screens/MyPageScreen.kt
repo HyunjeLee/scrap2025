@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -38,16 +39,26 @@ import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
+import com.scrap2025.scrap2025.ui.mypage.components.HelpCenterDialog
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.utils.INSTAGRAM_USERNAME
+import com.scrap2025.scrap2025.utils.MAIL_ADDRESS
+import com.scrap2025.scrap2025.utils.sendEmail
+import com.scrap2025.scrap2025.utils.sendInstagramDM
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel.MyPageUiState
 
 /** MyPageScreen - Container Composable */
 @Composable
-fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hiltViewModel()) {
+fun MyPageScreen(
+    modifier: Modifier = Modifier,
+    viewModel: MyPageViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
+    val showHelpCenterDialog by viewModel.showHelpCenterDialog.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
     when (val state = uiState) {
@@ -65,7 +76,12 @@ fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hil
                 snsType = state.snsType,
                 scrapCount = state.scrapCount,
                 categoryCount = state.categoryCount,
+                onContactViaEmail = { context.sendEmail(MAIL_ADDRESS) },
+                onContactViaInstagram = { context.sendInstagramDM(INSTAGRAM_USERNAME) },
+                showHelpCenterDialog = showHelpCenterDialog,
                 showWithdrawDialog = showWithdrawDialog,
+                onHelpCenterClick = { viewModel.showHelpCenterDialog() },
+                onHelpCenterDismiss = { viewModel.dismissHelpCenterDialog() },
                 onLogout = { snsType ->
                     viewModel.logout(
                         snsType = snsType,
@@ -93,7 +109,12 @@ fun MyPageScreenContent(
     snsType: SnsType,
     scrapCount: Int,
     categoryCount: Int,
+    onContactViaEmail: () -> Unit,
+    onContactViaInstagram: () -> Unit,
+    showHelpCenterDialog: Boolean,
     showWithdrawDialog: Boolean,
+    onHelpCenterClick: () -> Unit,
+    onHelpCenterDismiss: () -> Unit,
     onLogout: (SnsType) -> Unit,
     onWithdrawClick: () -> Unit,
     onWithdrawConfirm: (SnsType) -> Unit,
@@ -167,12 +188,21 @@ fun MyPageScreenContent(
 
         // Menu Items
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
-//        MenuItem(text = "고객센터") {}
+        MenuItem(text = "고객센터") { onHelpCenterClick() }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "로그아웃") { onLogout(snsType) }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "회원탈퇴") { onWithdrawClick() }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
+    }
+
+    // 3. 다이얼로그 표시 로직
+    if (showHelpCenterDialog) {
+        HelpCenterDialog(
+            onDismiss = onHelpCenterDismiss,
+            onContactViaEmail = onContactViaEmail,
+            onContactViaInstagram = onContactViaInstagram
+        )
     }
 
     if (showWithdrawDialog) {
@@ -233,15 +263,19 @@ private fun SnsType.getIconRes(): Int = when (this) {
 
 @Preview(showBackground = true)
 @Composable
-fun MyPageScreenPreview() {
-
+private fun MyPageScreenPreview() {
     Scrap2025Theme {
         MyPageScreenContent(
             greetingText = getGreetingText("사용자"),
             snsType = SnsType.KAKAO,
             scrapCount = 243,
             categoryCount = 11,
+            onContactViaEmail = {},
+            onContactViaInstagram = {},
+            showHelpCenterDialog = false,
             showWithdrawDialog = false,
+            onHelpCenterClick = {},
+            onHelpCenterDismiss = {},
             onLogout = {},
             onWithdrawClick = {},
             onWithdrawConfirm = {},

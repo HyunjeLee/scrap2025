@@ -48,6 +48,9 @@ constructor(
     private val _showWithdrawDialog = MutableStateFlow(false)
     val showWithdrawDialog: StateFlow<Boolean> = _showWithdrawDialog.asStateFlow()
 
+    private val _showHelpCenterDialog = MutableStateFlow(false)
+    val showHelpCenterDialog: StateFlow<Boolean> = _showHelpCenterDialog.asStateFlow()
+
     // Combine flows into a single UI State
     val uiState: StateFlow<MyPageUiState> =
         combine(
@@ -87,6 +90,13 @@ constructor(
         }
     }
 
+    fun showHelpCenterDialog() {
+        _showHelpCenterDialog.value = true
+    }
+
+    fun dismissHelpCenterDialog() {
+        _showHelpCenterDialog.value = false
+    }
 
     fun showWithdrawalDialog() {
         _showWithdrawDialog.value = true
