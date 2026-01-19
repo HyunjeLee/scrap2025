@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,7 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.model.LinkPreview
 import com.scrap2025.scrap2025.model.toScrapItem
-import com.scrap2025.scrap2025.ui.common.components.WebViewScrapDialog
+import com.scrap2025.scrap2025.ui.common.dialogs.WebViewScrapDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
@@ -201,18 +200,36 @@ fun AddScrapScreenContent(
                     }
 
                     is LinkPreviewUiState.Success -> {
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // 웹뷰 버튼
+                        TextButton (
+                            modifier = Modifier.align(Alignment.End).padding(end = 16.dp),
+                            onClick = onShowWebView,
+                        ) {
+                            Text(
+                                text = "웹페이지에서 직접 가져오기",
+                                style =
+                                    TextStyle(
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                    ),
+                                color = MainColorDeep
+                            )
+                        }
+
                         ScrapItemCardList(
                             scrapItem = linkPreviewUiState.preview.toScrapItem(),
                             isSelectionMode = false,
-                            showCategory = false
+                            showCategory = false,
+                            isClickable = false
                         )
                     }
 
                     is LinkPreviewUiState.Error -> {
-                        // 에러 시 빈 공간 대신 "유도 UI" 노출
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // 에러 시 빈 공간 대신 "유도 UI" 노출
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -235,53 +252,24 @@ fun AddScrapScreenContent(
                                     style = TextStyle(
                                         fontSize = 14.sp,
                                         color = MainColorDeep,
-//                                        textDecoration = TextDecoration.Underline
                                     )
                                 )
                             }
                         }
                     }
+
                     null -> {}
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 링크 라벨
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "링크",
-                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                        color = Color.Black,
-                        modifier = Modifier.padding(start = 20.dp)
-                    )
-
-                    // 웹뷰 버튼
-                    if (linkPreviewUiState is LinkPreviewUiState.Success) {
-                        TextButton(
-                            onClick = onShowWebView,
-                            contentPadding = PaddingValues(0.dp),
-                            modifier = Modifier.height(30.dp)
-                        ) {
-                            Text(
-                                text = "웹페이지에서 직접 가져오기",
-                                style =
-                                    TextStyle(
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-//                                    textDecoration = TextDecoration.Underline,
-                                    ),
-                                color = MainColorDeep
-                            )
-                        }
-                    }
-
-                }
+                Text(
+                    text = "링크",
+                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                    color = Color.Black,
+                    modifier = Modifier.padding(start = 20.dp)
+                )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -497,7 +485,32 @@ fun TopBar(
 
 @Preview(showBackground = true)
 @Composable
-fun AddScrapScreenContentParsingErrorPreview() {
+fun AddScrapScreenContentSuccessPreview() {
+    Scrap2025Theme {
+        AddScrapScreenContent(
+            isLoading = false,
+            linkPreviewUiState = LinkPreviewUiState.Success(
+                preview = LinkPreview(
+                    url = "TODO()",
+                    title = "TODO()",
+                    description = "TODO()",
+                    imageUrl = "TODO()"
+                )
+            ),
+            url = "",
+            memo = "",
+            onUrlChange = {},
+            onMemoChange = {},
+            onAddScrap = { _, _, _ -> },
+            onShowWebView = {},
+            onBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AddScrapScreenContentErrorPreview() {
     Scrap2025Theme {
         AddScrapScreenContent(
             isLoading = false,

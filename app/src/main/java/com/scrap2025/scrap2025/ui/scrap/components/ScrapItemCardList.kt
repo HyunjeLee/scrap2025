@@ -50,6 +50,7 @@ fun ScrapItemCardList(
     scrapItem: ScrapItem,
     showCategory: Boolean,
     modifier: Modifier = Modifier,
+    isClickable: Boolean = true,
     isSelectionMode: Boolean = false,
     isSelected: Boolean = false,
     onLongClick: () -> Unit = {},
@@ -62,6 +63,7 @@ fun ScrapItemCardList(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 6.5.dp)
                 .combinedClickable(
+                    enabled = isClickable,
                     onClick = {
                         if (isSelectionMode) {
                             onSelectionToggle()
