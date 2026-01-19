@@ -1,6 +1,8 @@
 package com.scrap2025.scrap2025.ui.common.dialogs
 
 import android.graphics.Bitmap
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
@@ -110,7 +112,7 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
                                             )
 
                                             // Callback on Main Thread
-                                            post {
+                                            Handler(Looper.getMainLooper()).post {
                                                 Log.d(TAG, "Posting onScrapComplete"
                                                 )
                                                 onScrapComplete(preview)
