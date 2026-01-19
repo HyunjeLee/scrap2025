@@ -49,7 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.model.LinkPreview
 import com.scrap2025.scrap2025.model.toScrapItem
-import com.scrap2025.scrap2025.ui.common.components.WebViewScrapDialog
+import com.scrap2025.scrap2025.ui.common.dialogs.WebViewScrapDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapItemCardList
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor

@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.ui.common.components
+package com.scrap2025.scrap2025.ui.common.dialogs
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -32,17 +32,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.scrap2025.scrap2025.model.LinkPreview
+import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.net.URLDecoder
 
 // Data class for parsing JSON returned from JS
 @Serializable
@@ -158,7 +161,7 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
                                                 // Decode if necessary
                                                 // (browser_fallback_url is often
                                                 // URL-encoded)
-                                                val decodedUrl = java.net.URLDecoder.decode(
+                                                val decodedUrl = URLDecoder.decode(
                                                     fallbackUrl, "UTF-8"
                                                 )
                                                 Log.d(TAG, "Redirecting to fallback URL: $decodedUrl")
@@ -316,7 +319,7 @@ private fun extractMetadata(webView: WebView) {
     webView.evaluateJavascript(script, null)
 }
 
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Preview(showBackground = true)
 @Composable
 fun WebViewScrapDialogContentPreview() {
     WebViewScrapDialogContent(
