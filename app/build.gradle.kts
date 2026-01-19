@@ -1,5 +1,8 @@
+@file:OptIn(ExperimentalEncodingApi::class)
 
 import java.util.Properties
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 plugins {
     alias(libs.plugins.android.application)
@@ -21,6 +24,24 @@ android {
     } else {
         // local.properties 파일 자체가 없으면 에러 발생
         throw GradleException("local.properties file found in root project.")
+    }
+
+    // CI/CD 환경을 위한 키스토어 파일 자동 생성 로직
+    val storeFilePath = properties.getProperty("STORE_FILE")
+    if (!storeFilePath.isNullOrEmpty()) {
+        val storeFile = rootProject.file(storeFilePath)
+        // 파일이 없으면서 Base64 키가 있는 경우에만 복구 시도
+        if (!storeFile.exists() && properties.containsKey("RELEASE_KEYSTORE_BASE64")) {
+            println("Generating keystore file from Base64 content...")
+            try {
+                val encoded = properties.getProperty("RELEASE_KEYSTORE_BASE64")
+                val decoded = Base64.decode(encoded)
+                storeFile.parentFile?.mkdirs()
+                storeFile.writeBytes(decoded)
+            } catch (e: Exception) {
+                println("Failed to generate keystore: ${e.message}")
+            }
+        }
     }
 
     // 키값을 가져오되, 없거나 비어있으면 에러를 발생시키는 함수
