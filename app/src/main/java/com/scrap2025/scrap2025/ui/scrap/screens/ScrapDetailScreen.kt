@@ -63,8 +63,8 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
-import com.scrap2025.scrap2025.utils.UrlNavigator
 import com.scrap2025.scrap2025.utils.copyToClipboard
+import com.scrap2025.scrap2025.utils.openUrl
 import com.scrap2025.scrap2025.viewmodel.ScrapDetailUiState
 import com.scrap2025.scrap2025.viewmodel.ScrapDetailViewModel
 import java.time.LocalDateTime
@@ -121,7 +121,7 @@ fun ScrapDetailScreen(
                 scrapItem = scrapItem,
                 onBack = onBack,
                 onClipboardCopy = { url -> context.copyToClipboard(url) },
-                onImageClick = { url -> UrlNavigator.openUrl(context, url) },
+                onImageClick = { url -> context.openUrl(url) },
                 modifier = modifier,
                 onDelete = { viewModel.showDeleteDialog() },
                 onEditMemo = onEditMemo,
