@@ -7,12 +7,9 @@ import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.utils.move
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -34,22 +31,20 @@ constructor(private val categoryRepository: CategoryRepository) :
     // 드래그 중인 로컬 순서를 담을 변수 (null이면 서버 데이터를 따름)
     private val localCategoriesState = MutableStateFlow<List<CategoryItem>?>(null)
 
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
-
     val categoryUiState: StateFlow<CategoryUiState> =
         combine(
             categoryRepository.allCategories,
             localCategoriesState,
             categoryRepository.refreshEvent
         ) { remoteResult, localItems, _ ->
-            remoteResult.fold(
-                onSuccess = { categories ->
-                    // 로컬 데이터(드래그 중인 순서)가 있으면 그걸 우선해서 보여줌
-                    CategoryUiState.Success(localItems ?: categories)
-                },
-                onFailure = { CategoryUiState.Error(it.message) }
-            )
+            remoteResult
+                .fold(
+                    onSuccess = { categories ->
+                        // 로컬 데이터(드래그 중인 순서)가 있으면 그걸 우선해서 보여줌
+                        CategoryUiState.Success(localItems ?: categories)
+                    },
+                    onFailure = { CategoryUiState.Error(it.message) }
+                )
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -62,22 +57,6 @@ constructor(private val categoryRepository: CategoryRepository) :
 
     private fun fetchCategories() {
         viewModelScope.launch { categoryRepository.refreshCategories() }
-    }
-
-    /** 당겨서 새로고침 */
-    fun refresh() {
-        viewModelScope.launch {
-            _isRefreshing.value = true
-
-            try {
-                coroutineScope {
-                    launch { categoryRepository.refreshCategories() }
-                    delay(1000L)
-                }
-            } finally {
-                _isRefreshing.value = false
-            }
-        }
     }
 
     /**

@@ -35,13 +35,15 @@ import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 fun HelpCenterDialog(
     onDismiss: () -> Unit,
     onContactViaEmail: () -> Unit,
+    onContactViaInstagram: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Dialog(
         onDismissRequest = onDismiss
     ) {
         Box(
-            modifier = modifier
+            modifier =
+            Modifier
                 .fillMaxWidth(0.90f)
                 .wrapContentHeight()
                 .background(color = MainColor, shape = RoundedCornerShape(20.dp))
@@ -72,7 +74,14 @@ fun HelpCenterDialog(
 
                 HelpCenterButton(
                     onClick = onContactViaEmail,
-                    text = "메일로 연락하기\n(cs@teamscrap.co.kr)"
+                    text = "contact via mail\n(cs@teamscrap.co.kr)"
+                )
+
+                Spacer(modifier = Modifier.height(13.dp))
+
+                HelpCenterButton(
+                    onClick = onContactViaInstagram,
+                    text = "contact via instagram\n(@teamscrap2026)"
                 )
 
                 Spacer(modifier = Modifier.height(13.dp))
@@ -125,7 +134,8 @@ private fun HelpCenterDialogPreview() {
     Scrap2025Theme {
         HelpCenterDialog(
             onDismiss = {},
-            onContactViaEmail = {}
+            onContactViaEmail = {},
+            onContactViaInstagram = {}
         )
     }
 }
