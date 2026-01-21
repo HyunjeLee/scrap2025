@@ -2,7 +2,7 @@ name: Android CI Release
 
 on:
   push:
-    branches: [ "main", "release/*", hotfix/* ]
+    branches: [ "main", "release/*", "hotfix/*" ]
 
   workflow_dispatch:
 
