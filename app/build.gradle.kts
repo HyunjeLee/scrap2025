@@ -24,40 +24,42 @@ android {
     }
 
     // CI/CD 환경을 위한 키스토어 파일 자동 생성 로직
-    val keyStoreFilePath = properties.getProperty("STORE_FILE") ?: "release-key.jks"
-    val keyStoreFile = rootProject.file(keyStoreFilePath)
+    val storeFilePath = properties.getProperty("STORE_FILE") ?: "release-key.jks"
+    if (storeFilePath.isNotEmpty()) {
+        val storeFile = rootProject.file(storeFilePath)
 
-    // 무조건 Base64 키가 있으면 복구 시도 (파일이 있든 없든 덮어쓰기)
-    if (properties.containsKey("RELEASE_KEYSTORE_BASE64")) {
-        println("--- Keystore Generation Start ---")
-        try {
-            val encoded = properties.getProperty("RELEASE_KEYSTORE_BASE64")
-            println("Base64 String Length: ${encoded.length}")
+        // 무조건 Base64 키가 있으면 복구 시도 (파일이 있든 없든 덮어쓰기)
+        if (properties.containsKey("RELEASE_KEYSTORE_BASE64")) {
+            println("--- Keystore Generation Start ---")
+            try {
+                val encoded = properties.getProperty("RELEASE_KEYSTORE_BASE64")
+                println("Base64 String Length: ${encoded.length}")
 
-            // 불필요한 공백/따옴표 제거
-            val cleanEncoded = encoded.replace("\n", "").replace(" ", "").replace("\"", "")
+                // 불필요한 공백/따옴표 제거
+                val cleanEncoded = encoded.replace("\n", "").replace(" ", "").replace("\"", "")
 
-            val decoded = Base64.getDecoder().decode(cleanEncoded)
-            println("Decoded Bytes Size: ${decoded.size}")
-            if (keyStoreFile.exists()) {
-                println("Deleting existing keystore file...")
-                keyStoreFile.delete()
+                val decoded = Base64.getDecoder().decode(cleanEncoded)
+                println("Decoded Bytes Size: ${decoded.size}")
+                if (storeFile.exists()) {
+                    println("Deleting existing keystore file...")
+                    storeFile.delete()
+                }
+                storeFile.parentFile?.mkdirs()
+                storeFile.writeBytes(decoded)
+
+                println("Keystore generated at: ${storeFile.absolutePath}")
+
+                // 파일 무결성 검사 (첫 바이트 확인)
+                if (decoded.isNotEmpty()) {
+                    // 0x30 (48) 이어야 PKCS12/JKS 헤더일 가능성이 높음
+                    println("First Byte (Hex): ${String.format("%02X", decoded[0])}")
+                }
+            } catch (e: Exception) {
+                println("Failed to generate keystore: ${e.message}")
+                e.printStackTrace()
             }
-            keyStoreFile.parentFile?.mkdirs()
-            keyStoreFile.writeBytes(decoded)
-
-            println("Keystore generated at: ${keyStoreFile.absolutePath}")
-
-            // 파일 무결성 검사 (첫 바이트 확인)
-            if (decoded.isNotEmpty()) {
-                // 0x30 (48) 이어야 PKCS12/JKS 헤더일 가능성이 높음
-                println("First Byte (Hex): ${String.format("%02X", decoded[0])}")
-            }
-        } catch (e: Exception) {
-            println("Failed to generate keystore: ${e.message}")
-            e.printStackTrace()
+            println("--- Keystore Generation End ---")
         }
-        println("--- Keystore Generation End ---")
     }
 
     // 키값을 가져오되, 없거나 비어있으면 에러를 발생시키는 함수
@@ -106,7 +108,7 @@ android {
     signingConfigs {
         create("release") {
             try {
-                storeFile = keyStoreFile
+                storeFile = rootProject.file(storeFilePath)
                 storePassword = properties.getProperty("STORE_PASSWORD")
                 keyAlias = properties.getProperty("KEY_ALIAS")
                 keyPassword = properties.getProperty("KEY_PASSWORD")
