@@ -14,10 +14,7 @@ data class SearchRequest(
 )
 
 @Serializable
-data class SearchListResponse(
-    val meta: Meta,
-    val scraps: List<SearchItemResponse>
-)
+data class SearchListResponse(val meta: Meta, val scraps: List<SearchItemResponse>)
 
 @Serializable
 data class SearchItemResponse(
@@ -36,15 +33,12 @@ data class SearchItemResponse(
         imageUrl = imageUrl,
         createdDate = scrapDate.toLocalDateTime(),
         isFavorite = isFavorite,
-        categoryTitle = categoryTitle,
+        categoryTitle = categoryTitle
     )
 }
 
 @Serializable
-data class SearchFavoriteResponse(
-    val total: Int,
-    val scraps: List<SearchFavoriteItemResponse>
-)
+data class SearchFavoriteResponse(val total: Int, val scraps: List<SearchFavoriteItemResponse>)
 
 @Serializable
 data class SearchFavoriteItemResponse(
@@ -61,15 +55,12 @@ data class SearchFavoriteItemResponse(
         url = scrapUrl,
         imageUrl = imageUrl,
         createdDate = scrapDate.toLocalDateTime(),
-        isFavorite = isFavorite,
+        isFavorite = isFavorite
     )
 }
 
 @Serializable
-data class SearchScrapResponse(
-    val total: Int,
-    val scraps: List<SearchScrapItemResponse>
-)
+data class SearchScrapResponse(val total: Int, val scraps: List<SearchScrapItemResponse>)
 
 @Serializable
 data class SearchScrapItemResponse(
@@ -86,6 +77,6 @@ data class SearchScrapItemResponse(
         url = scrapUrl,
         imageUrl = imageUrl,
         createdDate = scrapDate.toLocalDateTime(),
-        isFavorite = isFavorite,
+        isFavorite = isFavorite
     )
 }

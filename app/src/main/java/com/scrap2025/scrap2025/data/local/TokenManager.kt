@@ -8,10 +8,10 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.scrap2025.scrap2025.model.enums.SnsType
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 val Context.authDataStore: DataStore<Preferences> by preferencesDataStore(name = "auth_prefs")
 
@@ -31,18 +31,22 @@ constructor(
     val accessToken: Flow<String?> =
         context.authDataStore.data.map { preferences ->
             preferences[ACCESS_TOKEN_KEY]?.let { encrypted ->
-                if (encrypted.isNotEmpty())
+                if (encrypted.isNotEmpty()) {
                     tinkManager.decrypt(encrypted).takeIf { it.isNotEmpty() }
-                else null
+                } else {
+                    null
+                }
             }
         }
 
     val refreshToken: Flow<String?> =
         context.authDataStore.data.map { preferences ->
             preferences[REFRESH_TOKEN_KEY]?.let { encrypted ->
-                if (encrypted.isNotEmpty())
+                if (encrypted.isNotEmpty()) {
                     tinkManager.decrypt(encrypted).takeIf { it.isNotEmpty() }
-                else null
+                } else {
+                    null
+                }
             }
         }
 

@@ -12,17 +12,17 @@ class ScrapPagingSource(
     private val sort: String?,
     private val direction: String?
 ) : PagingSource<Int, ScrapItem>() {
-
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ScrapItem> {
         val page = params.key ?: 0
         return try {
-            val response = scrapRemoteDataSource.getAllScrapsByCategoryId(
-                categoryId = categoryId,
-                sort = sort,
-                direction = direction,
-                page = page,
-                size = params.loadSize
-            )
+            val response =
+                scrapRemoteDataSource.getAllScrapsByCategoryId(
+                    categoryId = categoryId,
+                    sort = sort,
+                    direction = direction,
+                    page = page,
+                    size = params.loadSize
+                )
 
             val scraps = response.scraps.map { it.toDomainModel() }
 
@@ -36,10 +36,9 @@ class ScrapPagingSource(
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Int, ScrapItem>): Int? {
-        return state.anchorPosition?.let { anchorPosition ->
+    override fun getRefreshKey(state: PagingState<Int, ScrapItem>): Int? =
+        state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
         }
-    }
 }

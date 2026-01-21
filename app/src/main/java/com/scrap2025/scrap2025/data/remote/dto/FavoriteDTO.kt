@@ -18,7 +18,7 @@ data class FavoriteItemResponse(
     val scrapTitle: String = "",
     @SerialName("scrapURL") val scrapUrl: String = "",
     @SerialName("imageURL") val imageUrl: String? = null,
-    val scrapDate: String = "",
+    val scrapDate: String = ""
 ) {
     fun toDomainModel(): ScrapItem = ScrapItem(
         id = scrapId,
@@ -30,6 +30,6 @@ data class FavoriteItemResponse(
         createdDate = scrapDate.toLocalDateTime(),
         isFavorite = true,
         categoryId = -1L, // Favorite case, might need special handling
-        categoryTitle = categoryTitle,
+        categoryTitle = categoryTitle
     )
 }

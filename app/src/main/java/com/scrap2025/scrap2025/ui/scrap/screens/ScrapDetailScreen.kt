@@ -94,7 +94,7 @@ fun ScrapDetailScreen(
         is ScrapDetailUiState.Success -> {
             val scrapItem = state.scrapItem
             val isDeleteDialogVisible by
-            viewModel.isDeleteDialogVisible.collectAsStateWithLifecycle()
+                viewModel.isDeleteDialogVisible.collectAsStateWithLifecycle()
 
             if (isDeleteDialogVisible) {
                 CommonDeleteDialog(
@@ -106,11 +106,13 @@ fun ScrapDetailScreen(
                             onSuccess = {
                                 viewModel.hideDeleteDialog()
                                 onBack()
-                                Toast.makeText(context, "스크랩 삭제 성공", Toast.LENGTH_SHORT)
+                                Toast
+                                    .makeText(context, "스크랩 삭제 성공", Toast.LENGTH_SHORT)
                                     .show()
                             },
                             onFailure = {
-                                Toast.makeText(context, "스크랩 삭제 실패", Toast.LENGTH_SHORT)
+                                Toast
+                                    .makeText(context, "스크랩 삭제 실패", Toast.LENGTH_SHORT)
                                     .show()
                             }
                         )
@@ -131,13 +133,13 @@ fun ScrapDetailScreen(
                     viewModel.toggleFavorite(
                         onSuccess = {},
                         onFailure = {
-                            Toast.makeText(context, "즐겨찾기 실패", Toast.LENGTH_SHORT)
+                            Toast
+                                .makeText(context, "즐겨찾기 실패", Toast.LENGTH_SHORT)
                                 .show()
                         }
                     )
                 }
             )
-
         }
     }
 }
@@ -153,7 +155,7 @@ fun ScrapDetailContent(
     modifier: Modifier = Modifier,
     onDelete: () -> Unit = {},
     onShare: () -> Unit = {},
-    onToggleFavorite: () -> Unit = {},
+    onToggleFavorite: () -> Unit = {}
 ) {
     Scaffold(
         topBar = { DetailTopBar(title = scrapItem.title, onBackClick = onBack) },
@@ -172,28 +174,27 @@ fun ScrapDetailContent(
     ) { innerPadding ->
         Column(
             modifier =
-                modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp, vertical = 20.dp),
+            modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // 이미지 영역
             Box(
                 modifier =
-                    Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .width(300.dp)
-                        .height(160.dp)
-                        .shadow(
-                            elevation = 6.dp,
-                            shape = RoundedCornerShape(15.dp),
-                            spotColor = Color.Black.copy(alpha = 0.1f)
-                        )
-                        .clip(RoundedCornerShape(15.dp))
-                        .background(Color.White)
-                        .clickable { onImageClick(scrapItem.url) },
+                Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .width(300.dp)
+                    .height(160.dp)
+                    .shadow(
+                        elevation = 6.dp,
+                        shape = RoundedCornerShape(15.dp),
+                        spotColor = Color.Black.copy(alpha = 0.1f)
+                    ).clip(RoundedCornerShape(15.dp))
+                    .background(Color.White)
+                    .clickable { onImageClick(scrapItem.url) },
                 contentAlignment = Alignment.Center
             ) {
                 scrapItem.imageUrl?.let { imageUrl ->
@@ -201,7 +202,7 @@ fun ScrapDetailContent(
                         model = imageUrl,
                         contentDescription = "스크랩 이미지",
                         modifier =
-                            Modifier.fillMaxSize(),
+                        Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -215,10 +216,10 @@ fun ScrapDetailContent(
                     // URL 및 클립보드 Box
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .background(Color.White, RoundedCornerShape(10.dp))
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color.White, RoundedCornerShape(10.dp))
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -239,11 +240,11 @@ fun ScrapDetailContent(
                                 contentDescription = "클립보드 복사",
                                 tint = Color.Black,
                                 modifier =
-                                    Modifier
-                                        .size(24.dp)
-                                        .clickable {
-                                            onClipboardCopy(scrapItem.url)
-                                        }
+                                Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                        onClipboardCopy(scrapItem.url)
+                                    }
                             )
                         }
                     }
@@ -254,10 +255,10 @@ fun ScrapDetailContent(
                     Text(
                         text = "본문내용",
                         style =
-                            TextStyle(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold
-                            ),
+                        TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        ),
                         color = Color.Black
                     )
 
@@ -266,12 +267,12 @@ fun ScrapDetailContent(
                     // 본문내용 컨텐츠 Box
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 60.dp, max = 200.dp)
-                                .background(Color.White, RoundedCornerShape(10.dp))
-                                .verticalScroll(rememberScrollState())
-                                .padding(16.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 60.dp, max = 200.dp)
+                            .background(Color.White, RoundedCornerShape(10.dp))
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -294,10 +295,10 @@ fun ScrapDetailContent(
                     Text(
                         text = "메모",
                         style =
-                            TextStyle(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold
-                            ),
+                        TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold
+                        ),
                         color = Color.Black
                     )
 
@@ -306,20 +307,20 @@ fun ScrapDetailContent(
                     // 메모 컨텐츠 Box
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 150.dp, max = 400.dp)
-                                .background(Color.White, RoundedCornerShape(10.dp))
-                                .verticalScroll(rememberScrollState())
-                                .padding(16.dp)
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 150.dp, max = 400.dp)
+                            .background(Color.White, RoundedCornerShape(10.dp))
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp)
                     ) {
                         Text(
                             text = scrapItem.memo,
                             style =
-                                TextStyle(
-                                    fontSize = 14.sp,
-                                    lineHeight = 20.sp,
-                                ),
+                            TextStyle(
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp
+                            ),
                             color = Color.Black,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -336,21 +337,22 @@ fun ScrapDetailContent(
 fun DetailSection(
     containerColor: Color,
     content: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .background(containerColor, RoundedCornerShape(8.dp))
-                .padding(16.dp)
+        modifier
+            .fillMaxWidth()
+            .background(containerColor, RoundedCornerShape(8.dp))
+            .padding(16.dp)
     ) { content() }
 }
 
 @Composable
 fun DetailTopBar(title: String, onBackClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .height(68.dp)
             .background(MainColor),
@@ -359,7 +361,9 @@ fun DetailTopBar(title: String, onBackClick: () -> Unit, modifier: Modifier = Mo
     ) {
         // 뒤로가기 버튼
         IconButton(
-            onClick = onBackClick, modifier = Modifier
+            onClick = onBackClick,
+            modifier =
+            Modifier
                 .padding(start = 11.dp)
                 .size(40.dp)
         ) {
@@ -396,23 +400,22 @@ fun DetailBottomBar(
 ) {
     Column(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .background(MainColor)
-                .shadowsPlus(
-                    type = ShadowsPlusType.SoftLayer,
-                    color = Color.Black.copy(alpha = 0.1f),
-                    offset = DpOffset(0.dp, (-3).dp),
-                    radius = 15.dp,
-                )
-                .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)),
+        modifier
+            .fillMaxWidth()
+            .background(MainColor)
+            .shadowsPlus(
+                type = ShadowsPlusType.SoftLayer,
+                color = Color.Black.copy(alpha = 0.1f),
+                offset = DpOffset(0.dp, (-3).dp),
+                radius = 15.dp
+            ).clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
     ) {
         Row(
             modifier =
-                Modifier
-                    .background(Color.White)
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp, horizontal = 20.dp),
+            Modifier
+                .background(Color.White)
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 20.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -439,10 +442,13 @@ fun DetailBottomBar(
             )
             BottomNavItem(
                 icon =
-                    painterResource(
-                        if (isFavorite) R.drawable.ic_fav_true
-                        else R.drawable.ic_fav_false
-                    ),
+                painterResource(
+                    if (isFavorite) {
+                        R.drawable.ic_fav_true
+                    } else {
+                        R.drawable.ic_fav_false
+                    }
+                ),
                 iconTint = if (isFavorite) FavoriteColor else Color.Black,
                 label = "즐겨찾기",
                 onClick = onToggleFavorite
@@ -460,7 +466,8 @@ fun BottomNavItem(
     iconTint: Color = Color.Black
 ) {
     Column(
-        modifier = modifier
+        modifier =
+        modifier
             .clickable { onClick() }
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -478,12 +485,13 @@ fun BottomNavItem(
 }
 
 private fun shareScrap(context: Context, scrapItem: ScrapItem) {
-    val dataIntent: Intent = Intent().apply {
-        action = Intent.ACTION_SEND
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TEXT, "[스크랩]\n${scrapItem.title}\n${scrapItem.url}")
-        putExtra(Intent.EXTRA_TITLE, scrapItem.title)
-    }
+    val dataIntent: Intent =
+        Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, "[스크랩]\n${scrapItem.title}\n${scrapItem.url}")
+            putExtra(Intent.EXTRA_TITLE, scrapItem.title)
+        }
     val shareIntent = Intent.createChooser(dataIntent, null)
     context.startActivity(shareIntent)
 }
@@ -495,21 +503,21 @@ fun FullDataPreview() {
         ScrapItem(
             id = 1L,
             title =
-                "구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n",
+            "구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n구글 딥마인드의 새로운 AI 에이전트 'Antigravity' 공개\n",
             description =
-                "안녕하세요, 안성재입니다.\n\n오늘 두 번째 [흑백2⚒\uFE0F리뷰]는\n네 분의 흑수저 셰프님들과 함께했습니다. \n삐딱한 천재, 중식 마녀, 부채도사 그리고 쓰리스타 킬러가 함께 했는데요. \n\n아직 [흑백요리사 시즌2]에 참여하고 계신 셰프님들이시다 보니\n생생하게 대결 당시 비하인드 스토리와 셰프님들의 각오도 들을 수 있었는데요,\n셰프님들과 더 많은 이야기를 나눌 수 있어 즐거웠던 시간이었습니다.\n\n그럼, 오늘도 재미있게 시청해 주세요.\n다음 주에 또 뵙겠습니다.\n\n*\n*\n\uD83C\uDFE0우리 집이 기네스 맛집\n기네스 나이트로서지의 혁신적인 기술로 집에서도 느낄 수 있는 기네스 생맥주의 퀄리티!\n\n\uD83D\uDCCC기네스 나이트로서지 패키지 특가 찬스!\n✅우리동네 GS: https://abr.ge/4x65k0v\n✅카카오톡 선물하기: https://gift.kakao.com/product/11319266\n\n\uD83D\uDC49패키지 구성품: 디바이스 1개 + 전용 캔 4캔 + 파인트 전용 잔 \n\uD83D\uDC49 완벽한 기네스 생맥주 한잔을 위한 디",
+            "안녕하세요, 안성재입니다.\n\n오늘 두 번째 [흑백2⚒\uFE0F리뷰]는\n네 분의 흑수저 셰프님들과 함께했습니다. \n삐딱한 천재, 중식 마녀, 부채도사 그리고 쓰리스타 킬러가 함께 했는데요. \n\n아직 [흑백요리사 시즌2]에 참여하고 계신 셰프님들이시다 보니\n생생하게 대결 당시 비하인드 스토리와 셰프님들의 각오도 들을 수 있었는데요,\n셰프님들과 더 많은 이야기를 나눌 수 있어 즐거웠던 시간이었습니다.\n\n그럼, 오늘도 재미있게 시청해 주세요.\n다음 주에 또 뵙겠습니다.\n\n*\n*\n\uD83C\uDFE0우리 집이 기네스 맛집\n기네스 나이트로서지의 혁신적인 기술로 집에서도 느낄 수 있는 기네스 생맥주의 퀄리티!\n\n\uD83D\uDCCC기네스 나이트로서지 패키지 특가 찬스!\n✅우리동네 GS: https://abr.ge/4x65k0v\n✅카카오톡 선물하기: https://gift.kakao.com/product/11319266\n\n\uD83D\uDC49패키지 구성품: 디바이스 1개 + 전용 캔 4캔 + 파인트 전용 잔 \n\uD83D\uDC49 완벽한 기네스 생맥주 한잔을 위한 디",
             url = "https://deepmind.google/technologies/antigravity",
             memo =
+            "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
                 "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
-                        "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.",
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님." +
+                "이거 진짜 대단한 것 같음. 나중에 코딩할 때 꼭 써봐야지. 특히 Jetpack Compose 코드 짜주는 속도가 장난 아님.",
             imageUrl = "https://picsum.photos/seed/picsum/800/400",
             categoryId = 0L,
             createdDate = LocalDateTime.now()
@@ -573,7 +581,7 @@ fun DarkModePreview() {
             onEditMemo = {},
             onClipboardCopy = {},
             onImageClick = {},
-            onMove = {},
+            onMove = {}
         )
     }
 }
@@ -583,7 +591,8 @@ fun DarkModePreview() {
 fun LoadingPreview() {
     Scrap2025Theme {
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxSize()
                 .background(MainColor),
             contentAlignment = Alignment.Center

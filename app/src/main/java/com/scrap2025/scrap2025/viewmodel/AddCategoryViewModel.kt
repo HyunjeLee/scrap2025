@@ -5,15 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 sealed interface AddCategoryUiState {
     data object Loading : AddCategoryUiState
+
     data object Success : AddCategoryUiState
+
     data class Error(val message: String? = null) : AddCategoryUiState
 }
 
@@ -23,10 +25,8 @@ private const val TAG = "AddCategoryViewModel"
 @HiltViewModel
 class AddCategoryViewModel
 @Inject
-constructor(
-    private val categoryRepository: CategoryRepository,
-) : ViewModel() {
-
+constructor(private val categoryRepository: CategoryRepository) :
+    ViewModel() {
     private val _addCategoryUiState = MutableStateFlow<AddCategoryUiState?>(null)
     val addCategoryUiState: StateFlow<AddCategoryUiState?> = _addCategoryUiState.asStateFlow()
 

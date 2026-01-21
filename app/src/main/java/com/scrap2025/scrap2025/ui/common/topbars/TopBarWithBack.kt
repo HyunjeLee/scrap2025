@@ -24,32 +24,28 @@ import androidx.compose.ui.unit.sp
 import com.scrap2025.scrap2025.ui.theme.MainColor
 
 @Composable
-fun TopBarWithBack(
-    title: String,
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun TopBarWithBack(title: String, onBack: () -> Unit, modifier: Modifier = Modifier) {
     Box(
-            modifier = modifier.fillMaxWidth().height(68.dp).background(MainColor),
-            contentAlignment = Alignment.CenterStart
+        modifier = modifier.fillMaxWidth().height(68.dp).background(MainColor),
+        contentAlignment = Alignment.CenterStart
     ) {
         Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             IconButton(onClick = { onBack() }, modifier = Modifier.padding(start = 11.dp)) {
                 Icon(
-                        imageVector = Icons.Default.ArrowBackIosNew,
-                        contentDescription = "뒤로가기",
+                    imageVector = Icons.Default.ArrowBackIosNew,
+                    contentDescription = "뒤로가기"
                 )
             }
 
             Text(
-                    text = title,
-                    style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-                    color = Color.Black,
-                    modifier = Modifier.weight(1f).padding(bottom = 4.dp)
+                text = title,
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
+                color = Color.Black,
+                modifier = Modifier.weight(1f).padding(bottom = 4.dp)
             )
         }
     }
@@ -58,5 +54,5 @@ fun TopBarWithBack(
 @Preview
 @Composable
 fun TopBarPreview() {
-    TopBarWithBack("카테고리 추가하기",{})
+    TopBarWithBack("카테고리 추가하기", {})
 }

@@ -2,21 +2,24 @@ package com.scrap2025.scrap2025.repository
 
 import android.util.Log
 import com.scrap2025.scrap2025.model.LinkPreview
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** LinkPreviewRepository의 구현체. Jsoup 라이브러리를 사용하여 웹 페이지의 HTML을 파싱하고 메타 데이터를 추출합니다. */
 @Singleton
-class LinkPreviewRepositoryImpl @Inject constructor() : LinkPreviewRepository {
-
+class LinkPreviewRepositoryImpl
+@Inject
+constructor() : LinkPreviewRepository {
     companion object {
         private const val TAG = "LinkPreviewRepository"
         private const val TIMEOUT_MS = 10000 // 10초
-        private const val USER_AGENT = "facebookexternalhit/1.1; KakaoTalk/9.0.0" // kakaoTalk Scraper based on facebook
+
+        // kakaoTalk Scraper based on facebook
+        private const val USER_AGENT = "facebookexternalhit/1.1; KakaoTalk/9.0.0"
     }
 
     override suspend fun fetchLinkPreview(url: String): Result<LinkPreview> =
@@ -26,7 +29,11 @@ class LinkPreviewRepositoryImpl @Inject constructor() : LinkPreviewRepository {
 
                 // Jsoup을 사용한 HTML 문서 로드
                 val document: Document =
-                    Jsoup.connect(url).userAgent(USER_AGENT).timeout(TIMEOUT_MS).get()
+                    Jsoup
+                        .connect(url)
+                        .userAgent(USER_AGENT)
+                        .timeout(TIMEOUT_MS)
+                        .get()
 
                 val preview = extractMetadata(document, url)
 
@@ -66,10 +73,11 @@ class LinkPreviewRepositoryImpl @Inject constructor() : LinkPreviewRepository {
         // 본문에 실제 장소 이름이 들어있는 경우가 많으므로 제목으로 끌어올림
         // 예: "공주칼국수 : 서울 영등포구..." -> 제목: 공주칼국수
         val refinedTitle =
-            if (title.trim() in serviceNames && !description.isNullOrEmpty())
+            if (title.trim() in serviceNames && !description.isNullOrEmpty()) {
                 description.split(":").firstOrNull()?.trim() ?: description
-            else
+            } else {
                 title
+            }
 
         Log.d(TAG, "Extracted - Title: $title, Image: $imageUrl")
 

@@ -53,7 +53,7 @@ fun CommonDeleteDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
-    description: String? = null,
+    description: String? = null
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -61,11 +61,11 @@ fun CommonDeleteDialog(
     ) {
         Box(
             modifier =
-                modifier
-                    .width(318.dp)
-                    .height(245.dp)
-                    .background(color = Color.White, shape = RoundedCornerShape(20.dp))
-                    .padding(20.dp),
+            modifier
+                .width(318.dp)
+                .height(245.dp)
+                .background(color = Color.White, shape = RoundedCornerShape(20.dp))
+                .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -78,9 +78,9 @@ fun CommonDeleteDialog(
                 // 경고 아이콘 (빨간색 원 + X)
                 Box(
                     modifier =
-                        Modifier
-                            .size(40.dp)
-                            .background(color = WarningColor, shape = CircleShape),
+                    Modifier
+                        .size(40.dp)
+                        .background(color = WarningColor, shape = CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -121,23 +121,24 @@ fun CommonDeleteDialog(
                     // 취소 버튼
                     Button(
                         onClick = onDismiss,
-                        modifier = Modifier
+                        modifier =
+                        Modifier
                             .weight(1f)
                             .height(55.dp),
                         shape = RoundedCornerShape(15.dp),
                         colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = LightGrayColor,
-                                contentColor = DarkGrayColor
-                            )
+                        ButtonDefaults.buttonColors(
+                            containerColor = LightGrayColor,
+                            contentColor = DarkGrayColor
+                        )
                     ) {
                         Text(
                             text = "취소",
                             style =
-                                TextStyle(
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                            TextStyle(
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         )
                     }
 
@@ -146,23 +147,24 @@ fun CommonDeleteDialog(
                     // 삭제/확인 버튼
                     Button(
                         onClick = onConfirm,
-                        modifier = Modifier
+                        modifier =
+                        Modifier
                             .weight(1f)
                             .height(55.dp),
                         shape = RoundedCornerShape(15.dp),
                         colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = WarningColor,
-                                contentColor = Color.White
-                            )
+                        ButtonDefaults.buttonColors(
+                            containerColor = WarningColor,
+                            contentColor = Color.White
+                        )
                     ) {
                         Text(
                             text = confirmText,
                             style =
-                                TextStyle(
-                                    fontSize = 17.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                            TextStyle(
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         )
                     }
                 }

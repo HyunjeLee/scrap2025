@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by
-preferencesDataStore(name = "scrap_preferences")
+    preferencesDataStore(name = "scrap_preferences")
 
 class PreferencesManager(context: Context) {
     private val dataStore: DataStore<Preferences> = context.dataStore
@@ -23,7 +23,8 @@ class PreferencesManager(context: Context) {
         private val SORT_DIRECTION_KEY = stringPreferencesKey("sort_direction")
         private val VIEW_MODE_KEY = stringPreferencesKey("view_mode")
         private val IS_DATABASE_INITIALIZED_KEY =
-            androidx.datastore.preferences.core.booleanPreferencesKey("is_database_initialized")
+            androidx.datastore.preferences.core
+                .booleanPreferencesKey("is_database_initialized")
     }
 
     // 정렬 타입 Flow (기본값: DATE)

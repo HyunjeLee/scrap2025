@@ -13,8 +13,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class TinkManager @Inject constructor(@ApplicationContext private val context: Context) {
-
+class TinkManager
+@Inject
+constructor(@ApplicationContext private val context: Context) {
     init {
         AeadConfig.register()
     }
@@ -30,38 +31,33 @@ class TinkManager @Inject constructor(@ApplicationContext private val context: C
         }
     }
 
-    fun encrypt(data: String): String {
-        return try {
-            val bytes = aead.encrypt(data.toByteArray(Charsets.UTF_8), null)
-            Base64.encodeToString(bytes, Base64.DEFAULT)
-        } catch (e: Exception) {
-            Log.e("TinkManager", "Encryption failed: ${e.message}")
-            e.printStackTrace()
-            ""
-        }
+    fun encrypt(data: String): String = try {
+        val bytes = aead.encrypt(data.toByteArray(Charsets.UTF_8), null)
+        Base64.encodeToString(bytes, Base64.DEFAULT)
+    } catch (e: Exception) {
+        Log.e("TinkManager", "Encryption failed: ${e.message}")
+        e.printStackTrace()
+        ""
     }
 
-    fun decrypt(encryptedData: String): String {
-        return try {
-            val bytes = Base64.decode(encryptedData, Base64.DEFAULT)
-            val decrypted = aead.decrypt(bytes, null)
-            String(decrypted, Charsets.UTF_8)
-        } catch (e: Exception) {
-            Log.e("TinkManager", "Decryption failed: ${e.message}")
-            e.printStackTrace()
-            ""
-        }
+    fun decrypt(encryptedData: String): String = try {
+        val bytes = Base64.decode(encryptedData, Base64.DEFAULT)
+        val decrypted = aead.decrypt(bytes, null)
+        String(decrypted, Charsets.UTF_8)
+    } catch (e: Exception) {
+        Log.e("TinkManager", "Decryption failed: ${e.message}")
+        e.printStackTrace()
+        ""
     }
 
-    private fun getOrGenerateKey(): Aead {
-        return AndroidKeysetManager.Builder()
-            .withSharedPref(context, KEYSET_NAME, PREF_FILE_NAME)
-            .withKeyTemplate(KeyTemplates.get("AES256_GCM"))
-            .withMasterKeyUri(MASTER_KEY_URI)
-            .build()
-            .keysetHandle
-            .getPrimitive(Aead::class.java)
-    }
+    private fun getOrGenerateKey(): Aead = AndroidKeysetManager
+        .Builder()
+        .withSharedPref(context, KEYSET_NAME, PREF_FILE_NAME)
+        .withKeyTemplate(KeyTemplates.get("AES256_GCM"))
+        .withMasterKeyUri(MASTER_KEY_URI)
+        .build()
+        .keysetHandle
+        .getPrimitive(Aead::class.java)
 
     companion object {
         private const val KEYSET_NAME = "master_keyset"

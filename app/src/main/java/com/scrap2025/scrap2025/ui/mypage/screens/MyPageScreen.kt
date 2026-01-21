@@ -52,10 +52,7 @@ import com.scrap2025.scrap2025.viewmodel.MyPageViewModel.MyPageUiState
 
 /** MyPageScreen - Container Composable */
 @Composable
-fun MyPageScreen(
-    modifier: Modifier = Modifier,
-    viewModel: MyPageViewModel = hiltViewModel()
-) {
+fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
     val showHelpCenterDialog by viewModel.showHelpCenterDialog.collectAsState()
@@ -67,9 +64,10 @@ fun MyPageScreen(
         }
 
         is MyPageUiState.Success -> {
-            val greetingText = remember(state.myPageInfo.memberInfo.name) {
-                getGreetingText(state.myPageInfo.memberInfo.name)
-            }
+            val greetingText =
+                remember(state.myPageInfo.memberInfo.name) {
+                    getGreetingText(state.myPageInfo.memberInfo.name)
+                }
 
             MyPageScreenContent(
                 greetingText = greetingText,
@@ -96,7 +94,7 @@ fun MyPageScreen(
                     )
                 },
                 onWithdrawDismiss = { viewModel.dismissWithdrawalDialog() },
-                modifier = modifier,
+                modifier = modifier
             )
         }
     }
@@ -122,7 +120,8 @@ fun MyPageScreenContent(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
@@ -141,18 +140,19 @@ fun MyPageScreenContent(
 
         Row(
             Modifier.padding(horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = greetingText,
-                fontSize = 20.sp,
+                fontSize = 20.sp
             )
             Spacer(Modifier.width(8.dp))
             Icon(
                 painter = painterResource(snsType.getIconRes()),
                 contentDescription = "SNS Icon",
                 tint = Color.Unspecified,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .padding(top = 1.dp)
                     .size(20.dp)
             )
@@ -162,7 +162,8 @@ fun MyPageScreenContent(
 
         // Stats Row
         Row(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.Center
@@ -210,7 +211,7 @@ fun MyPageScreenContent(
             title = "정말 회원탈퇴 하시겠습니까?",
             confirmText = "회원탈퇴",
             onConfirm = { onWithdrawConfirm(snsType) },
-            onDismiss = onWithdrawDismiss,
+            onDismiss = onWithdrawDismiss
         )
     }
 }
@@ -233,9 +234,11 @@ fun StatItem(icon: Painter, count: String, label: String) {
 @Composable
 fun MenuItem(text: String, onClick: () -> Unit) {
     Box(
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxWidth()
-            .clickable { onClick() }) {
+            .clickable { onClick() }
+    ) {
         Text(
             text = text,
             fontSize = 16.sp,
@@ -245,14 +248,12 @@ fun MenuItem(text: String, onClick: () -> Unit) {
     }
 }
 
-private fun getGreetingText(userName: String): AnnotatedString {
-    return buildAnnotatedString {
-        append("안녕하세요 ")
-        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-            append(userName)
-        }
-        append(" 님!")
+private fun getGreetingText(userName: String): AnnotatedString = buildAnnotatedString {
+    append("안녕하세요 ")
+    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+        append(userName)
     }
+    append(" 님!")
 }
 
 private fun SnsType.getIconRes(): Int = when (this) {
@@ -279,7 +280,7 @@ private fun MyPageScreenPreview() {
             onLogout = {},
             onWithdrawClick = {},
             onWithdrawConfirm = {},
-            onWithdrawDismiss = {},
+            onWithdrawDismiss = {}
         )
     }
 }

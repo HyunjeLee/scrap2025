@@ -18,8 +18,7 @@ import retrofit2.http.Path
 
 interface CategoryService {
     @GET("/auth/categories")
-    suspend fun getCategories(
-    ): Response<BaseResponse<CategoryListResponse>>
+    suspend fun getCategories(): Response<BaseResponse<CategoryListResponse>>
 
     @POST("/auth/categories")
     suspend fun createCategory(
@@ -33,9 +32,7 @@ interface CategoryService {
     ): Response<BaseResponse<RenameCategoryResponse>>
 
     @DELETE("/auth/categories/{category-id}")
-    suspend fun deleteCategory(
-        @Path("category-id") categoryId: Long
-    ): Response<BaseResponse<Unit?>>
+    suspend fun deleteCategory(@Path("category-id") categoryId: Long): Response<BaseResponse<Unit?>>
 
     @PATCH("/auth/categories/sequence")
     suspend fun updateCategorySequence(

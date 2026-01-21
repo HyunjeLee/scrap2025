@@ -7,16 +7,19 @@ import com.scrap2025.scrap2025.data.remote.auth.social.SocialLoginProvider
 import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 sealed class LoginUiState {
     object Idle : LoginUiState()
+
     object Loading : LoginUiState()
+
     object Success : LoginUiState()
+
     data class Error(val message: String) : LoginUiState()
 }
 
@@ -48,13 +51,11 @@ constructor(
                 .onSuccess {
                     _uiState.value = LoginUiState.Success
                     Log.d(TAG, "테스트 로그인 성공")
-                }
-                .onFailure { exception ->
+                }.onFailure { exception ->
                     val errorMsg = "테스트 로그인 실패: ${exception.message}"
                     _uiState.value = LoginUiState.Error(errorMsg)
                     Log.e(TAG, errorMsg)
                 }
-
         }
     }
 
@@ -73,8 +74,7 @@ constructor(
                     Log.d(TAG, "소셜 로그인 성공")
                     // 서버 로그인
                     requestServerLogin(snsType, socialToken)
-                }
-                .onFailure { exception ->
+                }.onFailure { exception ->
                     val errorMsg = "소셜 로그인 실패: ${exception.message}"
                     _uiState.value = LoginUiState.Error(errorMsg)
                     Log.e(TAG, errorMsg)
@@ -86,8 +86,9 @@ constructor(
         snsType: SnsType,
         callback: suspend (SocialLoginProvider) -> Result<String>
     ): Result<String> {
-        val provider = socialLoginProviders[snsType]
-            ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
+        val provider =
+            socialLoginProviders[snsType]
+                ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
 
         return callback(provider)
     }
@@ -102,8 +103,7 @@ constructor(
             .onSuccess {
                 _uiState.value = LoginUiState.Success
                 Log.d(TAG, "서버 로그인 성공")
-            }
-            .onFailure { exception ->
+            }.onFailure { exception ->
                 val errorMsg = "서버 로그인 실패: ${exception.message}"
                 _uiState.value = LoginUiState.Error(errorMsg)
                 Log.e(TAG, errorMsg)

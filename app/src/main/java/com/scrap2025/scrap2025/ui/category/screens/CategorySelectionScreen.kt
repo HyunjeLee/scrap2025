@@ -39,7 +39,9 @@ import com.scrap2025.scrap2025.viewmodel.CategorySelectionViewModel
 import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 
 enum class Mode {
-    MOVE ,ADD, SEARCH
+    MOVE,
+    ADD,
+    SEARCH
 }
 
 @Composable
@@ -49,20 +51,22 @@ fun CategorySelectionScreen(
     onConfirmAdd: (Long, String) -> Unit,
     onConfirmSearch: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CategorySelectionViewModel = hiltViewModel(),
+    viewModel: CategorySelectionViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val mode = viewModel.mode
-    val title = when (mode) {
-        Mode.MOVE -> "이동하기"
-        Mode.ADD -> "카테고리 선택하기"
-        Mode.SEARCH -> "카테고리"
-    }
-    val confirmText = when (mode) {
-        Mode.MOVE -> "이동하기"
-        Mode.ADD -> "다음"
-        Mode.SEARCH -> "완료"
-    }
+    val title =
+        when (mode) {
+            Mode.MOVE -> "이동하기"
+            Mode.ADD -> "카테고리 선택하기"
+            Mode.SEARCH -> "카테고리"
+        }
+    val confirmText =
+        when (mode) {
+            Mode.MOVE -> "이동하기"
+            Mode.ADD -> "다음"
+            Mode.SEARCH -> "완료"
+        }
 
     val uiState by viewModel.categoryUiState.collectAsState()
     val selectedCategoryId by viewModel.selectedCategoryId.collectAsState()
@@ -76,14 +80,16 @@ fun CategorySelectionScreen(
                     onBack()
                     Toast.makeText(context, "이동 완료", Toast.LENGTH_SHORT).show()
                 }
-                val failureCallback = { Toast.makeText(context, "스크랩 이동 실패", Toast.LENGTH_SHORT).show() }
+                val failureCallback = {
+                    Toast.makeText(context, "스크랩 이동 실패", Toast.LENGTH_SHORT).show()
+                }
 
                 when (viewModel.scrapIds.size == 1) {
-                    true -> {  // Single
+                    true -> { // Single
                         viewModel.moveScrap(successCallback, failureCallback)
                     }
 
-                    false -> {  // Bulk
+                    false -> { // Bulk
                         viewModel.moveScrapBulk(successCallback, failureCallback)
                     }
                 }
@@ -145,18 +151,21 @@ fun CategorySelectionScreenContent(
     onCategoryClick: (Long, String) -> Unit,
     onAddClick: () -> Unit,
     onConfirm: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Scaffold(
-        topBar = { TopBarWithBack(title = title, onBack = onBack) }, bottomBar = {
+        topBar = { TopBarWithBack(title = title, onBack = onBack) },
+        bottomBar = {
             TwoButtons(confirmText = confirmText, onCancel = onBack, onConfirm = onConfirm)
-        }, floatingActionButton = {
+        },
+        floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddClick,
                 shape = CircleShape,
                 containerColor = MainColor,
                 contentColor = MainColorDeep,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .offset(y = 16.dp) // 기본 여백 제거
                     .padding(end = 5.dp)
                     .size(60.dp)
@@ -167,26 +176,35 @@ fun CategorySelectionScreenContent(
                     modifier = Modifier.size(50.dp)
                 )
             }
-        }, containerColor = BackgroundColor
+        },
+        containerColor = BackgroundColor
     ) { innerPadding ->
         Box(
-            modifier = modifier
+            modifier =
+            modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
         ) {
             // 카테고리 목록
             Column {
                 HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(), color = GrayColor, thickness = 0.5.dp
+                    modifier = Modifier.fillMaxWidth(),
+                    color = GrayColor,
+                    thickness = 0.5.dp
                 )
                 LazyColumn {
                     items(items = categories) { item ->
                         CategoryItemCard(
-                            isSelected = if (isMultiSelect) selectedCategoryIds.contains(item.id)
-                            else selectedCategoryId == item.id,
+                            isSelected =
+                            if (isMultiSelect) {
+                                selectedCategoryIds.contains(item.id)
+                            } else {
+                                selectedCategoryId == item.id
+                            },
                             isSelectable = true,
                             categoryItem = item,
-                            onClick = { onCategoryClick(item.id, item.title) })
+                            onClick = { onCategoryClick(item.id, item.title) }
+                        )
                         HorizontalDivider(
                             modifier = Modifier.fillMaxWidth(),
                             color = GrayColor,
@@ -195,7 +213,9 @@ fun CategorySelectionScreenContent(
                     }
                 }
                 HorizontalDivider(
-                    modifier = Modifier.fillMaxWidth(), color = GrayColor, thickness = 0.5.dp
+                    modifier = Modifier.fillMaxWidth(),
+                    color = GrayColor,
+                    thickness = 0.5.dp
                 )
             }
         }
@@ -215,23 +235,25 @@ fun CategorySelectionScreenContentPreview() {
         onBack = {},
         onConfirm = {},
         onCategoryClick = { _, _ -> },
-        onAddClick = {})
+        onAddClick = {}
+    )
 }
 
-val dummyCategories = listOf(
-    CategoryItem(
-        id = 1,
-        title = "분류되지 않음",
-        orderIndex = 0,
-    ),
-    CategoryItem(
-        id = 2,
-        title = "코테 자료",
-        orderIndex = 0,
-    ),
-    CategoryItem(
-        id = 3,
-        title = "IBM Technology",
-        orderIndex = 0,
-    ),
-)
+val dummyCategories =
+    listOf(
+        CategoryItem(
+            id = 1,
+            title = "분류되지 않음",
+            orderIndex = 0
+        ),
+        CategoryItem(
+            id = 2,
+            title = "코테 자료",
+            orderIndex = 0
+        ),
+        CategoryItem(
+            id = 3,
+            title = "IBM Technology",
+            orderIndex = 0
+        )
+    )

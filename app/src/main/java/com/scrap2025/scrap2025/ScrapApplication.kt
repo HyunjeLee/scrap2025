@@ -7,7 +7,6 @@ import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
 class ScrapApplication : Application() {
-
     override fun onCreate() {
         super.onCreate()
 

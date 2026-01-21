@@ -9,12 +9,14 @@ import java.time.LocalDateTime
 
 @Entity(
     tableName = "scraps",
-    foreignKeys = [ForeignKey(
-        entity = CategoryEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["categoryId"],
-        onDelete = ForeignKey.RESTRICT
-    )],
+    foreignKeys = [
+        ForeignKey(
+            entity = CategoryEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["categoryId"],
+            onDelete = ForeignKey.RESTRICT
+        )
+    ],
     indices = [Index(value = ["categoryId"])]
 )
 data class ScrapEntity(

@@ -113,7 +113,7 @@ interface ScrapRepository {
     suspend fun searchFavoriteScraps(
         query: String,
         sortType: String? = null,
-        sortDirection: String? = null,
+        sortDirection: String? = null
     ): Result<List<ScrapItem>>
 
     /**
@@ -128,6 +128,6 @@ interface ScrapRepository {
         categoryRemoteId: Long,
         query: String,
         sortType: String? = null,
-        sortDirection: String? = null,
+        sortDirection: String? = null
     ): Result<List<ScrapItem>>
 }

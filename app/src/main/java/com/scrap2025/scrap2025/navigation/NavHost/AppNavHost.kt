@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.navigation.NavHost
+package com.scrap2025.scrap2025.navigation.navhost
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -17,7 +17,8 @@ import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 @Composable
 fun AppNavHost(
-    mainViewModel: MainViewModel = hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
+    mainViewModel: MainViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val navController = rememberNavController()
     val accessToken by mainViewModel.accessToken.collectAsState()

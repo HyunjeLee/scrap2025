@@ -2,20 +2,22 @@ package com.scrap2025.scrap2025.repository
 
 import com.scrap2025.scrap2025.data.remote.datasource.CategoryRemoteDataSource
 import com.scrap2025.scrap2025.model.CategoryItem
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** CategoryRepository의 구현체. [CategoryRemoteDataSource]를 사용하여 카테고리 데이터를 관리합니다. */
 @Singleton
 class CategoryRepositoryImpl
 @Inject
-constructor(private val categoryRemoteDataSource: CategoryRemoteDataSource) : CategoryRepository {
+constructor(
+    private val categoryRemoteDataSource: CategoryRemoteDataSource
+) : CategoryRepository {
     private val _refreshEvent = MutableSharedFlow<Unit>(replay = 1).apply { tryEmit(Unit) }
     override val refreshEvent: SharedFlow<Unit> = _refreshEvent.asSharedFlow()
 
@@ -58,51 +60,41 @@ constructor(private val categoryRemoteDataSource: CategoryRemoteDataSource) : Ca
         _selectedCategoryTitle.value = title
     }
 
-    override suspend fun createCategory(title: String): Result<Unit> {
-        return try {
-            categoryRemoteDataSource.createCategory(title)
+    override suspend fun createCategory(title: String): Result<Unit> = try {
+        categoryRemoteDataSource.createCategory(title)
 
-            _refreshEvent.emit(Unit)
-            refreshCategories()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        _refreshEvent.emit(Unit)
+        refreshCategories()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
-    override suspend fun deleteCategory(id: Long): Result<Unit> {
-        return try {
-            categoryRemoteDataSource.deleteCategory(id)
+    override suspend fun deleteCategory(id: Long): Result<Unit> = try {
+        categoryRemoteDataSource.deleteCategory(id)
 
-            _refreshEvent.emit(Unit)
-            refreshCategories()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        _refreshEvent.emit(Unit)
+        refreshCategories()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
-    override suspend fun updateCategory(id: Long, newTitle: String): Result<Unit> {
-        return try {
-            categoryRemoteDataSource.renameCategory(id, newTitle)
+    override suspend fun updateCategory(id: Long, newTitle: String): Result<Unit> = try {
+        categoryRemoteDataSource.renameCategory(id, newTitle)
 
-            refreshCategories()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        refreshCategories()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 
-    override suspend fun reorderCategories(
-        ids: List<Long>,
-    ): Result<Unit> {
-        return try {
-            categoryRemoteDataSource.updateCategorySequence(ids)
+    override suspend fun reorderCategories(ids: List<Long>): Result<Unit> = try {
+        categoryRemoteDataSource.updateCategorySequence(ids)
 
-            refreshCategories()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        refreshCategories()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Result.failure(e)
     }
 }

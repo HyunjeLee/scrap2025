@@ -21,7 +21,9 @@ import com.scrap2025.scrap2025.data.local.entity.ScrapEntity
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun categoryDao(): CategoryDao
+
     abstract fun scrapDao(): ScrapDao
+
     abstract fun myPageDao(): MyPageDao
 
     suspend fun clearAllData() {
@@ -35,22 +37,20 @@ abstract class AppDatabase : RoomDatabase() {
     }
 
     companion object {
-        @Volatile private var INSTANCE: AppDatabase? = null
+        @Volatile private var dbInstance: AppDatabase? = null
 
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE
-                ?: synchronized(this) {
-                    val instance =
-                        Room.databaseBuilder(
+        fun getDatabase(context: Context): AppDatabase = dbInstance
+            ?: synchronized(this) {
+                val instance =
+                    Room
+                        .databaseBuilder(
                             context.applicationContext,
                             AppDatabase::class.java,
                             "scrap_database"
-                        )
-                            .fallbackToDestructiveMigration()
-                            .build()
-                    INSTANCE = instance
-                    instance
-                }
-        }
+                        ).fallbackToDestructiveMigration()
+                        .build()
+                dbInstance = instance
+                instance
+            }
     }
 }

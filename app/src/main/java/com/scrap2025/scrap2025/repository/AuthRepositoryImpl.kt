@@ -18,62 +18,60 @@ class AuthRepositoryImpl
 constructor(
     private val authRemoteDataSource: AuthRemoteDataSource,
     private val tokenManager: TokenManager,
-    private val database: AppDatabase,
+    private val database: AppDatabase
 ) : AuthRepository {
     companion object {
         private const val TAG = "AuthRepository"
     }
 
-    override suspend fun testLogin(testAccessToken: String, testRefreshToken: String): Result<Unit> {
-        return try {
-            tokenManager.saveTokens(testAccessToken, testRefreshToken)
-            tokenManager.saveSnsType(SnsType.KAKAO)
-            Log.d(TAG, "Tokens and SnsType saved successfully")
+    override suspend fun testLogin(
+        testAccessToken: String,
+        testRefreshToken: String
+    ): Result<Unit> = try {
+        tokenManager.saveTokens(testAccessToken, testRefreshToken)
+        tokenManager.saveSnsType(SnsType.KAKAO)
+        Log.d(TAG, "Tokens and SnsType saved successfully")
 
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Login exception", e)
-            Result.failure(e)
-        }
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Log.e(TAG, "Login exception", e)
+        Result.failure(e)
     }
 
-    override suspend fun loginToServer(snsType: SnsType, socialToken: String): Result<Unit> {
-        return try {
-            val loginResult = authRemoteDataSource.login(sns = snsType.value, token = socialToken)
-            tokenManager.saveTokens(
-                accessToken = loginResult.accessToken,
-                refreshToken = loginResult.refreshToken
-            )
-            tokenManager.saveSnsType(snsType)
-            Log.d(TAG, "Tokens and SnsType saved successfully")
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Login exception", e)
-            Result.failure(e)
-        }
+    override suspend fun loginToServer(snsType: SnsType, socialToken: String): Result<Unit> = try {
+        val loginResult = authRemoteDataSource.login(
+            sns = snsType.value,
+            token = socialToken
+        )
+        tokenManager.saveTokens(
+            accessToken = loginResult.accessToken,
+            refreshToken = loginResult.refreshToken
+        )
+        tokenManager.saveSnsType(snsType)
+        Log.d(TAG, "Tokens and SnsType saved successfully")
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Log.e(TAG, "Login exception", e)
+        Result.failure(e)
     }
 
-    override suspend fun logoutToServer(): Result<Unit> {
-        return try {
-            authRemoteDataSource.logout()
-            tokenManager.clearTokens()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Logout exception", e)
-            Result.failure(e)
-        }
+    override suspend fun logoutToServer(): Result<Unit> = try {
+        authRemoteDataSource.logout()
+        tokenManager.clearTokens()
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Log.e(TAG, "Logout exception", e)
+        Result.failure(e)
     }
 
-    override suspend fun withdrawToServer(): Result<Unit> {
-        return try {
-            authRemoteDataSource.withdraw()
-            tokenManager.clearTokens()
-            database.clearAllData()
+    override suspend fun withdrawToServer(): Result<Unit> = try {
+        authRemoteDataSource.withdraw()
+        tokenManager.clearTokens()
+        database.clearAllData()
 
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Log.e(TAG, "Withdraw exception", e)
-            Result.failure(e)
-        }
+        Result.success(Unit)
+    } catch (e: Exception) {
+        Log.e(TAG, "Withdraw exception", e)
+        Result.failure(e)
     }
 }

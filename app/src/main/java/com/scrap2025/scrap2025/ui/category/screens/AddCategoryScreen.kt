@@ -88,7 +88,7 @@ fun AddCategoryScreenContent(
     categoryTitleInput: String,
     onValueChange: (String) -> Unit,
     addCategoryUiState: AddCategoryUiState?,
-    onAddCategory: () -> Unit,
+    onAddCategory: () -> Unit
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -101,29 +101,34 @@ fun AddCategoryScreenContent(
                 onConfirm = onAddCategory,
                 isLoading = addCategoryUiState is AddCategoryUiState.Loading
             )
-        }) { innerPadding ->
+        }
+    ) { innerPadding ->
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // 입력 필드
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 21.dp, vertical = 20.dp)
                         .background(
-                            MainColorLight, shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(12.dp)
+                            MainColorLight,
+                            shape = RoundedCornerShape(8.dp)
+                        ).padding(12.dp)
                 ) {
                     Box(
-                        modifier = Modifier
+                        modifier =
+                        Modifier
                             .fillMaxWidth()
                             .height(56.dp)
                             .background(
-                                MainColor, shape = RoundedCornerShape(10.dp)
+                                MainColor,
+                                shape = RoundedCornerShape(10.dp)
                             )
                     ) {
                         TextField(
@@ -136,11 +141,13 @@ fun AddCategoryScreenContent(
                                     style = TextStyle(fontSize = 15.sp)
                                 )
                             },
-                            modifier = Modifier
+                            modifier =
+                            Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp),
                             textStyle = TextStyle(fontSize = 15.sp),
-                            colors = TextFieldDefaults.colors(
+                            colors =
+                            TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
@@ -169,6 +176,7 @@ fun AddCategoryScreenContentPreview() {
             categoryTitleInput = "",
             onValueChange = {},
             addCategoryUiState = null,
-            onAddCategory = {})
+            onAddCategory = {}
+        )
     }
 }

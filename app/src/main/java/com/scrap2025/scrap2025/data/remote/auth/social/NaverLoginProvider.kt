@@ -3,12 +3,13 @@ package com.scrap2025.scrap2025.data.remote.auth.social
 import android.content.Context
 import com.navercorp.nid.NidOAuth
 import com.navercorp.nid.oauth.util.NidOAuthCallback
-import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 import kotlin.coroutines.resume
+import kotlinx.coroutines.suspendCancellableCoroutine
 
-class NaverLoginProvider @Inject constructor() : SocialLoginProvider {
-
+class NaverLoginProvider
+@Inject
+constructor() : SocialLoginProvider {
     override suspend fun login(context: Context): Result<String> =
         suspendCancellableCoroutine { continuation ->
             val callback =

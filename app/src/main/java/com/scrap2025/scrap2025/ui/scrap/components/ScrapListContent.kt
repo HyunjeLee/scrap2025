@@ -56,9 +56,13 @@ fun ScrapListContent(
     onItemClick: (Long) -> Unit = {},
     onItemLongClick: (Long) -> Unit = {},
     onItemSelectionToggle: (Long) -> Unit = {},
-    listState: LazyListState = androidx.compose.foundation.lazy.rememberLazyListState(),
-    gridState: LazyGridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState(),
-    showCategory: Boolean = false,
+    listState: LazyListState =
+        androidx.compose.foundation.lazy
+            .rememberLazyListState(),
+    gridState: LazyGridState =
+        androidx.compose.foundation.lazy.grid
+            .rememberLazyGridState(),
+    showCategory: Boolean = false
 ) {
     when (val result = scrapItemsState) {
         is ScrapUiState.Loading -> {
@@ -182,7 +186,7 @@ fun ScrapListContent(
                                 containerColor = MainColor,
                                 modifier = Modifier.align(Alignment.TopCenter)
                             )
-                        },
+                        }
                     ) {
                         when (viewMode) {
                             ViewMode.LIST -> {
@@ -198,7 +202,9 @@ fun ScrapListContent(
                                                 scrapItem = scrapItem,
                                                 showCategory = showCategory,
                                                 isSelectionMode = isSelectionMode,
-                                                isSelected = selectedScrapIds.contains(scrapItem.id),
+                                                isSelected = selectedScrapIds.contains(
+                                                    scrapItem.id
+                                                ),
                                                 onClick = { onItemClick(scrapItem.id) },
                                                 onLongClick = { onItemLongClick(scrapItem.id) },
                                                 onSelectionToggle = {
@@ -212,7 +218,8 @@ fun ScrapListContent(
                                     if (pagedItems.loadState.append is LoadState.Loading) {
                                         item {
                                             Box(
-                                                modifier = Modifier
+                                                modifier =
+                                                Modifier
                                                     .fillMaxWidth()
                                                     .padding(16.dp),
                                                 contentAlignment = Alignment.Center
@@ -232,7 +239,10 @@ fun ScrapListContent(
                                     columns = GridCells.Fixed(2),
                                     state = gridState,
                                     modifier = modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(horizontal = 23.dp, vertical = 8.dp),
+                                    contentPadding = PaddingValues(
+                                        horizontal = 23.dp,
+                                        vertical = 8.dp
+                                    ),
                                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
@@ -247,7 +257,9 @@ fun ScrapListContent(
                                                 scrapItem = scrapItem,
                                                 showCategory = showCategory,
                                                 isSelectionMode = isSelectionMode,
-                                                isSelected = selectedScrapIds.contains(scrapItem.id),
+                                                isSelected = selectedScrapIds.contains(
+                                                    scrapItem.id
+                                                ),
                                                 onClick = { onItemClick(scrapItem.id) },
                                                 onLongClick = { onItemLongClick(scrapItem.id) },
                                                 onSelectionToggle = {
@@ -261,7 +273,8 @@ fun ScrapListContent(
                                     if (pagedItems.loadState.append is LoadState.Loading) {
                                         item(span = { GridItemSpan(maxLineSpan) }) {
                                             Box(
-                                                modifier = Modifier
+                                                modifier =
+                                                Modifier
                                                     .fillMaxWidth()
                                                     .padding(16.dp),
                                                 contentAlignment = Alignment.Center

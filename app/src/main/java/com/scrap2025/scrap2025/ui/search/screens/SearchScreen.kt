@@ -72,21 +72,21 @@ fun SearchScreen(
 
     // 파생 상태: 스크롤 위치에서 버튼 표시 여부 계산
     val showScrollToTop by
-    remember(uiState.viewMode) {
-        derivedStateOf {
-            when (uiState.viewMode) {
-                ViewMode.LIST -> {
-                    listState.firstVisibleItemIndex > 0 ||
+        remember(uiState.viewMode) {
+            derivedStateOf {
+                when (uiState.viewMode) {
+                    ViewMode.LIST -> {
+                        listState.firstVisibleItemIndex > 0 ||
                             listState.firstVisibleItemScrollOffset > 0
-                }
+                    }
 
-                ViewMode.GRID -> {
-                    gridState.firstVisibleItemIndex > 0 ||
+                    ViewMode.GRID -> {
+                        gridState.firstVisibleItemIndex > 0 ||
                             gridState.firstVisibleItemScrollOffset > 0
+                    }
                 }
             }
         }
-    }
 
     val context = LocalContext.current
 
@@ -137,7 +137,7 @@ fun SearchScreen(
                     onRemoveCategory = { viewModel.removeCategory(it) },
                     startDate = uiState.startDate,
                     endDate = uiState.endDate,
-                    onDateClick = { showDatePicker = true },
+                    onDateClick = { showDatePicker = true }
                 )
 
                 // 2. 정렬 바
@@ -155,7 +155,7 @@ fun SearchScreen(
             AnimatedVisibility(
                 visible = showScrollToTop,
                 enter = fadeIn() + scaleIn(),
-                exit = fadeOut() + scaleOut(),
+                exit = fadeOut() + scaleOut()
             ) {
                 FloatingActionButton(
                     onClick = {
@@ -192,7 +192,8 @@ fun SearchScreen(
             listState = listState,
             gridState = gridState,
             onItemClick = navigateToDetail,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
         )

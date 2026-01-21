@@ -49,7 +49,7 @@ fun ScrapTopBar(
     onUpdateCategory: (Long, String) -> Unit,
     onDeleteCategory: () -> Unit,
     modifier: Modifier = Modifier,
-    isEditable: Boolean = true,
+    isEditable: Boolean = true
 ) {
     // === 내부 상태: 편집 모드 관리 ===
     var isEditMode by remember { mutableStateOf(false) }
@@ -82,10 +82,11 @@ private fun TopBarDefault(
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isEditable: Boolean = true,
+    isEditable: Boolean = true
 ) {
     Box(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .height(53.dp)
             .background(MainColor),
@@ -104,10 +105,11 @@ private fun TopBarDefault(
         if (isEditable) {
             // 편집/삭제 버튼
             Row(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .align(Alignment.CenterEnd)
                     .padding(end = 22.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // 편집 버튼
                 IconButton(onClick = onEditClick, modifier = Modifier.size(28.dp)) {
@@ -143,14 +145,14 @@ private fun TopBarEditMode(
 ) {
     // === 내부 상태: 편집 중인 텍스트와 커서 위치를 포함한 TextFieldValue ===
     var textFieldState by
-    remember(categoryTitle) {
-        mutableStateOf(
-            TextFieldValue(
-                text = categoryTitle,
-                selection = TextRange(categoryTitle.length) // 1. 초기 커서 위치: 맨 끝
+        remember(categoryTitle) {
+            mutableStateOf(
+                TextFieldValue(
+                    text = categoryTitle,
+                    selection = TextRange(categoryTitle.length) // 1. 초기 커서 위치: 맨 끝
+                )
             )
-        )
-    }
+        }
 
     // === 유효성 검사: 1자 이상 21자 이하 ===
     val isCategoryTitleValid = textFieldState.text.length in 1..21
@@ -162,7 +164,8 @@ private fun TopBarEditMode(
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     Box(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .height(53.dp)
             .background(MainColor),
@@ -173,16 +176,16 @@ private fun TopBarEditMode(
             value = textFieldState,
             onValueChange = { newValue -> textFieldState = newValue },
             modifier =
-                Modifier
-                    .padding(start = 21.dp, end = 60.dp)
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
+            Modifier
+                .padding(start = 21.dp, end = 60.dp)
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
             textStyle =
-                TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
-                ),
+            TextStyle(
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black
+            ),
             singleLine = true
         )
 
@@ -194,17 +197,21 @@ private fun TopBarEditMode(
                 }
             },
             enabled = isCategoryTitleValid,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .align(Alignment.CenterEnd)
                 .padding(end = 22.dp)
                 .size(28.dp)
         ) {
             Icon(
                 painter =
-                    painterResource(
-                        if (isCategoryTitleValid) R.drawable.ic_check_filled
-                        else R.drawable.ic_check_err
-                    ),
+                painterResource(
+                    if (isCategoryTitleValid) {
+                        R.drawable.ic_check_filled
+                    } else {
+                        R.drawable.ic_check_err
+                    }
+                ),
                 contentDescription = "저장",
                 tint = Color.Unspecified,
                 modifier = Modifier.size(24.dp)

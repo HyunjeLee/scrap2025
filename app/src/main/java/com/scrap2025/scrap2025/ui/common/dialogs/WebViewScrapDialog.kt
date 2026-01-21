@@ -44,10 +44,10 @@ import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
+import java.net.URLDecoder
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.net.URLDecoder
 
 // Data class for parsing JSON returned from JS
 @Serializable
@@ -98,22 +98,27 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
                                     fun processMetadata(jsonString: String) {
                                         Log.d(TAG, "processMetadata called with: $jsonString")
                                         try {
-                                            val metadata = Json { ignoreUnknownKeys = true
-                                            }.decodeFromString<ParsedMetadata>(jsonString)
+                                            val metadata =
+                                                Json {
+                                                    ignoreUnknownKeys = true
+                                                }.decodeFromString<ParsedMetadata>(jsonString)
 
                                             Log.d(TAG, "Parsed metadata: $metadata")
 
-                                            val preview = LinkPreview(
-                                                url = url,
-                                                title = metadata.title ?: url,
-                                                description = metadata.description ?: "",
-                                                imageUrl = metadata.imageUrl,
-                                                siteName = null
-                                            )
+                                            val preview =
+                                                LinkPreview(
+                                                    url = url,
+                                                    title = metadata.title ?: url,
+                                                    description = metadata.description ?: "",
+                                                    imageUrl = metadata.imageUrl,
+                                                    siteName = null
+                                                )
 
                                             // Callback on Main Thread
                                             Handler(Looper.getMainLooper()).post {
-                                                Log.d(TAG, "Posting onScrapComplete"
+                                                Log.d(
+                                                    TAG,
+                                                    "Posting onScrapComplete"
                                                 )
                                                 onScrapComplete(preview)
                                             }
@@ -121,103 +126,126 @@ fun WebViewScrapDialog(url: String, onDismiss: () -> Unit, onScrapComplete: (Lin
                                             Log.e(TAG, "Metadata parsing failed", e)
                                         }
                                     }
-                                }, "AndroidApp"
+                                },
+                                "AndroidApp"
                             )
 
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageStarted(
-                                    view: WebView?, url: String?, favicon: Bitmap?
-                                ) {
-                                    Log.d(TAG, "onPageStarted: $url")
+                            webViewClient =
+                                object : WebViewClient() {
+                                    override fun onPageStarted(
+                                        view: WebView?,
+                                        url: String?,
+                                        favicon: Bitmap?
+                                    ) {
+                                        Log.d(TAG, "onPageStarted: $url")
 
-                                    isLoading = true
-                                    hasError = false
-                                }
-
-                                override fun onPageFinished(
-                                    view: WebView?, url: String?
-                                ) {
-                                    Log.d(TAG, "onPageFinished: $url")
-
-                                    isLoading = false
-                                }
-
-                                override fun shouldOverrideUrlLoading(
-                                    view: WebView?, request: WebResourceRequest?
-                                ): Boolean {
-                                    val url = request?.url?.toString() ?: return false
-
-                                    if (url.startsWith("http://") || url.startsWith("https://")) {
-                                        return false
+                                        isLoading = true
+                                        hasError = false
                                     }
 
-                                    // Handle intent:// schemes
-                                    if (url.startsWith("intent://")) {
-                                        try {
-                                            // Extract fallback URL manually
-                                            val fallbackUrl = url.substringAfter(
-                                                "S.browser_fallback_url=", ""
-                                            ).substringBefore(";")
+                                    override fun onPageFinished(view: WebView?, url: String?) {
+                                        Log.d(TAG, "onPageFinished: $url")
 
-                                            if (fallbackUrl.isNotEmpty()) {
-                                                // Decode if necessary
-                                                // (browser_fallback_url is often
-                                                // URL-encoded)
-                                                val decodedUrl = URLDecoder.decode(
-                                                    fallbackUrl, "UTF-8"
-                                                )
-                                                Log.d(TAG, "Redirecting to fallback URL: $decodedUrl")
+                                        isLoading = false
+                                    }
 
-                                                view?.loadUrl(decodedUrl)
-                                                return true // Handled by manual load
-                                            }
-                                        } catch (e: Exception) {
-                                            Log.e(TAG, "Failed to parse intent fallback", e)
+                                    override fun shouldOverrideUrlLoading(
+                                        view: WebView?,
+                                        request: WebResourceRequest?
+                                    ): Boolean {
+                                        val url = request?.url?.toString() ?: return false
+
+                                        if (url.startsWith("http://") ||
+                                            url.startsWith("https://")
+                                        ) {
+                                            return false
                                         }
+
+                                        // Handle intent:// schemes
+                                        if (url.startsWith("intent://")) {
+                                            try {
+                                                // Extract fallback URL manually
+                                                val fallbackUrl =
+                                                    url
+                                                        .substringAfter(
+                                                            "S.browser_fallback_url=",
+                                                            ""
+                                                        ).substringBefore(";")
+
+                                                if (fallbackUrl.isNotEmpty()) {
+                                                    // Decode if necessary
+                                                    // (browser_fallback_url is often
+                                                    // URL-encoded)
+                                                    val decodedUrl =
+                                                        URLDecoder.decode(
+                                                            fallbackUrl,
+                                                            "UTF-8"
+                                                        )
+                                                    Log.d(
+                                                        TAG,
+                                                        "Redirecting to fallback URL: $decodedUrl"
+                                                    )
+
+                                                    view?.loadUrl(decodedUrl)
+                                                    return true // Handled by manual load
+                                                }
+                                            } catch (e: Exception) {
+                                                Log.e(TAG, "Failed to parse intent fallback", e)
+                                            }
+                                        }
+
+                                        Log.d(TAG, "Blocked URL scheme: $url")
+                                        return true
                                     }
 
-                                    Log.d(TAG, "Blocked URL scheme: $url")
-                                    return true
+                                    override fun onReceivedError(
+                                        view: WebView?,
+                                        request: WebResourceRequest?,
+                                        error: WebResourceError?
+                                    ) {
+                                        super.onReceivedError(view, request, error)
+                                        Log.e(
+                                            TAG,
+                                            "onReceivedError: ${error?.description}, errorCode: ${error?.errorCode}"
+                                        )
+                                        hasError = true
+                                    }
+
+                                    override fun onReceivedHttpError(
+                                        view: WebView?,
+                                        request: WebResourceRequest?,
+                                        errorResponse: WebResourceResponse?
+                                    ) {
+                                        super.onReceivedHttpError(
+                                            view,
+                                            request,
+                                            errorResponse
+                                        )
+                                        Log.e(
+                                            TAG,
+                                            "onReceivedHttpError: ${errorResponse?.statusCode}"
+                                        )
+                                        hasError = true
+                                    }
                                 }
 
-                                override fun onReceivedError(
-                                    view: WebView?,
-                                    request: WebResourceRequest?,
-                                    error: WebResourceError?
-                                ) {
-                                    super.onReceivedError(view, request, error)
-                                    Log.e(TAG, "onReceivedError: ${error?.description}, errorCode: ${error?.errorCode}")
-                                    hasError = true
+                            webChromeClient =
+                                object : WebChromeClient() {
+                                    override fun onProgressChanged(
+                                        view: WebView?,
+                                        newProgress: Int
+                                    ) {
+                                        progress = newProgress / 100f
+                                    }
                                 }
-
-                                override fun onReceivedHttpError(
-                                    view: WebView?,
-                                    request: WebResourceRequest?,
-                                    errorResponse: WebResourceResponse?
-                                ) {
-                                    super.onReceivedHttpError(
-                                        view, request, errorResponse
-                                    )
-                                    Log.e(TAG, "onReceivedHttpError: ${errorResponse?.statusCode}")
-                                    hasError = true
-                                }
-                            }
-
-                            webChromeClient = object : WebChromeClient() {
-                                override fun onProgressChanged(
-                                    view: WebView?,
-                                    newProgress: Int
-                                ) {
-                                    progress = newProgress / 100f
-                                }
-                            }
 
                             Log.d(TAG, "Loading URL: $url")
                             loadUrl(url)
                         }
                     }
                 )
-            })
+            }
+        )
     }
 }
 
@@ -236,13 +264,15 @@ fun WebViewScrapDialogContent(
     webViewContent: @Composable () -> Unit
 ) {
     Column(
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxSize()
             .background(BackgroundColor)
     ) {
         // Top Toolbar
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxWidth()
                 .height(56.dp)
                 .background(MainColorLight)
@@ -266,7 +296,8 @@ fun WebViewScrapDialogContent(
             // Manual Trigger Button
             TextButton(
                 onClick = onImport,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .align(Alignment.CenterEnd)
                     .padding(end = 8.dp)
             ) { Text(text = "가져오기", color = MainColorDeep) }
@@ -278,14 +309,15 @@ fun WebViewScrapDialogContent(
                 progress = { progress },
                 color = MainColorDeep,
                 trackColor = MainColorLight,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
         // WebView Area
         // WebView and Overlay Container
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .weight(1f)
                 .fillMaxWidth()
         ) {
@@ -300,7 +332,8 @@ fun WebViewScrapDialogContent(
 
 // JS Script for metadata extraction
 private fun extractMetadata(webView: WebView) {
-    val script = """
+    val script =
+        """
         (function() {
             var ogTitle = document.querySelector('meta[property="og:title"]')?.content;
             var ogImage = document.querySelector('meta[property="og:image"]')?.content;
@@ -316,7 +349,7 @@ private fun extractMetadata(webView: WebView) {
             // Call AndroidApp Interface
             window.AndroidApp.processMetadata(JSON.stringify(data));
         })();
-    """.trimIndent()
+        """.trimIndent()
 
     webView.evaluateJavascript(script, null)
 }
@@ -332,10 +365,12 @@ fun WebViewScrapDialogContentPreview() {
         progress = 0.5f,
         webViewContent = {
             Box(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxSize()
                     .background(Color.LightGray),
                 contentAlignment = Alignment.Center
             ) { Text("WebView Placeholder") }
-        })
+        }
+    )
 }

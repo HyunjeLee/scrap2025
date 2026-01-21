@@ -14,7 +14,6 @@ class SearchPagingSource(
     private val direction: String?,
     private val searchRequest: SearchRequest
 ) : PagingSource<Int, ScrapItem>() {
-
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ScrapItem> {
         val page = params.key ?: 0
         return try {
@@ -40,10 +39,9 @@ class SearchPagingSource(
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Int, ScrapItem>): Int? {
-        return state.anchorPosition?.let { anchorPosition ->
+    override fun getRefreshKey(state: PagingState<Int, ScrapItem>): Int? =
+        state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
         }
-    }
 }
