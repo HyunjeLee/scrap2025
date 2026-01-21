@@ -1,0 +1,42 @@
+name: Android CI Debug
+
+on:
+  push:
+    branches: [ "develop" ]
+
+  pull_request:
+    branches: [ "main", "develop", "release/*" ]
+
+  workflow_dispatch:
+
+jobs:
+  build-debug:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Create local.properties
+      run: |
+        echo "${{ secrets.NAVER_SECRET }}" > local.properties
+        echo "${{ secrets.KAKAO_SECRET }}" >> local.properties
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Run Lint
+      run: ./gradlew lintDevDebug
+
+    - name: Run Unit Tests
+      run: ./gradlew testDevDebugUnitTest
+
+    - name: Build Debug APK
+      run: ./gradlew assembleDevDebug
