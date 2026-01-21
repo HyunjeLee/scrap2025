@@ -50,13 +50,15 @@ fun Context.sendEmail(address: String) {
     val subject = "[Scrap2025] 문의사항 : "
     val body = "문의 내용을 입력해 주세요."
 
-    val uriString = "mailto:$address" +
+    val uriString =
+        "mailto:$address" +
             "?subject=${Uri.encode(subject)}" +
             "&body=${Uri.encode(body)}"
 
-    val intent = Intent(Intent.ACTION_SENDTO).apply {
-        data = uriString.toUri()
-    }
+    val intent =
+        Intent(Intent.ACTION_SENDTO).apply {
+            data = uriString.toUri()
+        }
 
     val chooser = Intent.createChooser(intent, "이메일 앱 선택")
     this.startActivity(chooser)
@@ -64,9 +66,10 @@ fun Context.sendEmail(address: String) {
 
 fun Context.sendInstagramDM(username: String) {
     val uri = "https://ig.me/m/$username".toUri()
-    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-        setPackage("com.instagram.android") // 인스타그램 앱이 설치되어 있다면 앱으로
-    }
+    val intent =
+        Intent(Intent.ACTION_VIEW, uri).apply {
+            setPackage("com.instagram.android") // 인스타그램 앱이 설치되어 있다면 앱으로
+        }
 
     try {
         this.startActivity(intent)

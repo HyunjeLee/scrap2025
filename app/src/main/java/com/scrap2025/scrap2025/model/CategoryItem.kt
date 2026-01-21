@@ -5,5 +5,5 @@ data class CategoryItem(
     val title: String,
     val scrapCount: Int = 0,
     val isDefault: Boolean = false,
-    val orderIndex: Int,
+    val orderIndex: Int
 )

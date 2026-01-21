@@ -53,7 +53,8 @@ fun SelectionTopBar(
 ) {
     Column {
         Box(
-            modifier = modifier
+            modifier =
+            modifier
                 .fillMaxWidth()
                 .height(53.dp)
                 .background(MainColor),
@@ -71,7 +72,8 @@ fun SelectionTopBar(
         }
 
         Box(
-            modifier = modifier
+            modifier =
+            modifier
                 .fillMaxWidth()
                 .height(53.dp)
                 .background(MainColor),
@@ -85,23 +87,23 @@ fun SelectionTopBar(
                 // 전체 선택 체크박스
                 Row(
                     modifier =
-                        Modifier.clickable {
-                            if (selectedCount == totalCount) {
-                                onDeselectAll()
-                            } else {
-                                onSelectAll()
-                            }
-                        },
+                    Modifier.clickable {
+                        if (selectedCount == totalCount) {
+                            onDeselectAll()
+                        } else {
+                            onSelectAll()
+                        }
+                    },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             painter =
-                                if (selectedCount == totalCount) {
-                                    painterResource(R.drawable.ic_check_filled)
-                                } else {
-                                    painterResource(R.drawable.ic_check_unfilled)
-                                },
+                            if (selectedCount == totalCount) {
+                                painterResource(R.drawable.ic_check_filled)
+                            } else {
+                                painterResource(R.drawable.ic_check_unfilled)
+                            },
                             contentDescription = "전체 선택",
                             tint = Color.Unspecified,
                             modifier = Modifier.size(24.dp)
@@ -138,24 +140,23 @@ private fun SelectionBottomBar(
 ) {
     Row(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .dropShadow(
-                    shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp),
-                    shadow =
-                        Shadow(
-                            radius = 15.dp,
-                            spread = 0.dp,
-                            color = Color(0xFFBEBEBE).copy(alpha = 0.4f),
-                            offset = DpOffset(x = 0.dp, y = (-3).dp)
-                        )
+        modifier
+            .fillMaxWidth()
+            .dropShadow(
+                shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp),
+                shadow =
+                Shadow(
+                    radius = 15.dp,
+                    spread = 0.dp,
+                    color = Color(0xFFBEBEBE).copy(alpha = 0.4f),
+                    offset = DpOffset(x = 0.dp, y = (-3).dp)
                 )
-                .clip(shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
-                .background(MainColor)
-                .padding(vertical = 10.dp)
-                .windowInsetsPadding(WindowInsets.navigationBars),
+            ).clip(shape = RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
+            .background(MainColor)
+            .padding(vertical = 10.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars),
         horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         // 삭제
         Column(

@@ -45,23 +45,23 @@ private val ButtonTextStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeigh
 fun LoginScreenContent(
     onLoginClick: (SnsType) -> Unit,
     onTestLogin: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
-
     Column(
         modifier =
-            modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(horizontal = 20.dp)
-                .navigationBarsPadding(),
+        modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(horizontal = 20.dp)
+            .navigationBarsPadding(),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         // 상단 헤더
         Text(
             text = "로그인",
             style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Normal),
-            modifier = Modifier
+            modifier =
+            Modifier
                 .padding(top = 37.dp)
                 .align(Alignment.CenterHorizontally)
         )
@@ -82,7 +82,7 @@ fun LoginScreenContent(
             Spacer(Modifier.height(8.dp))
             Text(
                 text = BuildConfig.VERSION_NAME,
-                style = TextStyle(fontSize = 8.sp, color = GrayColor),
+                style = TextStyle(fontSize = 8.sp, color = GrayColor)
             )
         }
 
@@ -93,13 +93,12 @@ fun LoginScreenContent(
         ) {
             Box(
                 modifier =
-                    Modifier
-                        .border(1.5.dp, LightGrayColor, RoundedCornerShape(30.dp))
-                        .background(
-                            color = MainColor,
-                            shape = RoundedCornerShape(30.dp)
-                        )
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                Modifier
+                    .border(1.5.dp, LightGrayColor, RoundedCornerShape(30.dp))
+                    .background(
+                        color = MainColor,
+                        shape = RoundedCornerShape(30.dp)
+                    ).padding(horizontal = 16.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -124,7 +123,8 @@ fun LoginScreenContent(
 private fun KakaoLoginButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxWidth()
             .height(50.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE500)),
@@ -141,7 +141,11 @@ private fun KakaoLoginButton(onClick: () -> Unit) {
                 modifier = Modifier.size(18.dp)
             )
             Spacer(Modifier.width(8.dp))
-            Text(text = "카카오 로그인", style = ButtonTextStyle, color = Color(0xFF000000).copy(alpha = 0.85f))
+            Text(
+                text = "카카오 로그인",
+                style = ButtonTextStyle,
+                color = Color(0xFF000000).copy(alpha = 0.85f)
+            )
         }
     }
 }
@@ -150,15 +154,16 @@ private fun KakaoLoginButton(onClick: () -> Unit) {
 private fun NaverLoginButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxWidth()
             .height(50.dp),
         colors =
-            ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF03A94D),
-                contentColor = Color.White
-            ),
-        shape = RoundedCornerShape(12.dp),
+        ButtonDefaults.buttonColors(
+            containerColor = Color(0xFF03A94D),
+            contentColor = Color.White
+        ),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Icon(
             painter = painterResource(id = R.drawable.ic_naver),

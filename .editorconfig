@@ -1,0 +1,10 @@
+root = true
+
+[*.{kt,kts}]
+ktlint_code_style = android_studio
+
+indent_size = 4
+continuation_indent_size = 4
+
+# Composable 함수 PascalCase 허용
+ktlint_function_naming_ignore_when_annotated_with = Composable

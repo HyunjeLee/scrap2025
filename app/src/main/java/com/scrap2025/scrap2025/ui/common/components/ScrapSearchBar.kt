@@ -34,21 +34,18 @@ import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorLight
 
 @Composable
-fun ScrapSearchBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun ScrapSearchBar(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
     Box(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .height(52.dp)
-                .background(MainColor)
-                .padding(horizontal = 21.dp, vertical = 5.dp)
+        modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .background(MainColor)
+            .padding(horizontal = 21.dp, vertical = 5.dp)
     ) {
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxWidth()
                 .height(42.dp)
                 .background(MainColorLight, RoundedCornerShape(8.dp))
@@ -80,7 +77,11 @@ fun ScrapSearchBar(
                             contentAlignment = Alignment.CenterStart
                         ) {
                             if (query.isEmpty()) {
-                                Text(text = "제목, 본문내용, 메모로 검색하기", color = GrayColor, fontSize = 15.sp)
+                                Text(
+                                    text = "제목, 본문내용, 메모로 검색하기",
+                                    color = GrayColor,
+                                    fontSize = 15.sp
+                                )
                             }
                             innerTextField()
                         }

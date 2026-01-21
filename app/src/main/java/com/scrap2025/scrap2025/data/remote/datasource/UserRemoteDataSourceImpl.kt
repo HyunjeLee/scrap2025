@@ -4,9 +4,10 @@ import com.scrap2025.scrap2025.data.remote.api.UserService
 import com.scrap2025.scrap2025.data.remote.dto.MyPageResponse
 import javax.inject.Inject
 
-class UserRemoteDataSourceImpl @Inject constructor(private val userService: UserService) :
+class UserRemoteDataSourceImpl
+@Inject
+constructor(private val userService: UserService) :
     UserRemoteDataSource {
-
     override suspend fun getMyPage(): MyPageResponse {
         val response = userService.getMyPage()
         if (response.isSuccessful) {

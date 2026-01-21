@@ -19,10 +19,10 @@ fun ErrorScreen(errorText: String) {
             Text(
                 text = errorText,
                 style =
-                    TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    ),
+                TextStyle(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                ),
                 color = GrayColor
             )
         }

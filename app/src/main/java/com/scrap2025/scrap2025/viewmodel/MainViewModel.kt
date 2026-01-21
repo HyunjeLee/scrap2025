@@ -6,19 +6,22 @@ import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 sealed interface MainUiState {
-    data object Loading : MainUiState        // 토큰이 있는지 확인 중인 상태
-    data object LoginRequired : MainUiState  // 인증 정보가 없어 로그인이 필요한 상태
-    data object Initializing : MainUiState   // 토큰은 있으나, 카테고리 등 초기 데이터를 가져오는 중
-    data object Complete : MainUiState          // 모든 데이터 준비 완료 (메인 화면 진입 가능)
+    data object Loading : MainUiState // 토큰이 있는지 확인 중인 상태
+
+    data object LoginRequired : MainUiState // 인증 정보가 없어 로그인이 필요한 상태
+
+    data object Initializing : MainUiState // 토큰은 있으나, 카테고리 등 초기 데이터를 가져오는 중
+
+    data object Complete : MainUiState // 모든 데이터 준비 완료 (메인 화면 진입 가능)
 }
 
 @HiltViewModel
@@ -26,7 +29,7 @@ class MainViewModel
 @Inject
 constructor(
     tokenManager: TokenManager,
-    private val categoryRepository: CategoryRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     val accessToken: StateFlow<String?> =
         tokenManager.accessToken.stateIn(
@@ -41,7 +44,7 @@ constructor(
     private val _sharedUrl = MutableStateFlow<String?>(null)
     val sharedUrl: StateFlow<String?> = _sharedUrl.asStateFlow()
 
-    private var _pendingSharedUrl: String? = null
+    private var pendingSharedUrl: String? = null
 
     private val _uiState = MutableStateFlow<MainUiState>(MainUiState.Loading)
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
@@ -71,7 +74,7 @@ constructor(
 
     /** 다른 앱에서 공유된 URL을 설정하여 네비게이션을 트리거합니다. */
     fun setSharedUrl(url: String?) {
-        _pendingSharedUrl = url
+        pendingSharedUrl = url
         _sharedUrl.value = url
     }
 
@@ -82,8 +85,8 @@ constructor(
 
     /** AddScrapScreen에서 사용할 실제 공유 URL을 가져오고 내부적으로 비웁니다. */
     fun consumePendingSharedUrl(): String? {
-        val url = _pendingSharedUrl
-        _pendingSharedUrl = null
+        val url = pendingSharedUrl
+        pendingSharedUrl = null
         return url
     }
 
@@ -92,7 +95,9 @@ constructor(
     }
 
     fun setDefaultCategory() {
-        categoryRepository.defaultCategory?.apply { categoryRepository.setGlobalCategory(id, title) }
+        categoryRepository.defaultCategory?.apply {
+            categoryRepository.setGlobalCategory(id, title)
+        }
     }
 
     private fun fetchDefaultCategories() {

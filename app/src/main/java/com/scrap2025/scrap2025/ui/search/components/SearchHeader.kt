@@ -61,7 +61,8 @@ fun SearchHeader(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .background(MainColor)
     ) {
@@ -74,19 +75,22 @@ fun SearchHeader(
         // 검색창
         ScrapSearchBar(
             query = query,
-            onQueryChange = onQueryChange,
+            onQueryChange = onQueryChange
         )
 
         HorizontalDivider(color = LineGrayColor)
 
         // 검색 범위
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .height(48.dp)
-                .fillMaxWidth(), contentAlignment = Alignment.Center
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
             Row(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .padding(horizontal = 15.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -111,12 +115,15 @@ fun SearchHeader(
 
         // 카테고리
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .height(48.dp)
-                .fillMaxWidth(), contentAlignment = Alignment.Center
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
             Row(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .padding(horizontal = 15.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -130,10 +137,10 @@ fun SearchHeader(
                 IconButton(
                     onClick = onSelectCategoryClick,
                     modifier =
-                        Modifier
-                            .size((22.5).dp)
-                            .border((1.2).dp, Duotone, CircleShape)
-                            .clip(CircleShape)
+                    Modifier
+                        .size((22.5).dp)
+                        .border((1.2).dp, Duotone, CircleShape)
+                        .clip(CircleShape)
                 ) {
                     Icon(
                         Icons.Rounded.Add,
@@ -157,19 +164,22 @@ fun SearchHeader(
 
         // 날짜
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .height(48.dp)
-                .fillMaxWidth(), contentAlignment = Alignment.Center
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
             Row(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .padding(horizontal = 15.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "날짜",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium)
                 )
                 Spacer(modifier = Modifier.width(44.dp))
                 DateBox(startDate, onClick = onDateClick)
@@ -189,9 +199,14 @@ fun SearchRangeItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
         modifier = Modifier.clickable { onClick() }
     ) {
         Icon(
-            painter = if (isSelected) painterResource(R.drawable.ic_check_filled) else painterResource(
-                R.drawable.ic_check_unfilled
-            ),
+            painter =
+            if (isSelected) {
+                painterResource(R.drawable.ic_check_filled)
+            } else {
+                painterResource(
+                    R.drawable.ic_check_unfilled
+                )
+            },
             contentDescription = label,
             tint = Color.Unspecified,
             modifier = Modifier.size(20.dp)
@@ -206,10 +221,10 @@ fun CategoryChip(label: String, onRemove: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier =
-            Modifier
-                .heightIn(min = 32.dp)
-                .border(1.dp, Duotone, RoundedCornerShape(16.dp))
-                .padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
+        Modifier
+            .heightIn(min = 32.dp)
+            .border(1.dp, Duotone, RoundedCornerShape(16.dp))
+            .padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp)
     ) {
         Text(
             text = label,
@@ -220,7 +235,8 @@ fun CategoryChip(label: String, onRemove: () -> Unit) {
         Icon(
             imageVector = Icons.Filled.Cancel,
             contentDescription = "삭제",
-            modifier = Modifier
+            modifier =
+            Modifier
                 .size(16.dp)
                 .clickable { onRemove() },
             tint = Duotone
@@ -232,10 +248,10 @@ fun CategoryChip(label: String, onRemove: () -> Unit) {
 fun DateBox(date: String, onClick: () -> Unit) {
     Box(
         modifier =
-            Modifier
-                .background(MainColorLight, RoundedCornerShape(9.dp))
-                .clickable { onClick() }
-                .padding(horizontal = 18.dp, vertical = 8.dp),
+        Modifier
+            .background(MainColorLight, RoundedCornerShape(9.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 18.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) { Text(text = date, style = TextStyle(fontSize = 14.sp)) }
 }

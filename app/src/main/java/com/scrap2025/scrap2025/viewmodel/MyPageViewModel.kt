@@ -12,6 +12,7 @@ import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.MyPageRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class MyPageViewModel
@@ -31,12 +31,12 @@ constructor(
     private val authRepository: AuthRepository,
     private val myPageRepository: MyPageRepository,
     tokenManager: TokenManager,
-    private val socialLoginProviders: Map<SnsType, @JvmSuppressWildcards SocialLoginProvider>,
+    private val socialLoginProviders: Map<SnsType, @JvmSuppressWildcards SocialLoginProvider>
 ) : ViewModel() {
-
     // Define UI State
     sealed interface MyPageUiState {
         data object Loading : MyPageUiState
+
         data class Success(
             val myPageInfo: MyPageResponse,
             val scrapCount: Int,
@@ -67,12 +67,11 @@ constructor(
                     snsType = snsType ?: SnsType.NAVER // 기본값 설정
                 )
             }
-        }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000),
-                initialValue = MyPageUiState.Loading
-            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = MyPageUiState.Loading
+        )
 
     companion object {
         private const val TAG = "MyPageViewModel"
@@ -119,8 +118,7 @@ constructor(
                     Log.d(TAG, "소셜 로그아웃 성공")
                     // 서버 로그아웃
                     requestServerLogout()
-                }
-                .onFailure { exception ->
+                }.onFailure { exception ->
                     val errorMsg = "소셜 로그아웃 실패: ${exception.message}"
                     Log.e(TAG, errorMsg)
                 }
@@ -140,8 +138,7 @@ constructor(
                     Log.d(TAG, "소셜 연동해제 성공")
                     // 서버 회원 탈퇴
                     requestServerWithdraw()
-                }
-                .onFailure { exception ->
+                }.onFailure { exception ->
                     val errorMsg = "소셜 연동해제 실패: ${exception.message}"
                     Log.e(TAG, errorMsg)
                 }
@@ -160,11 +157,11 @@ constructor(
     }
 
     private suspend fun requestServerLogout() {
-        authRepository.logoutToServer()
+        authRepository
+            .logoutToServer()
             .onSuccess {
                 Log.d(TAG, "서버 로그아웃 성공")
-            }
-            .onFailure { exception ->
+            }.onFailure { exception ->
                 val errorMsg = "서버 로그아웃 실패: ${exception.message}"
                 Log.e(TAG, errorMsg)
             }
@@ -182,11 +179,11 @@ constructor(
     }
 
     private suspend fun requestServerWithdraw() {
-        authRepository.withdrawToServer()
+        authRepository
+            .withdrawToServer()
             .onSuccess {
                 Log.d(TAG, "서버 회원탈퇴 성공")
-            }
-            .onFailure { exception ->
+            }.onFailure { exception ->
                 val errorMsg = "서버 회원탈퇴 실패: ${exception.message}"
                 Log.e(TAG, errorMsg)
             }

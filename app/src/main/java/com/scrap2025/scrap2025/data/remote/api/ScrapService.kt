@@ -81,13 +81,12 @@ interface ScrapService {
     ): Response<BaseResponse<JsonElement?>>
 
     @PATCH("/auth/scraps/{scrap-id}/trash")
-    suspend fun deleteScrap(
-        @Path("scrap-id") scrapId: Long
-    ): Response<BaseResponse<JsonElement?>>
+    suspend fun deleteScrap(@Path("scrap-id") scrapId: Long): Response<BaseResponse<JsonElement?>>
 
     @PATCH("/auth/scraps/trash")
     suspend fun deleteScrapBulk(
-        @Body body: DeleteSCrapBulkRequest // scrapIds
+        // scrapIds
+        @Body body: DeleteSCrapBulkRequest
     ): Response<BaseResponse<JsonElement?>>
 
     @POST("/auth/search")
@@ -104,7 +103,7 @@ interface ScrapService {
     suspend fun favoriteSearch(
         @Query("q") query: String,
         @Query("sort") sort: String? = null,
-        @Query("direction") direction: String? = null,
+        @Query("direction") direction: String? = null
     ): Response<BaseResponse<SearchFavoriteResponse>>
 
     @GET("/auth/scraps/search/{category-id}")

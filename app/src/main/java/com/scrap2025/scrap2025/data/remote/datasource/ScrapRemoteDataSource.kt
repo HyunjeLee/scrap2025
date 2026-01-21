@@ -29,14 +29,23 @@ interface ScrapRemoteDataSource {
     ): FavoriteListResponse
 
     suspend fun updateScrapFavorite(scrapId: Long): JsonElement
+
     suspend fun updateScrapListFavorite(scrapIds: List<Long>): JsonElement
+
     suspend fun getScrapById(scrapId: Long): ScrapDetailResponse
+
     suspend fun createScrap(categoryId: Long, request: CreateScrapRequest): CreateScrapResponse
+
     suspend fun updateScrapMemo(scrapId: Long, memo: String): ScrapMemoDto
+
     suspend fun moveScrap(scrapId: Long, categoryId: Long): JsonElement
+
     suspend fun moveScrapBulk(scrapIds: List<Long>, categoryId: Long): JsonElement?
+
     suspend fun deleteScrap(scrapId: Long): JsonElement?
+
     suspend fun deleteScrapBulk(scrapIds: List<Long>): JsonElement?
+
     suspend fun searchScraps(
         query: String,
         sort: String?,

@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import javax.inject.Provider
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import okhttp3.Protocol
@@ -21,11 +22,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
-import javax.inject.Provider
 import retrofit2.Response as RetrofitResponse
 
 class TokenAuthenticatorTest {
-
     private lateinit var tokenManager: TokenManager
     private lateinit var authService: AuthService
     private lateinit var authServiceProvider: Provider<AuthService>
@@ -51,25 +50,27 @@ class TokenAuthenticatorTest {
         val newRefreshToken = "new_refresh_token"
 
         val originalRequest =
-                Request.Builder()
-                        .url("https://api.example.com/endpoint")
-                        .header("Authorization", oldToken)
-                        .build()
+            Request
+                .Builder()
+                .url("https://api.example.com/endpoint")
+                .header("Authorization", oldToken)
+                .build()
 
         val response =
-                Response.Builder()
-                        .request(originalRequest)
-                        .protocol(Protocol.HTTP_1_1)
-                        .code(401)
-                        .message("Unauthorized")
-                        .build()
+            Response
+                .Builder()
+                .request(originalRequest)
+                .protocol(Protocol.HTTP_1_1)
+                .code(401)
+                .message("Unauthorized")
+                .build()
 
         every { tokenManager.refreshToken } returns flowOf(oldRefreshToken)
 
         val loginResult = LoginResponse(newAccessToken, newRefreshToken)
         val baseResponse = BaseResponse("SUCCESS", "Success", loginResult)
         coEvery { authService.refreshToken(oldRefreshToken) } returns
-                RetrofitResponse.success(baseResponse)
+            RetrofitResponse.success(baseResponse)
 
         // When
         val resultRequest = authenticator.authenticate(null, response)
@@ -88,12 +89,13 @@ class TokenAuthenticatorTest {
         every { tokenManager.refreshToken } returns flowOf(null)
 
         val response =
-                Response.Builder()
-                        .request(Request.Builder().url("https://a.com").build())
-                        .protocol(Protocol.HTTP_1_1)
-                        .code(401)
-                        .message("Unauthorized")
-                        .build()
+            Response
+                .Builder()
+                .request(Request.Builder().url("https://a.com").build())
+                .protocol(Protocol.HTTP_1_1)
+                .code(401)
+                .message("Unauthorized")
+                .build()
 
         // When
         val result = authenticator.authenticate(null, response)
@@ -110,15 +112,16 @@ class TokenAuthenticatorTest {
 
         // Mock 400 error from server
         coEvery { authService.refreshToken(oldRefreshToken) } returns
-                RetrofitResponse.error(400, "".toResponseBody(null))
+            RetrofitResponse.error(400, "".toResponseBody(null))
 
         val response =
-                Response.Builder()
-                        .request(Request.Builder().url("https://a.com").build())
-                        .protocol(Protocol.HTTP_1_1)
-                        .code(401)
-                        .message("Unauthorized")
-                        .build()
+            Response
+                .Builder()
+                .request(Request.Builder().url("https://a.com").build())
+                .protocol(Protocol.HTTP_1_1)
+                .code(401)
+                .message("Unauthorized")
+                .build()
 
         // When
         val result = authenticator.authenticate(null, response)
@@ -132,12 +135,13 @@ class TokenAuthenticatorTest {
         // Given
         val request = Request.Builder().url("https://a.com").build()
         val response =
-                Response.Builder()
-                        .request(request)
-                        .protocol(Protocol.HTTP_1_1)
-                        .code(401)
-                        .message("Unauthorized")
-                        .build()
+            Response
+                .Builder()
+                .request(request)
+                .protocol(Protocol.HTTP_1_1)
+                .code(401)
+                .message("Unauthorized")
+                .build()
 
         // response count 3: response -> prior -> prior -> null
         val response2 = response.newBuilder().build()

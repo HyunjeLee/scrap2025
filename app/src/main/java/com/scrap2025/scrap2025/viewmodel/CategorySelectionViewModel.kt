@@ -9,6 +9,7 @@ import com.scrap2025.scrap2025.navigation.destinations.CategorySelection
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 private const val TAG = "CategorySelectionViewModel"
 
@@ -28,25 +28,26 @@ constructor(
     private val scrapRepository: ScrapRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-
     val mode = savedStateHandle.toRoute<CategorySelection>().mode
-    val scrapIds = savedStateHandle.toRoute<CategorySelection>().scrapIds ?: emptyList()  // 해당 인자만 유지  // 단일은 1개의 값만
+
+    // 해당 인자만 유지  // 단일은 1개의 값만
+    val scrapIds = savedStateHandle.toRoute<CategorySelection>().scrapIds ?: emptyList()
     val initialCategoryId = savedStateHandle.toRoute<CategorySelection>().initialCategoryId
     val initialCategoryTitle = savedStateHandle.toRoute<CategorySelection>().initialCategoryTitle
     val initialSelectedIds = savedStateHandle.toRoute<CategorySelection>().initialSelectedIds
 
-    val categoryUiState: StateFlow<CategoryUiState> = categoryRepository.allCategories
-        .map { result ->
-            result.fold(
-                onSuccess = { CategoryUiState.Success(it) },
-                onFailure = { CategoryUiState.Error(it.message) }
+    val categoryUiState: StateFlow<CategoryUiState> =
+        categoryRepository.allCategories
+            .map { result ->
+                result.fold(
+                    onSuccess = { CategoryUiState.Success(it) },
+                    onFailure = { CategoryUiState.Error(it.message) }
+                )
+            }.stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = CategoryUiState.Loading // 처음엔 로딩
             )
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = CategoryUiState.Loading // 처음엔 로딩
-        )
 
     private val _selectedCategoryId = MutableStateFlow<Long>(initialCategoryId ?: 0L)
     val selectedCategoryId: StateFlow<Long> = _selectedCategoryId.asStateFlow()
@@ -75,20 +76,20 @@ constructor(
         }
     }
 
-    fun moveScrap(
-        onSuccess: () -> Unit,
-        onFailure: () -> Unit
-    ) {
+    fun moveScrap(onSuccess: () -> Unit, onFailure: () -> Unit) {
         val scrapId = scrapIds.firstOrNull() ?: return // 아이템이 없으면 바로 종료
 
         viewModelScope.launch {
-            scrapRepository.moveScrap(scrapId, _selectedCategoryId.value)
+            scrapRepository
+                .moveScrap(scrapId, _selectedCategoryId.value)
                 .onSuccess {
-                    categoryRepository.setGlobalCategory(_selectedCategoryId.value, _selectedCategoryName.value)
+                    categoryRepository.setGlobalCategory(
+                        _selectedCategoryId.value,
+                        _selectedCategoryName.value
+                    )
                     categoryRepository.refreshCategories()
                     onSuccess()
-                }
-                .onFailure {
+                }.onFailure {
                     onFailure()
                     Log.e(TAG, " Error moveScrap", it)
                 }
@@ -96,22 +97,21 @@ constructor(
     }
 
     // 선택된 아이템 이동
-    fun moveScrapBulk(
-        onSuccess: () -> Unit,
-        onFailure: () -> Unit
-    ) {
+    fun moveScrapBulk(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            scrapRepository.moveScrapBulk(scrapIds, _selectedCategoryId.value)
+            scrapRepository
+                .moveScrapBulk(scrapIds, _selectedCategoryId.value)
                 .onSuccess {
-                    categoryRepository.setGlobalCategory(_selectedCategoryId.value, _selectedCategoryName.value)
+                    categoryRepository.setGlobalCategory(
+                        _selectedCategoryId.value,
+                        _selectedCategoryName.value
+                    )
                     categoryRepository.refreshCategories()
                     onSuccess()
-                }
-                .onFailure {
+                }.onFailure {
                     onFailure()
                     Log.e(TAG, "Error moveScrapBulk", it)
                 }
-
         }
     }
 

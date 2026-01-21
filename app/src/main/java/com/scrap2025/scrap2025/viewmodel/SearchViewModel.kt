@@ -11,6 +11,13 @@ import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone.getTimeZone
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,13 +32,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.ZoneOffset
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone.getTimeZone
-import javax.inject.Inject
 
 data class SearchState(
     val query: String = "",
@@ -52,11 +52,24 @@ sealed interface SearchWarning {
 @HiltViewModel
 class SearchViewModel
 @Inject
-constructor(categoryRepository: CategoryRepository, private val scrapRepository: ScrapRepository) :
-    ViewModel() {
+constructor(
+    categoryRepository: CategoryRepository,
+    private val scrapRepository: ScrapRepository
+) : ViewModel() {
     // picker에서 사용할 '오늘' 날짜의 UTC 00:00 밀리초 계산
-    val nowMillis = LocalDate.now().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-    val aWeekAgoMillis = LocalDate.now().minusDays(7).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    val nowMillis =
+        LocalDate
+            .now()
+            .atStartOfDay(ZoneOffset.UTC)
+            .toInstant()
+            .toEpochMilli()
+    val aWeekAgoMillis =
+        LocalDate
+            .now()
+            .minusDays(7)
+            .atStartOfDay(ZoneOffset.UTC)
+            .toInstant()
+            .toEpochMilli()
 
     private val _uiState = MutableStateFlow(SearchState())
     val uiState: StateFlow<SearchState> = _uiState.asStateFlow()
@@ -78,12 +91,11 @@ constructor(categoryRepository: CategoryRepository, private val scrapRepository:
                 },
                 onFailure = { emptyList<CategoryItem>() }
             )
-        }
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5000L),
-                initialValue = emptyList()
-            )
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyList()
+        )
 
     init {
         // 초기 날짜 선택값을 오늘 -> 오늘 로 설정
@@ -99,8 +111,7 @@ constructor(categoryRepository: CategoryRepository, private val scrapRepository:
                         Triple(it.startDate, it.endDate, it.sortType),
                         it.sortDirection
                     )
-                }
-                .distinctUntilChanged()
+                }.distinctUntilChanged()
                 .debounce(500L)
                 .collect { performSearch() }
         }
@@ -145,8 +156,11 @@ constructor(categoryRepository: CategoryRepository, private val scrapRepository:
     fun toggleSortType() {
         _uiState.update { state ->
             val newType =
-                if (state.sortType == SortType.SCRAP_DATE) SortType.TITLE
-                else SortType.SCRAP_DATE
+                if (state.sortType == SortType.SCRAP_DATE) {
+                    SortType.TITLE
+                } else {
+                    SortType.SCRAP_DATE
+                }
             state.copy(sortType = newType, sortDirection = SortDirection.ASC)
         }
     }
@@ -190,21 +204,20 @@ constructor(categoryRepository: CategoryRepository, private val scrapRepository:
                     endDate = state.endDate,
                     sortType = state.sortType.name,
                     sortDirection = state.sortDirection.name
-                )
-                .cachedIn(viewModelScope)
+                ).cachedIn(viewModelScope)
 
         _uiState.update { it.copy(searchResults = ScrapUiState.Paged(pagingFlow)) }
 
         // 로그를 통해 서버로 전달될 파라미터 확인 (디버깅용)
         println(
             """
-            [Server Search Request]
-            Query: ${state.query}
-            Ranges: ${state.searchRanges}
-            Categories: ${state.selectedCategoryIds}
-            Date: ${state.startDate} ~ ${state.endDate}
-            Sort: ${state.sortType} (${state.sortDirection})
-        """.trimIndent()
+                [Server Search Request]
+                Query: ${state.query}
+                Ranges: ${state.searchRanges}
+                Categories: ${state.selectedCategoryIds}
+                Date: ${state.startDate} ~ ${state.endDate}
+                Sort: ${state.sortType} (${state.sortDirection})
+            """.trimIndent()
         )
     }
 

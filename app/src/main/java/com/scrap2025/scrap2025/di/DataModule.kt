@@ -37,7 +37,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class DataModule {
-
     @Binds
     @Singleton
     abstract fun bindScrapRepository(scrapRepositoryImpl: ScrapRepositoryImpl): ScrapRepository
@@ -45,13 +44,13 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindCategoryRepository(
-            categoryRepositoryImpl: CategoryRepositoryImpl
+        categoryRepositoryImpl: CategoryRepositoryImpl
     ): CategoryRepository
 
     @Binds
     @Singleton
     abstract fun bindLinkPreviewRepository(
-            linkPreviewRepositoryImpl: LinkPreviewRepositoryImpl
+        linkPreviewRepositoryImpl: LinkPreviewRepositoryImpl
     ): LinkPreviewRepository
 
     @Binds
@@ -65,25 +64,25 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindCategoryRemoteDataSource(
-            categoryRemoteDataSourceImpl: CategoryRemoteDataSourceImpl
+        categoryRemoteDataSourceImpl: CategoryRemoteDataSourceImpl
     ): CategoryRemoteDataSource
 
     @Binds
     @Singleton
     abstract fun bindScrapRemoteDataSource(
-            scrapRemoteDataSourceImpl: ScrapRemoteDataSourceImpl
+        scrapRemoteDataSourceImpl: ScrapRemoteDataSourceImpl
     ): ScrapRemoteDataSource
 
     @Binds
     @Singleton
     abstract fun bindAuthRemoteDataSource(
-            authRemoteDataSourceImpl: AuthRemoteDataSourceImpl
+        authRemoteDataSourceImpl: AuthRemoteDataSourceImpl
     ): AuthRemoteDataSource
 
     @Binds
     @Singleton
     abstract fun bindUserRemoteDataSource(
-            userRemoteDataSourceImpl: UserRemoteDataSourceImpl
+        userRemoteDataSourceImpl: UserRemoteDataSourceImpl
     ): UserRemoteDataSource
 
     @Binds
@@ -100,14 +99,13 @@ abstract class DataModule {
     @IntoMap
     @SnsTypeKey(SnsType.GOOGLE)
     abstract fun bindGoogleLoginProvider(
-            googleLoginProvider: GoogleLoginProvider
+        googleLoginProvider: GoogleLoginProvider
     ): SocialLoginProvider
 
     companion object {
         @Provides
         @Singleton
-        fun providePreferencesManager(@ApplicationContext context: Context): PreferencesManager {
-            return PreferencesManager(context)
-        }
+        fun providePreferencesManager(@ApplicationContext context: Context): PreferencesManager =
+            PreferencesManager(context)
     }
 }

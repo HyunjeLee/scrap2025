@@ -50,11 +50,11 @@ fun SortBar(
 
     Box(
         modifier =
-            modifier
-                .fillMaxWidth()
-                .height(46.dp)
-                .background(MainColor)
-                .padding(horizontal = 24.dp),
+        modifier
+            .fillMaxWidth()
+            .height(46.dp)
+            .background(MainColor)
+            .padding(horizontal = 24.dp),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -68,10 +68,10 @@ fun SortBar(
             IconButton(onClick = onSortDirectionToggle, modifier = Modifier.size(20.dp)) {
                 Icon(
                     painter =
-                        when (sortDirection) {
-                            SortDirection.ASC -> painterResource(R.drawable.ic_sort_up)
-                            SortDirection.DESC -> painterResource(R.drawable.ic_sort_down)
-                        },
+                    when (sortDirection) {
+                        SortDirection.ASC -> painterResource(R.drawable.ic_sort_up)
+                        SortDirection.DESC -> painterResource(R.drawable.ic_sort_down)
+                    },
                     contentDescription = "정렬 방향",
                     tint = Color.Black,
                     modifier = Modifier.size(20.dp)
@@ -103,10 +103,10 @@ fun SortBar(
             IconButton(onClick = onViewModeToggle, modifier = Modifier.size(20.dp)) {
                 Icon(
                     painter =
-                        when (viewMode) {
-                            ViewMode.LIST -> painterResource(R.drawable.ic_list_view)
-                            ViewMode.GRID -> painterResource(R.drawable.ic_grid_view)
-                        },
+                    when (viewMode) {
+                        ViewMode.LIST -> painterResource(R.drawable.ic_list_view)
+                        ViewMode.GRID -> painterResource(R.drawable.ic_grid_view)
+                    },
                     contentDescription = "뷰모드 전환",
                     tint = Color.Black,
                     modifier = Modifier.size(20.dp)

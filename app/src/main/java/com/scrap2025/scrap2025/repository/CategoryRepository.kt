@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 /** CategoryRepository - 카테고리 데이터 접근을 추상화하는 인터페이스. 데이터 소스(로컬/원격)에 독립적인 비즈니스 로직을 제공합니다. */
 interface CategoryRepository {
-
     /** 카테고리 목록의 변경 사항(추가, 삭제, 수정 등)을 알리기 위한 공유 흐름 */
     val refreshEvent: SharedFlow<Unit>
 

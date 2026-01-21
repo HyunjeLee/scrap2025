@@ -1,4 +1,4 @@
-package com.scrap2025.scrap2025.navigation.NavHost
+package com.scrap2025.scrap2025.navigation.navHost
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -20,9 +20,10 @@ import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 @Composable
 fun TabNavHost(tabNavController: NavHostController, modifier: Modifier = Modifier) {
-    val mainViewModel: MainViewModel = hiltViewModel(
-        viewModelStoreOwner = tabNavController.context as ViewModelStoreOwner
-    )
+    val mainViewModel: MainViewModel =
+        hiltViewModel(
+            viewModelStoreOwner = tabNavController.context as ViewModelStoreOwner
+        )
 
     NavHost(
         navController = tabNavController,
@@ -42,7 +43,7 @@ fun TabNavHost(tabNavController: NavHostController, modifier: Modifier = Modifie
 fun TabNavHostPreview() {
     Scrap2025Theme {
         TabNavHost(
-            tabNavController = rememberNavController(),
+            tabNavController = rememberNavController()
         )
     }
 }

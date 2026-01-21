@@ -10,7 +10,6 @@ import org.junit.Rule
 import org.junit.Test
 
 class MyPageScreenTest {
-
     @get:Rule val composeTestRule = createComposeRule()
 
     @Test
@@ -51,9 +50,9 @@ class MyPageScreenTest {
 
         menuItems.forEach { item ->
             composeTestRule
-                    .onNodeWithText(item)
-                    .assertIsDisplayed()
-                    .performClick() // Verify it handles click without crashing
+                .onNodeWithText(item)
+                .assertIsDisplayed()
+                .performClick() // Verify it handles click without crashing
         }
     }
 }

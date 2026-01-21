@@ -78,7 +78,7 @@ fun rememberScrapScreenState(
     viewMode: ViewMode,
     categoryName: String,
     listState: LazyListState = rememberLazyListState(),
-    gridState: LazyGridState = rememberLazyGridState(),
+    gridState: LazyGridState = rememberLazyGridState()
 ): ScrapScreenState {
     val screenState =
         remember(listState, gridState, viewMode) {
@@ -138,7 +138,9 @@ fun ScrapScreen(
                         val totalCount =
                             when (val state = uiState.scrapItemsState) {
                                 is ScrapUiState.Success -> state.items.size
-                                is ScrapUiState.Paged -> pagedItems?.itemSnapshotList?.items?.size ?: 0
+                                is ScrapUiState.Paged ->
+                                    pagedItems?.itemSnapshotList?.items?.size
+                                        ?: 0
                                 else -> 0
                             }
                         SelectionTopBar(
@@ -186,7 +188,7 @@ fun ScrapScreen(
                         )
                         ScrapSearchBar(
                             query = uiState.query,
-                            onQueryChange = { scrapViewModel.onQueryChange(it) },
+                            onQueryChange = { scrapViewModel.onQueryChange(it) }
                         )
                         SortBar(
                             sortType = uiState.sortType,
@@ -229,7 +231,7 @@ fun ScrapScreen(
                         showAddScrapFab = true,
                         isSelectionMode = uiState.isSelectionMode,
                         onAddScrap = { navigateToAddScrap() },
-                        modifier = modifier,
+                        modifier = modifier
                     )
                 },
                 dialogs = {
@@ -258,11 +260,13 @@ fun ScrapScreenContent(
     content: @Composable (Modifier) -> Unit,
     modifier: Modifier = Modifier,
     floatingActionButton: @Composable (Modifier) -> Unit = {},
-    dialogs: @Composable () -> Unit = {},
+    dialogs: @Composable () -> Unit = {}
 ) {
-    Box(modifier = modifier
-        .fillMaxSize()
-        .background(BackgroundColor)
+    Box(
+        modifier =
+        modifier
+            .fillMaxSize()
+            .background(BackgroundColor)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             topBar()
@@ -321,9 +325,9 @@ fun ScrapScreenContentPreview() {
                     showAddScrapFab = true,
                     isSelectionMode = false,
                     onAddScrap = {},
-                    modifier = modifier,
+                    modifier = modifier
                 )
-            },
+            }
         )
     }
 }
@@ -358,7 +362,7 @@ fun ScrapScreenContentSelectionModePreview() {
                     gridState = rememberLazyGridState(),
                     modifier = modifier
                 )
-            },
+            }
         )
     }
 }
@@ -449,8 +453,7 @@ private fun HandleCategoryDeleteEvents(
                     onLoadingToggle(false)
                     mainViewModel.setDefaultCategory()
                     onDeleteSuccess()
-                }
-                .onFailure {
+                }.onFailure {
                     onLoadingToggle(false)
                     Toast.makeText(context, it.message ?: "삭제 실패", Toast.LENGTH_SHORT).show()
                 }

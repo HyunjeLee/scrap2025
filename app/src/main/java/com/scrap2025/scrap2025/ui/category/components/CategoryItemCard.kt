@@ -39,7 +39,8 @@ fun CategoryItemCard(
     onClick: () -> Unit = {}
 ) {
     Row(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .height(60.dp)
             .background(if (isSelected) MainColorLight else Color.White)
@@ -51,15 +52,17 @@ fun CategoryItemCard(
         // 카테고리명 - ellipsis 처리
         Text(
             text = categoryItem.title,
-            style = TextStyle(
+            style =
+            TextStyle(
                 fontSize = 15.sp,
                 fontWeight =
-                    if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                if (isSelected) FontWeight.SemiBold else FontWeight.Normal
             ),
             color = Color.Black,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .weight(1f)
                 .padding(end = 12.dp)
         )
@@ -76,17 +79,18 @@ fun CategoryItemCard(
         } else {
             // 스크랩 개수 badge
             Box(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .background(
                         color = MainColorLight,
                         shape = RoundedCornerShape(15.dp)
-                    )
-                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                    ).padding(horizontal = 10.dp, vertical = 5.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = categoryItem.scrapCount.toString(),
-                    style = TextStyle(
+                    style =
+                    TextStyle(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal
                     ),
@@ -94,7 +98,6 @@ fun CategoryItemCard(
                 )
             }
         }
-
     }
 }
 
@@ -104,7 +107,8 @@ fun CategoryItemCardPreview() {
     Scrap2025Theme {
         Column {
             CategoryItemCard(
-                categoryItem = CategoryItem(
+                categoryItem =
+                CategoryItem(
                     id = 1,
                     title = "분류되지 않음",
                     scrapCount = 322,
@@ -112,7 +116,8 @@ fun CategoryItemCardPreview() {
                 )
             )
             CategoryItemCard(
-                categoryItem = CategoryItem(
+                categoryItem =
+                CategoryItem(
                     id = 2,
                     title = "데이트",
                     scrapCount = 32,
@@ -131,7 +136,8 @@ fun CategoryItemCardSelectionPreview() {
             CategoryItemCard(
                 isSelected = true,
                 isSelectable = true,
-                categoryItem = CategoryItem(
+                categoryItem =
+                CategoryItem(
                     id = 1,
                     title = "isSelectable",
                     scrapCount = 322,
@@ -141,7 +147,8 @@ fun CategoryItemCardSelectionPreview() {
             CategoryItemCard(
                 isSelected = false,
                 isSelectable = true,
-                categoryItem = CategoryItem(
+                categoryItem =
+                CategoryItem(
                     id = 2,
                     title = "데이트",
                     scrapCount = 32,

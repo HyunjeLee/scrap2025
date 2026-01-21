@@ -18,13 +18,13 @@ import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 
 @Composable
 fun LoadingScreen(message: String = "") {
-
     Column(
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxSize()
             .background(MainColor),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(color = MainColorDeep)
         if (message.isNotEmpty()) {
