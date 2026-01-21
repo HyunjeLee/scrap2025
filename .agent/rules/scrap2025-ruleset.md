@@ -4,11 +4,24 @@ trigger: always_on
 
 # Antigravity Rules - scrap2025
 
-## 0. Interaction Protocol (CRITICAL)
- 
-- **Propose First**: 코드 수정이 필요한 작업의 경우, **반드시 변경할 코드의 전체 내용이나 diff를 먼저 보여주고 사용자의 명시적인 승인("수정해줘", "적용해줘" 등)을 받은 후**에 `write_to_file`이나 `replace_file_content` 도구를 실행한다.
+## 0. Interaction Protocol (CRITICAL - DO NOT VIOLATE)
 
-- **Exception**: 사용자가 처음부터 "수정해줘"와 같은 명시적 요청의 경우에는 즉시 적용할 수 있다.
+### 0.1 Propose First Strategy
+- 코드 수정, 파일 생성/삭제/이동이 필요한 작업은 **반드시 변경 계획(Plan)이나 Diff를 먼저 제시하고**, 사용자의 **명시적인 승인**("좋아", "진행해", "수정해")을 받은 후에 도구(`write_to_file`, `run_command` 등)를 실행한다.
+- **포괄적 동의 금지**: 사용자가 "에러 해결해줘"라고 했다고 해서 파일을 마음대로 삭제하거나 이동할 권한이 생기는 것이 아니다. *어떻게* 해결할지 먼저 제안해야 한다.
+
+### 0.2 Internal Self-Correction Protocol (Tool Safety Check)
+도구를 호출하기 전, 반드시 다음 **Mental Check**를 수행한다:
+1.  **"사용자가 이 구체적인 파일 변경(삭제/생성)을 승인했는가?"**
+    - YES -> 진행
+    - NO / Unsure -> 멈추고 제안 먼저 할 것.
+2.  **진단과 조치 분리**:
+    - 에러 상황에서는 `read` 계열 도구로만 원인을 분석한다.
+    - 원인이 파악되면 즉시 수정(`write`)하지 말고 "원인은 ~입니다. ~게 수정하겠습니다."라고 보고한다.
+
+### 0.3 Exceptions
+- 사용자가 구체적인 변경 사항을 **직접 지시**한 경우 (예: "NavHost 패키지명을 소문자로 바꿔")에는 즉시 이행할 수 있다.
+- 단순한 코드 조회나 로그 확인 등 **비파괴적(Read-only)** 작업은 승인 없이 수행 가능하다.
 
 ## 1. Environment & Tools
 
