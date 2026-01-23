@@ -37,9 +37,7 @@ Before calling a tool, perform the following **Mental Check**:
   - Use `libs.versions.toml` (Version Catalog) to centrally manage dependency versions.
 
 - **Formatting**:
-  - Indent: **4 spaces** (No Tabs)
-  - Add Newline at the end of the file
-  - Import optimization is mandatory (Remove unused imports)
+  - **Mandatory Formatting**: You **MUST run `./gradlew ktlintFormat`** after any code modification to automatically handle indentation, newlines, and import optimization. Do not rely on manual formatting.
 
 ## 2. Architecture & Patterns (Clean Architecture + MVVM)
 
