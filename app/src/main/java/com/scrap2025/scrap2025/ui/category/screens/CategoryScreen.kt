@@ -27,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -77,16 +79,14 @@ fun CategoryScreenContent(
     onDragStopped: () -> Unit = {}
 ) {
     Box(
-        modifier =
-        modifier
+        modifier = modifier
             .fillMaxSize()
             .background(BackgroundColor)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 헤더 (높이 68dp)
             Box(
-                modifier =
-                Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .height(68.dp)
                     .background(Color.White),
@@ -120,6 +120,7 @@ fun CategoryScreenContent(
                 is CategoryUiState.Success -> {
                     // Creating LazyListState explicitly
                     val listState = rememberLazyListState()
+                    val haptic = LocalHapticFeedback.current
                     val state =
                         rememberReorderableLazyListState(
                             lazyListState = listState,
@@ -132,13 +133,17 @@ fun CategoryScreenContent(
                                 val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
 
                                 Column(
-                                    modifier =
-                                    Modifier
-                                        .draggableHandle(
-                                            onDragStopped = {
-                                                onDragStopped()
-                                            }
-                                        ).shadow(elevation.value)
+                                    modifier = Modifier
+                                        .longPressDraggableHandle(
+                                            onDragStarted = {
+                                                haptic.performHapticFeedback(
+                                                    HapticFeedbackType
+                                                        .LongPress
+                                                )
+                                            },
+                                            onDragStopped = { onDragStopped() }
+                                        )
+                                        .shadow(elevation.value)
                                         .background(
                                             if (isDragging) {
                                                 Color.White
@@ -190,21 +195,9 @@ fun CategoryScreenContent(
 fun CategoryScreenContentPreview() {
     val dummyCategories =
         listOf(
-            CategoryItem(
-                id = 1,
-                title = "분류되지 않음",
-                orderIndex = 0
-            ),
-            CategoryItem(
-                id = 2,
-                title = "코테 자료",
-                orderIndex = 0
-            ),
-            CategoryItem(
-                id = 3,
-                title = "IBM Technology",
-                orderIndex = 0
-            )
+            CategoryItem(id = 1, title = "분류되지 않음", orderIndex = 0),
+            CategoryItem(id = 2, title = "코테 자료", orderIndex = 0),
+            CategoryItem(id = 3, title = "IBM Technology", orderIndex = 0)
         )
 
     Scrap2025Theme {
