@@ -43,10 +43,8 @@ import com.scrap2025.scrap2025.ui.mypage.components.HelpCenterDialog
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
-import com.scrap2025.scrap2025.utils.INSTAGRAM_USERNAME
 import com.scrap2025.scrap2025.utils.MAIL_ADDRESS
 import com.scrap2025.scrap2025.utils.sendEmail
-import com.scrap2025.scrap2025.utils.sendInstagramDM
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel.MyPageUiState
 
@@ -75,7 +73,6 @@ fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hil
                 scrapCount = state.scrapCount,
                 categoryCount = state.categoryCount,
                 onContactViaEmail = { context.sendEmail(MAIL_ADDRESS) },
-                onContactViaInstagram = { context.sendInstagramDM(INSTAGRAM_USERNAME) },
                 showHelpCenterDialog = showHelpCenterDialog,
                 showWithdrawDialog = showWithdrawDialog,
                 onHelpCenterClick = { viewModel.showHelpCenterDialog() },
@@ -108,7 +105,6 @@ fun MyPageScreenContent(
     scrapCount: Int,
     categoryCount: Int,
     onContactViaEmail: () -> Unit,
-    onContactViaInstagram: () -> Unit,
     showHelpCenterDialog: Boolean,
     showWithdrawDialog: Boolean,
     onHelpCenterClick: () -> Unit,
@@ -201,8 +197,7 @@ fun MyPageScreenContent(
     if (showHelpCenterDialog) {
         HelpCenterDialog(
             onDismiss = onHelpCenterDismiss,
-            onContactViaEmail = onContactViaEmail,
-            onContactViaInstagram = onContactViaInstagram
+            onContactViaEmail = onContactViaEmail
         )
     }
 
@@ -272,7 +267,6 @@ private fun MyPageScreenPreview() {
             scrapCount = 243,
             categoryCount = 11,
             onContactViaEmail = {},
-            onContactViaInstagram = {},
             showHelpCenterDialog = false,
             showWithdrawDialog = false,
             onHelpCenterClick = {},
