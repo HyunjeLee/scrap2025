@@ -2,8 +2,8 @@ package com.scrap2025.scrap2025.repository
 
 import android.util.Log
 import com.scrap2025.scrap2025.model.LinkPreview
-import javax.inject.Inject
-import javax.inject.Singleton
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
@@ -59,10 +59,13 @@ constructor() : LinkPreviewRepository {
                 ?: document.selectFirst("meta[name=twitter:description]")?.attr("content")
                 ?: document.selectFirst("meta[name=description]")?.attr("content")
 
-        // 우선순위: og:image -> twitter:image
+        // 우선순위: og:image -> twitter:image -> apple-touch-icon -> icon -> shortcut icon
         val imageUrl =
             document.selectFirst("meta[property=og:image]")?.attr("content")
                 ?: document.selectFirst("meta[name=twitter:image]")?.attr("content")
+                ?: document.selectFirst("link[rel=apple-touch-icon]")?.attr("abs:href")
+                ?: document.selectFirst("link[rel=icon]")?.attr("abs:href")
+                ?: document.selectFirst("link[rel=shortcut icon]")?.attr("abs:href")
 
         val siteName = document.selectFirst("meta[property=og:site_name]")?.attr("content")
 
