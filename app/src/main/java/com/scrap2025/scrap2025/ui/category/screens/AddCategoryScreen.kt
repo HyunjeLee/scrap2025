@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,15 +45,20 @@ fun AddCategoryScreen(
 ) {
     val addCategoryState by viewModel.addCategoryUiState.collectAsState()
     val context = LocalContext.current
-
     val categoryTitleInput by viewModel.categoryTitle.collectAsState()
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val handleBack = {
+        keyboardController?.hide()
+        onBack()
+    }
 
     // Result 상태 처리
     LaunchedEffect(addCategoryState) {
-        when (val state = addCategoryState) {
+        when (addCategoryState) {
             is AddCategoryUiState.Success -> {
                 Toast.makeText(context, "카테고리가 추가되었습니다", Toast.LENGTH_SHORT).show()
-                onBack()
+                handleBack()
                 viewModel.resetState()
             }
 
@@ -73,7 +79,7 @@ fun AddCategoryScreen(
 
     AddCategoryScreenContent(
         modifier = modifier,
-        onBack = onBack,
+        onBack = handleBack,
         categoryTitleInput = categoryTitleInput,
         onValueChange = { newName -> viewModel.updateCategoryTitle(newName) },
         addCategoryUiState = addCategoryState,
