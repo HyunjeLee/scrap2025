@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -34,9 +33,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.model.ScrapItem
+import com.scrap2025.scrap2025.ui.common.components.ScrapImage
 import com.scrap2025.scrap2025.ui.theme.FavoriteColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
@@ -83,16 +82,12 @@ fun ScrapItemCardList(
     ) {
         Box {
             Row(
-                modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
+                modifier = Modifier.fillMaxWidth().padding(12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 // 이미지 영역
                 Box(
-                    modifier =
-                    Modifier
+                    modifier = Modifier
                         .size(width = 100.dp, height = 75.dp)
                         .clip(RoundedCornerShape(4.dp))
                         .background(LightGrayColor)
@@ -103,24 +98,18 @@ fun ScrapItemCardList(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (scrapItem.imageUrl != null) {
-                        AsyncImage(
-                            model = scrapItem.imageUrl,
-                            contentDescription = scrapItem.title,
-                            modifier = Modifier.size(width = 100.dp, height = 75.dp),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    ScrapImage(
+                        imageUrl = scrapItem.imageUrl,
+                        contentDescription = scrapItem.title,
+                        modifier = Modifier.size(width = 100.dp, height = 75.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
 
                 // 텍스트 영역
                 Column(
-                    modifier =
-                    Modifier
-                        .weight(1f)
-                        .height(75.dp),
+                    modifier = Modifier.weight(1f).height(75.dp),
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     // 제목과 즐겨찾기
@@ -135,10 +124,7 @@ fun ScrapItemCardList(
                                 painter = painterResource(R.drawable.ic_fav_true),
                                 contentDescription = "즐겨찾기",
                                 tint = FavoriteColor,
-                                modifier =
-                                Modifier
-                                    .padding(top = 4.dp)
-                                    .size(15.dp)
+                                modifier = Modifier.padding(top = 4.dp).size(15.dp)
                             )
 
                             Spacer(modifier = Modifier.width(4.dp))
@@ -176,20 +162,14 @@ fun ScrapItemCardList(
                             scrapItem.createdDate.format(
                                 DateTimeFormatter.ofPattern("yyyy.MM.dd")
                             ),
-                            style =
-                            TextStyle(
-                                fontSize = 12.sp
-                            )
+                            style = TextStyle(fontSize = 12.sp)
                         )
                         // 카테고리 출력
                         if (showCategory) {
                             Spacer(Modifier.weight(1f))
                             Text(
                                 text = scrapItem.categoryTitle?.let { "[$it]" }.orEmpty(),
-                                style =
-                                TextStyle(
-                                    fontSize = 12.sp
-                                )
+                                style = TextStyle(fontSize = 12.sp)
                             )
                         }
                     }
@@ -199,8 +179,7 @@ fun ScrapItemCardList(
             // 선택 모드일 때 체크마크 표시 (왼쪽 상단)
             if (isSelectionMode) {
                 Box(
-                    modifier =
-                    Modifier
+                    modifier = Modifier
                         .padding(8.dp)
                         .size(24.dp)
                         .clip(CircleShape)
@@ -208,8 +187,7 @@ fun ScrapItemCardList(
                         .align(Alignment.TopStart)
                 ) {
                     Box(
-                        modifier =
-                        Modifier
+                        modifier = Modifier
                             .size(18.dp)
                             .clip(CircleShape)
                             .background(Color.White)
