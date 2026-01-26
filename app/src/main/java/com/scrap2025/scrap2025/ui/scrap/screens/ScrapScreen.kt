@@ -7,11 +7,18 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -20,11 +27,14 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.paging.compose.LazyPagingItems
@@ -33,6 +43,7 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.SortDirection
 import com.scrap2025.scrap2025.model.enums.SortType
 import com.scrap2025.scrap2025.model.enums.ViewMode
+import com.scrap2025.scrap2025.ui.category.screens.CategoryScreen
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.common.components.ScrapSearchBar
 import com.scrap2025.scrap2025.ui.common.components.SortBar
@@ -48,6 +59,7 @@ import com.scrap2025.scrap2025.utils.isScrolled
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
+import kotlinx.coroutines.launch
 
 @Stable
 class ScrapScreenState(
@@ -129,127 +141,161 @@ fun ScrapScreen(
     )
     BackHandler(enabled = uiState.isSelectionMode) { scrapViewModel.exitSelectionMode() }
 
-    when {
-        screenState.isCategoryDeleting -> LoadingScreen()
-        else ->
-            ScrapScreenContent(
-                topBar = {
-                    if (uiState.isSelectionMode) {
-                        val totalCount =
-                            when (val state = uiState.scrapItemsState) {
-                                is ScrapUiState.Success -> state.items.size
-                                is ScrapUiState.Paged ->
-                                    pagedItems?.itemSnapshotList?.items?.size
-                                        ?: 0
-                                else -> 0
-                            }
-                        SelectionTopBar(
-                            categoryTitle = screenState.categoryTitle,
-                            selectedCount = uiState.selectedScrapIds.size,
-                            totalCount = totalCount,
-                            onSelectAll = {
-                                when (val state = uiState.scrapItemsState) {
-                                    is ScrapUiState.Success ->
-                                        scrapViewModel.selectAllScrapItems(
-                                            state.items.map { it.id }.toSet()
-                                        )
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
 
-                                    is ScrapUiState.Paged -> {
-                                        pagedItems?.let { items ->
-                                            val loadedIds =
-                                                items.itemSnapshotList
-                                                    .items
+    val onUpdateCategory: ((Long, String) -> Unit)? =
+        if (uiState.isEditable) {
+            { id, newTitle ->
+                scrapViewModel.updateCategoryTitle(id, newTitle)
+                scrapViewModel.setGlobalCategory(id, newTitle)
+            }
+        } else {
+            null
+        }
+    val onDeleteCategory: (() -> Unit)? =
+        if (uiState.isEditable) {
+            { screenState.showDeleteDialog = true }
+        } else {
+            null
+        }
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(
+                modifier = Modifier.fillMaxWidth(0.75f).fillMaxHeight(),
+                drawerShape = RectangleShape,
+                windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)
+            ) {
+                CategoryScreen(
+                    onCategoryClick = { category ->
+                        scrapViewModel.setGlobalCategory(category.id, category.title)
+                        scope.launch { drawerState.close() }
+                    }
+                )
+            }
+        },
+        modifier = modifier
+    ) {
+        when {
+            screenState.isCategoryDeleting -> LoadingScreen()
+            else ->
+                ScrapScreenContent(
+                    topBar = {
+                        if (uiState.isSelectionMode) {
+                            val totalCount =
+                                when (val state = uiState.scrapItemsState) {
+                                    is ScrapUiState.Success -> state.items.size
+                                    is ScrapUiState.Paged ->
+                                        pagedItems?.itemSnapshotList?.items?.size
+                                            ?: 0
+                                    else -> 0
+                                }
+                            SelectionTopBar(
+                                categoryTitle = screenState.categoryTitle,
+                                selectedCount = uiState.selectedScrapIds.size,
+                                totalCount = totalCount,
+                                onSelectAll = {
+                                    when (val state = uiState.scrapItemsState) {
+                                        is ScrapUiState.Success ->
+                                            scrapViewModel.selectAllScrapItems(
+                                                state.items
                                                     .map { it.id }
                                                     .toSet()
-                                            scrapViewModel.selectAllScrapItems(
-                                                loadedIds
                                             )
+                                        is ScrapUiState.Paged -> {
+                                            pagedItems?.let { items ->
+                                                val loadedIds =
+                                                    items.itemSnapshotList
+                                                        .items
+                                                        .map { it.id }
+                                                        .toSet()
+                                                scrapViewModel.selectAllScrapItems(
+                                                    loadedIds
+                                                )
+                                            }
                                         }
+                                        else -> {}
                                     }
-
-                                    else -> {}
+                                },
+                                onDeselectAll = {
+                                    scrapViewModel.deselectAllScrapItems()
                                 }
-                            },
-                            onDeselectAll = { scrapViewModel.deselectAllScrapItems() }
-                        )
-                    } else {
-                        ScrapTopBar(
-                            categoryId = uiState.categoryId,
-                            categoryTitle = screenState.categoryTitle,
-                            isEditable = uiState.isEditable,
-                            onUpdateCategory = { id, newTitle ->
-                                scrapViewModel.updateCategoryTitle(
-                                    id = id,
-                                    newTitle = newTitle
-                                )
-                                scrapViewModel.setGlobalCategory(id, newTitle)
-                            },
-                            onDeleteCategory = { screenState.showDeleteDialog = true }
-                        )
-                        ScrapSearchBar(
-                            query = uiState.query,
-                            onQueryChange = { scrapViewModel.onQueryChange(it) }
-                        )
-                        SortBar(
-                            sortType = uiState.sortType,
-                            sortDirection = uiState.sortDirection,
+                            )
+                        } else {
+                            ScrapTopBar(
+                                categoryId = uiState.categoryId,
+                                categoryTitle = screenState.categoryTitle,
+                                onUpdateCategory = onUpdateCategory,
+                                onDeleteCategory = onDeleteCategory,
+                                onMenuClick = { scope.launch { drawerState.open() } }
+                            )
+                            ScrapSearchBar(
+                                query = uiState.query,
+                                onQueryChange = { scrapViewModel.onQueryChange(it) }
+                            )
+                            SortBar(
+                                sortType = uiState.sortType,
+                                sortDirection = uiState.sortDirection,
+                                viewMode = uiState.viewMode,
+                                onSortTypeToggle = { scrapViewModel.toggleSortType() },
+                                onSortDirectionToggle = {
+                                    scrapViewModel.toggleSortDirection()
+                                },
+                                onViewModeToggle = { scrapViewModel.toggleViewMode() }
+                            )
+                        }
+                    },
+                    content = { contentModifier ->
+                        ScrapListContent(
+                            scrapItemsState = uiState.scrapItemsState,
+                            pagedItems = pagedItems,
                             viewMode = uiState.viewMode,
-                            onSortTypeToggle = { scrapViewModel.toggleSortType() },
-                            onSortDirectionToggle = {
-                                scrapViewModel.toggleSortDirection()
+                            isPreferencesLoaded = uiState.isPreferencesLoaded,
+                            isSelectionMode = uiState.isSelectionMode,
+                            selectedScrapIds = uiState.selectedScrapIds,
+                            onItemClick = { scrapId -> navigateToScrapDetail(scrapId) },
+                            onItemLongClick = { itemId ->
+                                scrapViewModel.enterSelectionMode(itemId)
                             },
-                            onViewModeToggle = { scrapViewModel.toggleViewMode() }
+                            onItemSelectionToggle = { itemId ->
+                                scrapViewModel.toggleScrapItemSelection(itemId)
+                            },
+                            listState = screenState.listState,
+                            gridState = screenState.gridState,
+                            modifier = contentModifier
                         )
-                    }
-                },
-                content = { contentModifier ->
-                    ScrapListContent(
-                        scrapItemsState = uiState.scrapItemsState,
-                        pagedItems = pagedItems,
-                        viewMode = uiState.viewMode,
-                        isPreferencesLoaded = uiState.isPreferencesLoaded,
-                        isSelectionMode = uiState.isSelectionMode,
-                        selectedScrapIds = uiState.selectedScrapIds,
-                        onItemClick = { scrapId -> navigateToScrapDetail(scrapId) },
-                        onItemLongClick = { itemId ->
-                            scrapViewModel.enterSelectionMode(itemId)
-                        },
-                        onItemSelectionToggle = { itemId ->
-                            scrapViewModel.toggleScrapItemSelection(itemId)
-                        },
-                        listState = screenState.listState,
-                        gridState = screenState.gridState,
-                        modifier = contentModifier
-                    )
-                },
-                floatingActionButton = { modifier ->
-                    ScrapFloatingButtons(
-                        showScrollToTop = screenState.showScrollToTop,
-                        viewMode = uiState.viewMode,
-                        listState = screenState.listState,
-                        gridState = screenState.gridState,
-                        showAddScrapFab = true,
-                        isSelectionMode = uiState.isSelectionMode,
-                        onAddScrap = { navigateToAddScrap() },
-                        modifier = modifier
-                    )
-                },
-                dialogs = {
-                    if (screenState.showDeleteDialog) {
-                        CommonDeleteDialog(
-                            title = "정말 카테고리를 삭제하시겠습니까?",
-                            description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
-                            confirmText = "삭제하기",
-                            onDismiss = { screenState.showDeleteDialog = false },
-                            onConfirm = {
-                                screenState.showDeleteDialog = false
-                                scrapViewModel.deleteCategory(uiState.categoryId)
-                            }
+                    },
+                    floatingActionButton = { modifier ->
+                        ScrapFloatingButtons(
+                            showScrollToTop = screenState.showScrollToTop,
+                            viewMode = uiState.viewMode,
+                            listState = screenState.listState,
+                            gridState = screenState.gridState,
+                            showAddScrapFab = true,
+                            isSelectionMode = uiState.isSelectionMode,
+                            onAddScrap = { navigateToAddScrap() },
+                            modifier = modifier
                         )
-                    }
-                },
-                modifier = modifier
-            )
+                    },
+                    dialogs = {
+                        if (screenState.showDeleteDialog) {
+                            CommonDeleteDialog(
+                                title = "정말 카테고리를 삭제하시겠습니까?",
+                                description = "(해당 카테고리에 속한 모든 스크랩 또한 삭제됩니다)",
+                                confirmText = "삭제하기",
+                                onDismiss = { screenState.showDeleteDialog = false },
+                                onConfirm = {
+                                    screenState.showDeleteDialog = false
+                                    scrapViewModel.deleteCategory(uiState.categoryId)
+                                }
+                            )
+                        }
+                    },
+                    modifier = modifier
+                )
+        }
     }
 }
 
@@ -262,12 +308,7 @@ fun ScrapScreenContent(
     floatingActionButton: @Composable (Modifier) -> Unit = {},
     dialogs: @Composable () -> Unit = {}
 ) {
-    Box(
-        modifier =
-        modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-    ) {
+    Box(modifier = modifier.fillMaxSize().background(BackgroundColor)) {
         Column(modifier = Modifier.fillMaxSize()) {
             topBar()
             content(Modifier.weight(1f))
@@ -285,9 +326,7 @@ fun ScrapScreenContentPreview() {
             topBar = {
                 ScrapTopBar(
                     categoryId = 1L,
-                    categoryTitle = "분류되지 않음",
-                    onUpdateCategory = { _, _ -> },
-                    onDeleteCategory = {}
+                    categoryTitle = "분류되지 않음"
                 )
                 ScrapSearchBar(query = "", onQueryChange = {})
                 SortBar(
@@ -394,13 +433,11 @@ private fun SetSelectionBottomBar(
                                     state.items.filter {
                                         it.id in uiState.selectedScrapIds
                                     }
-
                                 is ScrapUiState.Paged ->
                                     pagedItems?.itemSnapshotList?.items?.filter {
                                         it.id in uiState.selectedScrapIds
                                     }
                                         ?: emptyList()
-
                                 else -> emptyList()
                             }
                         shareScraps(context, selectedItems)
@@ -453,7 +490,8 @@ private fun HandleCategoryDeleteEvents(
                     onLoadingToggle(false)
                     mainViewModel.setDefaultCategory()
                     onDeleteSuccess()
-                }.onFailure {
+                }
+                .onFailure {
                     onLoadingToggle(false)
                     Toast.makeText(context, it.message ?: "삭제 실패", Toast.LENGTH_SHORT).show()
                 }

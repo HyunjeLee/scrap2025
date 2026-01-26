@@ -52,8 +52,8 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 @Composable
 fun CategoryScreen(
     onCategoryClick: (CategoryItem) -> Unit,
-    onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onAddClick: (() -> Unit)? = null,
     viewModel: CategoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.categoryUiState.collectAsState()
@@ -73,8 +73,8 @@ fun CategoryScreen(
 fun CategoryScreenContent(
     uiState: CategoryUiState,
     onCategoryClick: (CategoryItem) -> Unit,
-    onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onAddClick: (() -> Unit)? = null,
     onMove: (Int, Int) -> Unit = { _, _ -> },
     onDragStopped: () -> Unit = {}
 ) {
@@ -170,22 +170,24 @@ fun CategoryScreenContent(
         }
 
         // FAB 버튼 - 오른쪽 하단에 고정
-        FloatingActionButton(
-            onClick = onAddClick,
-            shape = CircleShape,
-            containerColor = MainColor,
-            contentColor = MainColorDeep,
-            modifier =
-            Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 21.dp, bottom = 21.dp)
-                .size(60.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = "카테고리 추가",
-                modifier = Modifier.size(50.dp)
-            )
+        onAddClick?.let {
+            FloatingActionButton(
+                onClick = onAddClick,
+                shape = CircleShape,
+                containerColor = MainColor,
+                contentColor = MainColorDeep,
+                modifier =
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 21.dp, bottom = 21.dp)
+                    .size(60.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = "카테고리 추가",
+                    modifier = Modifier.size(50.dp)
+                )
+            }
         }
     }
 }
