@@ -151,10 +151,7 @@ fun FavoriteScreen(
             } else {
                 ScrapTopBar(
                     categoryId = -1L,
-                    categoryTitle = "즐겨찾기",
-                    isEditable = false,
-                    onUpdateCategory = { _, _ -> }, // 즐겨찾기 제목 수정 불가
-                    onDeleteCategory = { } // 즐겨찾기 카테고리 삭제 불가
+                    categoryTitle = "즐겨찾기"
                 )
                 ScrapSearchBar(
                     query = uiState.query,
