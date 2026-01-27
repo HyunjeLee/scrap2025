@@ -16,10 +16,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,9 +61,12 @@ fun CategoryScreen(
     viewModel: CategoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.categoryUiState.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     CategoryScreenContent(
         uiState = uiState,
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.refresh() },
         onCategoryClick = onCategoryClick,
         onAddClick = onAddClick,
         modifier = modifier,
@@ -69,20 +76,19 @@ fun CategoryScreen(
 }
 
 /** CategoryScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreenContent(
     uiState: CategoryUiState,
     onCategoryClick: (CategoryItem) -> Unit,
     modifier: Modifier = Modifier,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
     onAddClick: (() -> Unit)? = null,
     onMove: (Int, Int) -> Unit = { _, _ -> },
     onDragStopped: () -> Unit = {}
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-    ) {
+    Box(modifier = modifier.fillMaxSize().background(BackgroundColor)) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 헤더 (높이 68dp)
             Box(
@@ -126,41 +132,60 @@ fun CategoryScreenContent(
                             lazyListState = listState,
                             onMove = { from, to -> onMove(from.index, to.index) }
                         )
+                    val pullToRefreshState = rememberPullToRefreshState()
 
-                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                        items(items = uiState.categories, key = { it.id }) { item ->
-                            ReorderableItem(state, key = item.id) { isDragging ->
-                                val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = onRefresh,
+                        state = pullToRefreshState,
+                        indicator = {
+                            PullToRefreshDefaults.Indicator(
+                                state = pullToRefreshState,
+                                isRefreshing = isRefreshing,
+                                color = MainColorDeep,
+                                containerColor = MainColor,
+                                modifier = Modifier.align(Alignment.TopCenter)
+                            )
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                            items(items = uiState.categories, key = { it.id }) { item ->
+                                ReorderableItem(state, key = item.id) { isDragging ->
+                                    val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
 
-                                Column(
-                                    modifier = Modifier
-                                        .longPressDraggableHandle(
+                                    Column(
+                                        modifier =
+                                        Modifier.longPressDraggableHandle(
                                             onDragStarted = {
                                                 haptic.performHapticFeedback(
                                                     HapticFeedbackType
                                                         .LongPress
                                                 )
                                             },
-                                            onDragStopped = { onDragStopped() }
-                                        )
-                                        .shadow(elevation.value)
-                                        .background(
-                                            if (isDragging) {
-                                                Color.White
-                                            } else {
-                                                Color.Transparent
+                                            onDragStopped = {
+                                                onDragStopped()
                                             }
                                         )
-                                ) {
-                                    CategoryItemCard(
-                                        categoryItem = item,
-                                        onClick = { onCategoryClick(item) }
-                                    )
-                                    HorizontalDivider(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        color = GrayColor,
-                                        thickness = 0.5.dp
-                                    )
+                                            .shadow(elevation.value)
+                                            .background(
+                                                if (isDragging) {
+                                                    Color.White
+                                                } else {
+                                                    Color.Transparent
+                                                }
+                                            )
+                                    ) {
+                                        CategoryItemCard(
+                                            categoryItem = item,
+                                            onClick = { onCategoryClick(item) }
+                                        )
+                                        HorizontalDivider(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            color = GrayColor,
+                                            thickness = 0.5.dp
+                                        )
+                                    }
                                 }
                             }
                         }
