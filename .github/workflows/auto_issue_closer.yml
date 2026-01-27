@@ -1,0 +1,42 @@
+name: Auto Close Linked Issues
+# develop 브랜치에 머지될 때, PR 본문에 적힌 이슈(예: close #123)를 자동으로 닫아주는 액션
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - develop  # develop 브랜치를 대상으로 하는 PR이 닫힐 때 실행
+jobs:
+  close-issues:
+    runs-on: ubuntu-latest
+    # PR이 닫힌 것 중에서 '실제로 머지된 경우'에만 실행
+    if: github.event.pull_request.merged == true
+    permissions:
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Close linked issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          echo "Scanning PR description for linked issues..."
+
+          # PR 본문에서 이슈 번호 패턴 추출 (예: close #123, fixes #456)
+          # grep으로 키워드+번호 찾기 -> 번호만 추출(#제거) -> 중복제거
+          # 콜론(:?) 허용 및 공백([[:space:]]+) 유연성 확보
+          issues=$(printf "%s\n" "$PR_BODY" \
+          | grep -oEi '(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?[[:space:]]+#[0-9]+' \
+          | grep -oEi '[0-9]+' \
+          | sort -u \
+          || true)
+
+          if [ -z "$issues" ]; then
+            echo "No linked issues found with closure keywords."
+            exit 0
+          fi
+          for issue in $issues; do
+            echo "Closing issue #$issue..."
+            # gh cli를 사용하여 이슈 닫기 및 코멘트 남기기
+            gh issue close "$issue" --comment "Auto-closed by merge of PR #$PR_NUMBER to develop"
+          done
