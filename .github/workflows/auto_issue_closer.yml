@@ -38,5 +38,5 @@ jobs:
           for issue in $issues; do
             echo "Closing issue #$issue..."
             # gh cli를 사용하여 이슈 닫기 및 코멘트 남기기
-            gh issue close "$issue" --comment "Auto-closed by merge of PR #$PR_NUMBER to develop"
+            gh issue close "$issue" --repo "${{ github.repository }}" --comment "Auto-closed by merge of PR #$PR_NUMBER to develop"
           done
