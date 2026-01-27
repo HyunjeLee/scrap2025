@@ -30,6 +30,7 @@ hiltWork = "1.2.0"
 reorderable = "3.0.0"
 composeShadowsPlus = "1.0.4"
 paging = "3.3.5"
+coroutinesTest = "1.10.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -72,6 +73,7 @@ reorderable = { group = "sh.calvin.reorderable", name = "reorderable", version.r
 compose-shadows-plus = { group = "com.github.GIGAMOLE", name = "ComposeShadowsPlus", version.ref = "composeShadowsPlus" }
 androidx-paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
