@@ -28,10 +28,11 @@ fun TwoButtons(
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
-    isLoading: Boolean = false,
+    isLoading: Boolean = false
 ) {
     Row(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .padding(all = 22.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -39,7 +40,8 @@ fun TwoButtons(
         // 취소 버튼
         Button(
             onClick = { onCancel() },
-            modifier = Modifier
+            modifier =
+            Modifier
                 .weight(1f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = LightGrayColor),
@@ -56,7 +58,8 @@ fun TwoButtons(
         Button(
             onClick = { onConfirm() },
             enabled = !isLoading,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .weight(1f)
                 .height(50.dp),
             colors = ButtonDefaults.buttonColors(containerColor = MainColorDeep),

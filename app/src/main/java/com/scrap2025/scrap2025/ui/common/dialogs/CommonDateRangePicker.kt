@@ -65,7 +65,8 @@ fun CommonDateRangePickerDialog(
 
     // 시작일과 종료일이 모두 선택되어야 확인 버튼 활성화
     val isConfirmEnabled =
-        dateRangePickerState.selectedStartDateMillis != null && dateRangePickerState.selectedEndDateMillis != null
+        dateRangePickerState.selectedStartDateMillis != null &&
+            dateRangePickerState.selectedEndDateMillis != null
 
     DatePickerDialog(
         shape = RoundedCornerShape(15.dp),
@@ -100,19 +101,21 @@ fun CommonDateRangePickerDialog(
 @Composable
 fun CommonDateRangePickerContent(state: DateRangePickerState) {
     // 날짜 기준점 계산 및 remember를 통한 캐싱
-    val datePresets = remember {
-        val now = LocalDate.now()
+    val datePresets =
+        remember {
+            val now = LocalDate.now()
 
-        listOf(
-            DatePreset("오늘", now.toUtcMillis(), now.toUtcMillis()),
-            DatePreset("최근 일주일", now.minusWeeks(1).toUtcMillis(), now.toUtcMillis()),
-            DatePreset("최근 1년", now.minusYears(1).toUtcMillis(), now.toUtcMillis())
-        )
-    }
+            listOf(
+                DatePreset("오늘", now.toUtcMillis(), now.toUtcMillis()),
+                DatePreset("최근 일주일", now.minusWeeks(1).toUtcMillis(), now.toUtcMillis()),
+                DatePreset("최근 1년", now.minusYears(1).toUtcMillis(), now.toUtcMillis())
+            )
+        }
 
     Column {
         Row(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxWidth()
                 .background(MainColorDeep)
                 .padding(horizontal = 24.dp, vertical = 16.dp),
@@ -121,10 +124,12 @@ fun CommonDateRangePickerContent(state: DateRangePickerState) {
         ) {
             datePresets.forEach { preset ->
                 val isSelected =
-                    (state.selectedStartDateMillis == preset.startMillis) && (state.selectedEndDateMillis == preset.endMillis)
+                    (state.selectedStartDateMillis == preset.startMillis) &&
+                        (state.selectedEndDateMillis == preset.endMillis)
 
                 Text(
-                    modifier = Modifier.clickable {
+                    modifier =
+                    Modifier.clickable {
                         state.setSelection(preset.startMillis, preset.endMillis)
                     },
                     text = preset.label,
@@ -139,10 +144,10 @@ fun CommonDateRangePickerContent(state: DateRangePickerState) {
             title = {
                 Column(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .background(MainColorDeep)
-                            .padding(start = 24.dp)
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MainColorDeep)
+                        .padding(start = 24.dp)
                 ) {
                     val year =
                         state.selectedStartDateMillis?.let { formatMillisToText(it, "yyyy년") }
@@ -154,15 +159,15 @@ fun CommonDateRangePickerContent(state: DateRangePickerState) {
             headline = {
                 Box(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .background(MainColorDeep)
-                            .padding(
-                                start = 24.dp,
-                                end = 24.dp,
-                                bottom = 20.dp,
-                                top = 4.dp
-                            )
+                    Modifier
+                        .fillMaxWidth()
+                        .background(MainColorDeep)
+                        .padding(
+                            start = 24.dp,
+                            end = 24.dp,
+                            bottom = 20.dp,
+                            top = 4.dp
+                        )
                 ) {
                     val startDateText =
                         state.selectedStartDateMillis?.let {
@@ -185,24 +190,24 @@ fun CommonDateRangePickerContent(state: DateRangePickerState) {
                     Text(
                         text = headlineText,
                         style =
-                            TextStyle(
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                        TextStyle(
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     )
                 }
             },
             showModeToggle = false, // 상단 Pen 아이콘 숨기기
             colors =
-                DatePickerDefaults.colors(
-                    containerColor = Color.White,
-                    selectedDayContainerColor = MainColorDeep,
-                    selectedDayContentColor = MainColor,
-                    dayInSelectionRangeContainerColor = MainColorLight,
-                    todayContentColor = Color.Black,
-                    todayDateBorderColor = MainColorDeep
-                )
+            DatePickerDefaults.colors(
+                containerColor = Color.White,
+                selectedDayContainerColor = MainColorDeep,
+                selectedDayContentColor = MainColor,
+                dayInSelectionRangeContainerColor = MainColorLight,
+                todayContentColor = Color.Black,
+                todayDateBorderColor = MainColorDeep
+            )
         )
     }
 }
@@ -218,7 +223,6 @@ private fun LocalDate.toUtcMillis(): Long =
     this.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
 private data class DatePreset(val label: String, val startMillis: Long, val endMillis: Long)
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, name = "DatePicker Content Internal")

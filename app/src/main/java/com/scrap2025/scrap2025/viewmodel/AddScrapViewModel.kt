@@ -8,24 +8,28 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.repository.LinkPreviewRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDateTime
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
-import javax.inject.Inject
 
 sealed interface LinkPreviewUiState {
     data object Loading : LinkPreviewUiState
+
     data class Success(val preview: LinkPreview) : LinkPreviewUiState
+
     data class Error(val message: String? = null) : LinkPreviewUiState
 }
 
 sealed interface AddScrapUiState {
     data object Loading : AddScrapUiState
+
     data object Success : AddScrapUiState
+
     data class Error(val message: String? = null) : AddScrapUiState
 }
 
@@ -34,9 +38,8 @@ class AddScrapViewModel
 @Inject
 constructor(
     private val scrapRepository: ScrapRepository,
-    private val linkPreviewRepository: LinkPreviewRepository,
+    private val linkPreviewRepository: LinkPreviewRepository
 ) : ViewModel() {
-
     private val _addScrapState = MutableStateFlow<AddScrapUiState?>(null)
     val addScrapState: StateFlow<AddScrapUiState?> = _addScrapState.asStateFlow()
 
@@ -52,7 +55,8 @@ constructor(
     init {
         // URL이 변경될 때마다 자동으로 미리보기 가져오기 (Flow Operator 사용)
         viewModelScope.launch {
-            url.debounce(500) // 500ms 동안 변경이 없을 때만 방출
+            url
+                .debounce(500) // 500ms 동안 변경이 없을 때만 방출
                 .distinctUntilChanged() // 이전 값과 다를 때만
                 .collect { currentUrl ->
                     // 1. 비어있는 경우 즉시 초기화
@@ -79,14 +83,16 @@ constructor(
                 try {
                     val uri = newUrl.toUri()
                     val query = uri.getQueryParameter("q")
-                    if (query != null)
-                        uri.buildUpon()
+                    if (query != null) {
+                        uri
+                            .buildUpon()
                             .clearQuery()
                             .appendQueryParameter("q", query)
                             .build()
                             .toString()
-                    else
+                    } else {
                         newUrl
+                    }
                 } catch (e: Exception) {
                     newUrl
                 }
@@ -111,7 +117,9 @@ constructor(
             val result = linkPreviewRepository.fetchLinkPreview(url)
             result.fold(
                 onSuccess = { _linkPreviewUiState.value = LinkPreviewUiState.Success(it) },
-                onFailure = { _linkPreviewUiState.value = LinkPreviewUiState.Error(it.message) }
+                onFailure = {
+                    _linkPreviewUiState.value = LinkPreviewUiState.Error(it.message)
+                }
             )
         }
     }
@@ -122,11 +130,7 @@ constructor(
      * @param memo 메모 (선택사항)
      * @param linkPreview 링크 미리보기 데이터 (선택사항)
      */
-    fun addScrapItem(
-        memo: String,
-        linkPreview: LinkPreview? = null,
-        categoryId: Long
-    ) {
+    fun addScrapItem(memo: String, linkPreview: LinkPreview? = null, categoryId: Long) {
         viewModelScope.launch {
             // Loading 상태 설정
             _addScrapState.value = AddScrapUiState.Loading

@@ -134,8 +134,11 @@ fun AddScrapScreen(
     if (showWebView) {
         val targetUrl =
             url.ifBlank { "https://m.naver.com" }.let { url ->
-                if (url.startsWith("http://") || url.startsWith("https://")) url
-                else "https://$url"
+                if (url.startsWith("http://") || url.startsWith("https://")) {
+                    url
+                } else {
+                    "https://$url"
+                }
             }
 
         WebViewScrapDialog(
@@ -166,9 +169,12 @@ fun AddScrapScreenContent(
     val context = LocalContext.current
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)) {
+        Column(
+            modifier =
+            modifier
+                .fillMaxSize()
+                .background(BackgroundColor)
+        ) {
             // 톱바
             TopBar(onBackClick = onBack)
 
@@ -179,17 +185,16 @@ fun AddScrapScreenContent(
                     .background(color = MainColorLight, shape = RoundedCornerShape(8.dp))
                     .weight(1f)
             ) {
-
                 // 링크 미리보기 영역 (State 기반 분기 처리)
                 when (linkPreviewUiState) {
                     is LinkPreviewUiState.Loading -> {
                         Spacer(modifier = Modifier.height(16.dp))
                         Box(
                             modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
-                                    .height(80.dp),
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .height(80.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator(
@@ -203,17 +208,17 @@ fun AddScrapScreenContent(
                         Spacer(modifier = Modifier.height(8.dp))
 
                         // 웹뷰 버튼
-                        TextButton (
+                        TextButton(
                             modifier = Modifier.align(Alignment.End).padding(end = 16.dp),
-                            onClick = onShowWebView,
+                            onClick = onShowWebView
                         ) {
                             Text(
                                 text = "웹페이지에서 직접 가져오기",
                                 style =
-                                    TextStyle(
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                    ),
+                                TextStyle(
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                ),
                                 color = MainColorDeep
                             )
                         }
@@ -231,12 +236,14 @@ fun AddScrapScreenContent(
 
                         // 에러 시 빈 공간 대신 "유도 UI" 노출
                         Box(
-                            modifier = Modifier
+                            modifier =
+                            Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                                 .height(80.dp) // 미리보기 카드와 비슷한 높이
                                 .background(MainColorLight, RoundedCornerShape(8.dp))
-                                .clickable { onShowWebView() }, // 클릭 시 바로 웹뷰 열기
+                                .clickable { onShowWebView() },
+                            // 클릭 시 바로 웹뷰 열기
                             contentAlignment = Alignment.Center
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -249,9 +256,10 @@ fun AddScrapScreenContent(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "정보를 못 찾겠어요. 직접 가져올까요?",
-                                    style = TextStyle(
+                                    style =
+                                    TextStyle(
                                         fontSize = 14.sp,
-                                        color = MainColorDeep,
+                                        color = MainColorDeep
                                     )
                                 )
                             }
@@ -274,9 +282,12 @@ fun AddScrapScreenContent(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // 링크 입력 필드
-                Box(modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()) {
+                Box(
+                    modifier =
+                    Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                ) {
                     TextField(
                         value = url,
                         onValueChange = { onUrlChange(it) },
@@ -284,29 +295,29 @@ fun AddScrapScreenContent(
                             Text(
                                 text = "링크를 입력하세요",
                                 style =
-                                    TextStyle(
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Medium
-                                    ),
+                                TextStyle(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium
+                                ),
                                 color = GrayColor
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp),
                         colors =
-                            TextFieldDefaults.colors(
-                                focusedContainerColor = MainColor,
-                                unfocusedContainerColor = MainColor,
-                                disabledContainerColor = MainColor,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                            ),
+                        TextFieldDefaults.colors(
+                            focusedContainerColor = MainColor,
+                            unfocusedContainerColor = MainColor,
+                            disabledContainerColor = MainColor,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
                         textStyle =
-                            TextStyle(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.Black
-                            ),
+                        TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Black
+                        ),
                         singleLine = true,
                         enabled = !isLoading
                     )
@@ -326,7 +337,8 @@ fun AddScrapScreenContent(
 
                 // 메모 입력 필드
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .fillMaxSize()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 16.dp)
@@ -338,29 +350,29 @@ fun AddScrapScreenContent(
                             Text(
                                 text = "메모를 입력하세요",
                                 style =
-                                    TextStyle(
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Medium
-                                    ),
+                                TextStyle(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium
+                                ),
                                 color = GrayColor
                             )
                         },
                         modifier = Modifier.fillMaxSize(),
                         shape = RoundedCornerShape(10.dp),
                         colors =
-                            TextFieldDefaults.colors(
-                                focusedContainerColor = MainColor,
-                                unfocusedContainerColor = MainColor,
-                                disabledContainerColor = MainColor,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent,
-                            ),
+                        TextFieldDefaults.colors(
+                            focusedContainerColor = MainColor,
+                            unfocusedContainerColor = MainColor,
+                            disabledContainerColor = MainColor,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
                         textStyle =
-                            TextStyle(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.Black
-                            ),
+                        TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color.Black
+                        ),
                         singleLine = false,
                         maxLines = 20,
                         enabled = !isLoading
@@ -371,23 +383,24 @@ fun AddScrapScreenContent(
             // 하단 버튼
             Row(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 31.dp)
-                        .padding(bottom = 21.dp)
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 31.dp)
+                    .padding(bottom = 21.dp)
             ) {
                 // 취소 버튼
                 Button(
                     onClick = onBack,
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .weight(1f)
                         .height(61.dp),
                     shape = RoundedCornerShape(15.dp),
                     colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = LightGrayColor,
-                            contentColor = DarkGrayColor
-                        ),
+                    ButtonDefaults.buttonColors(
+                        containerColor = LightGrayColor,
+                        contentColor = DarkGrayColor
+                    ),
                     enabled = !isLoading
                 ) {
                     Text(
@@ -415,15 +428,16 @@ fun AddScrapScreenContent(
                             onAddScrap(url.trim(), memo.trim(), currentLinkPreview)
                         }
                     },
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .weight(1f)
                         .height(61.dp),
                     shape = RoundedCornerShape(15.dp),
                     colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = MainColorDeep,
-                            contentColor = Color.White
-                        ),
+                    ButtonDefaults.buttonColors(
+                        containerColor = MainColorDeep,
+                        contentColor = Color.White
+                    ),
                     // 로딩 중이거나 미리보기 로딩 중이면 버튼 비활성화
                     enabled = !isLoading && !isPreviewLoading
                 ) {
@@ -436,10 +450,10 @@ fun AddScrapScreenContent(
                         Text(
                             text = "추가하기",
                             style =
-                                TextStyle(
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                            TextStyle(
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         )
                     }
                 }
@@ -449,13 +463,10 @@ fun AddScrapScreenContent(
 }
 
 @Composable
-fun TopBar(
-    onBackClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    title: String = "스크랩 추가하기",
-) {
+fun TopBar(onBackClick: () -> Unit, modifier: Modifier = Modifier, title: String = "스크랩 추가하기") {
     Row(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .height(68.dp)
             .background(MainColor),
@@ -463,9 +474,13 @@ fun TopBar(
         horizontalArrangement = Arrangement.Start
     ) {
         // 뒤로가기 버튼
-        IconButton(onClick = onBackClick, modifier = Modifier
-            .padding(start = 11.dp)
-            .size(40.dp)) {
+        IconButton(
+            onClick = onBackClick,
+            modifier =
+            Modifier
+                .padding(start = 11.dp)
+                .size(40.dp)
+        ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
                 contentDescription = "뒤로가기",
@@ -478,7 +493,7 @@ fun TopBar(
         Text(
             text = title,
             style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-            color = Color.Black,
+            color = Color.Black
         )
     }
 }
@@ -489,8 +504,10 @@ fun AddScrapScreenContentSuccessPreview() {
     Scrap2025Theme {
         AddScrapScreenContent(
             isLoading = false,
-            linkPreviewUiState = LinkPreviewUiState.Success(
-                preview = LinkPreview(
+            linkPreviewUiState =
+            LinkPreviewUiState.Success(
+                preview =
+                LinkPreview(
                     url = "TODO()",
                     title = "TODO()",
                     description = "TODO()",

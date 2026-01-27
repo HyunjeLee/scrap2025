@@ -10,12 +10,8 @@ class Converters {
     @TypeConverter fun fromSyncStatus(value: SyncStatus) = value.name
 
     @TypeConverter
-    fun fromTimestamp(value: String?): LocalDateTime? {
-        return value?.let { LocalDateTime.parse(it) }
-    }
+    fun fromTimestamp(value: String?): LocalDateTime? = value?.let { LocalDateTime.parse(it) }
 
     @TypeConverter
-    fun dateToTimestamp(date: LocalDateTime?): String? {
-        return date?.toString()
-    }
+    fun dateToTimestamp(date: LocalDateTime?): String? = date?.toString()
 }

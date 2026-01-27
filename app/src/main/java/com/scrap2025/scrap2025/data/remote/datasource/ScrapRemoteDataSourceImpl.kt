@@ -15,12 +15,13 @@ import com.scrap2025.scrap2025.data.remote.dto.SearchFavoriteResponse
 import com.scrap2025.scrap2025.data.remote.dto.SearchListResponse
 import com.scrap2025.scrap2025.data.remote.dto.SearchRequest
 import com.scrap2025.scrap2025.data.remote.dto.SearchScrapResponse
-import kotlinx.serialization.json.JsonElement
 import javax.inject.Inject
+import kotlinx.serialization.json.JsonElement
 
-class ScrapRemoteDataSourceImpl @Inject constructor(private val scrapService: ScrapService) :
+class ScrapRemoteDataSourceImpl
+@Inject
+constructor(private val scrapService: ScrapService) :
     ScrapRemoteDataSource {
-
     override suspend fun getAllScrapsByCategoryId(
         categoryId: Long,
         sort: String?,

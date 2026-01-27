@@ -8,15 +8,17 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.navigation.destinations.ScrapDetail
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 sealed interface ScrapDetailUiState {
     data object Loading : ScrapDetailUiState
+
     data class Success(val scrapItem: ScrapItem) : ScrapDetailUiState
+
     data class Error(val message: String? = null) : ScrapDetailUiState
 }
 
@@ -26,8 +28,7 @@ class ScrapDetailViewModel
 constructor(
     private val scrapRepository: ScrapRepository,
     savedStateHandle: SavedStateHandle
-) :
-    ViewModel() {
+) : ViewModel() {
     private val scrapId: Long = savedStateHandle.toRoute<ScrapDetail>().scrapId
 
     private val _isDeleteDialogVisible = MutableStateFlow(false)
@@ -44,12 +45,14 @@ constructor(
             }
         }
     }
+
     private fun fetchScrapDetail(showLoading: Boolean = true) {
         viewModelScope.launch {
             if (showLoading) {
                 _uiState.value = ScrapDetailUiState.Loading
             }
-            scrapRepository.getScrapById(scrapId)
+            scrapRepository
+                .getScrapById(scrapId)
                 .fold(
                     onSuccess = {
                         _uiState.value = ScrapDetailUiState.Success(it)
@@ -78,19 +81,21 @@ constructor(
 
     fun toggleFavorite(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
-            scrapRepository.toggleFavorite(scrapId)
+            scrapRepository
+                .toggleFavorite(scrapId)
                 .onSuccess {
                     val currentState = _uiState.value
                     if (currentState is ScrapDetailUiState.Success) {
                         val updated =
-                            currentState.scrapItem.copy(isFavorite = !currentState.scrapItem.isFavorite)
+                            currentState.scrapItem.copy(
+                                isFavorite = !currentState.scrapItem.isFavorite
+                            )
 
                         _uiState.value = ScrapDetailUiState.Success(updated)
                     }
 
                     onSuccess()
-                }
-                .onFailure {
+                }.onFailure {
                     onFailure()
                 }
         }

@@ -18,7 +18,8 @@ fun NavGraphBuilder.searchNavGraph(navController: NavHostController) {
 
         // 카테고리 선택 결과 수신 로직
         LaunchedEffect(backStackEntry) {
-            backStackEntry.savedStateHandle.getStateFlow<List<Long>?>("selectedCategories", null)
+            backStackEntry.savedStateHandle
+                .getStateFlow<List<Long>?>("selectedCategories", null)
                 .collect { categories ->
                     if (categories != null) {
                         viewModel.setSelectedCategories(categories)

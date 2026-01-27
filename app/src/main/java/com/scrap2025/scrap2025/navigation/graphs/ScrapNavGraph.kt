@@ -19,10 +19,7 @@ import com.scrap2025.scrap2025.ui.scrap.screens.ScrapDetailScreen
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreen
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
-fun NavGraphBuilder.scrapNavGraph(
-    navController: NavHostController,
-    mainViewModel: MainViewModel
-) {
+fun NavGraphBuilder.scrapNavGraph(navController: NavHostController, mainViewModel: MainViewModel) {
     navigation<ScrapGraph>(startDestination = Scrap) {
         composable<Scrap> {
             ScrapScreen(
@@ -34,7 +31,7 @@ fun NavGraphBuilder.scrapNavGraph(
                             mode = Mode.MOVE,
                             scrapIds = scrapIds,
                             initialCategoryId = mainViewModel.selectedCategoryId.value,
-                            initialCategoryTitle = mainViewModel.selectedCategoryTitle.value,
+                            initialCategoryTitle = mainViewModel.selectedCategoryTitle.value
                         )
                     )
                 },

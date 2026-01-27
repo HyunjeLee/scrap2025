@@ -12,5 +12,5 @@ data class ScrapItem(
     val createdDate: LocalDateTime,
     val isFavorite: Boolean = false,
     val categoryId: Long? = null,
-    val categoryTitle: String? = null,
+    val categoryTitle: String? = null
 )

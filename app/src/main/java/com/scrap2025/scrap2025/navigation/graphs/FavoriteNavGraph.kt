@@ -26,7 +26,7 @@ fun NavGraphBuilder.favoriteNavGraph(navController: NavHostController) {
                         mode = Mode.MOVE,
                         scrapIds = scrapIds,
                         initialCategoryId = mainViewModel.selectedCategoryId.value,
-                        initialCategoryTitle = mainViewModel.selectedCategoryTitle.value,
+                        initialCategoryTitle = mainViewModel.selectedCategoryTitle.value
                     )
                 )
             }

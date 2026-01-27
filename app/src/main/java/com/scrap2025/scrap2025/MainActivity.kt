@@ -10,7 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.scrap2025.scrap2025.navigation.NavHost.AppNavHost
+import com.scrap2025.scrap2025.navigation.navhost.AppNavHost
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.MainUiState
@@ -58,9 +58,9 @@ class MainActivity : ComponentActivity() {
             }
     }
 
-    private fun extractUrl(text: String): String? =
-        Patterns.WEB_URL.matcher(text)
-            .takeIf { it.find() }
-            ?.group()
-            ?.trimEnd('.', ',', ')')
+    private fun extractUrl(text: String): String? = Patterns.WEB_URL
+        .matcher(text)
+        .takeIf { it.find() }
+        ?.group()
+        ?.trimEnd('.', ',', ')')
 }

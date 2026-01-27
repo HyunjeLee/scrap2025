@@ -8,21 +8,24 @@ import com.scrap2025.scrap2025.data.remote.dto.ScrapMemoDto
 import com.scrap2025.scrap2025.navigation.destinations.EditMemo
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 sealed interface EditMemoUiState {
     data object Loading : EditMemoUiState
+
     data class Success(val memoDto: ScrapMemoDto) : EditMemoUiState
+
     data class Error(val message: String? = null) : EditMemoUiState
 }
 
 @HiltViewModel
 class EditMemoViewModel
-@Inject constructor(
+@Inject
+constructor(
     private val scrapRepository: ScrapRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {

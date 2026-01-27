@@ -10,8 +10,10 @@ import com.scrap2025.scrap2025.data.remote.dto.SequenceCategoryResponse
 import javax.inject.Inject
 
 class CategoryRemoteDataSourceImpl
-@Inject constructor(private val categoryService: CategoryService) : CategoryRemoteDataSource {
-
+@Inject
+constructor(
+    private val categoryService: CategoryService
+) : CategoryRemoteDataSource {
     override suspend fun getCategories(): CategoryListResponse {
         val response = categoryService.getCategories()
         if (response.isSuccessful) {
@@ -25,12 +27,15 @@ class CategoryRemoteDataSourceImpl
         val request = CreateCategoryRequest(categoryTitle = title)
         val response = categoryService.createCategory(request)
         if (!response.isSuccessful) {
-            throw Exception("Create failed code: ${response.code()} message: ${response.message()}")
+            throw Exception(
+                "Create failed code: ${response.code()} message: ${response.message()}"
+            )
         }
     }
 
     override suspend fun renameCategory(
-        categoryId: Long, newTitle: String
+        categoryId: Long,
+        newTitle: String
     ): RenameCategoryResponse {
         val request = RenameCategoryRequest(newCategoryTitle = newTitle)
         val response = categoryService.renameCategory(categoryId, request)
@@ -48,9 +53,7 @@ class CategoryRemoteDataSourceImpl
         }
     }
 
-    override suspend fun updateCategorySequence(
-        categoryIds: List<Long>
-    ): SequenceCategoryResponse {
+    override suspend fun updateCategorySequence(categoryIds: List<Long>): SequenceCategoryResponse {
         val request = SequenceCategoryRequest(categoryIdList = categoryIds)
         val response = categoryService.updateCategorySequence(request)
         if (response.isSuccessful) {

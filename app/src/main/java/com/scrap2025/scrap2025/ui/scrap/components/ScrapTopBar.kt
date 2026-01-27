@@ -1,14 +1,19 @@
 package com.scrap2025.scrap2025.ui.scrap.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -46,30 +51,37 @@ import com.scrap2025.scrap2025.ui.theme.WarningColor
 fun ScrapTopBar(
     categoryId: Long,
     categoryTitle: String,
-    onUpdateCategory: (Long, String) -> Unit,
-    onDeleteCategory: () -> Unit,
     modifier: Modifier = Modifier,
-    isEditable: Boolean = true,
+    onUpdateCategory: ((Long, String) -> Unit)? = null,
+    onDeleteCategory: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null
 ) {
     // === 내부 상태: 편집 모드 관리 ===
     var isEditMode by remember { mutableStateOf(false) }
 
     if (isEditMode) {
+        BackHandler { isEditMode = false }
+
         TopBarEditMode(
             categoryTitle = categoryTitle,
             onSave = { newTitle ->
-                onUpdateCategory(categoryId, newTitle)
+                onUpdateCategory?.invoke(categoryId, newTitle)
                 isEditMode = false
             },
-            onCancel = { isEditMode = false },
             modifier = modifier
         )
     } else {
         TopBarDefault(
             categoryTitle = categoryTitle,
-            isEditable = isEditable,
-            onEditClick = { isEditMode = true },
-            onDeleteClick = { onDeleteCategory() },
+            onEditClick = {
+                if (onUpdateCategory != null) {
+                    isEditMode = true
+                } else {
+                    null
+                }
+            },
+            onDeleteClick = onDeleteCategory,
+            onMenuClick = onMenuClick,
             modifier = modifier
         )
     }
@@ -79,10 +91,10 @@ fun ScrapTopBar(
 @Composable
 private fun TopBarDefault(
     categoryTitle: String,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
-    isEditable: Boolean = true,
+    onEditClick: (() -> Unit)? = null,
+    onDeleteClick: (() -> Unit)? = null,
+    onMenuClick: (() -> Unit)? = null
 ) {
     Box(
         modifier = modifier
@@ -91,23 +103,37 @@ private fun TopBarDefault(
             .background(MainColor),
         contentAlignment = Alignment.CenterStart
     ) {
-        // 카테고리 제목
-        Text(
-            text = categoryTitle,
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-            color = Color.Black,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(start = 21.dp, end = 85.dp)
-        )
+        // 메뉴 버튼 + 카테고리 제목
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 21.dp, end = 85.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            onMenuClick?.let {
+                IconButton(onClick = onMenuClick, modifier = Modifier.size(28.dp)) {
+                    Icon(
+                        imageVector = Icons.Rounded.Menu,
+                        contentDescription = "메뉴",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
 
-        if (isEditable) {
-            // 편집/삭제 버튼
+                Spacer(Modifier.width(8.dp))
+            }
+
+            Text(
+                text = categoryTitle,
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
+                color = Color.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        // 편집/삭제 버튼 (둘 다 존재할 때만 표시)
+        if (onEditClick != null && onDeleteClick != null) {
             Row(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 22.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 22.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // 편집 버튼
                 IconButton(onClick = onEditClick, modifier = Modifier.size(28.dp)) {
@@ -120,7 +146,7 @@ private fun TopBarDefault(
                 }
 
                 // 삭제 버튼
-                IconButton(onClick = { onDeleteClick() }, modifier = Modifier.size(28.dp)) {
+                IconButton(onClick = onDeleteClick, modifier = Modifier.size(28.dp)) {
                     Icon(
                         painter = painterResource(R.drawable.ic_trash),
                         contentDescription = "삭제",
@@ -138,19 +164,18 @@ private fun TopBarDefault(
 private fun TopBarEditMode(
     categoryTitle: String,
     onSave: (String) -> Unit,
-    onCancel: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     // === 내부 상태: 편집 중인 텍스트와 커서 위치를 포함한 TextFieldValue ===
     var textFieldState by
-    remember(categoryTitle) {
-        mutableStateOf(
-            TextFieldValue(
-                text = categoryTitle,
-                selection = TextRange(categoryTitle.length) // 1. 초기 커서 위치: 맨 끝
+        remember(categoryTitle) {
+            mutableStateOf(
+                TextFieldValue(
+                    text = categoryTitle,
+                    selection = TextRange(categoryTitle.length) // 1. 초기 커서 위치: 맨 끝
+                )
             )
-        )
-    }
+        }
 
     // === 유효성 검사: 1자 이상 21자 이하 ===
     val isCategoryTitleValid = textFieldState.text.length in 1..21
@@ -173,16 +198,16 @@ private fun TopBarEditMode(
             value = textFieldState,
             onValueChange = { newValue -> textFieldState = newValue },
             modifier =
-                Modifier
-                    .padding(start = 21.dp, end = 60.dp)
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
+            Modifier
+                .padding(start = 21.dp, end = 60.dp)
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
             textStyle =
-                TextStyle(
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
-                ),
+            TextStyle(
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black
+            ),
             singleLine = true
         )
 
@@ -201,10 +226,13 @@ private fun TopBarEditMode(
         ) {
             Icon(
                 painter =
-                    painterResource(
-                        if (isCategoryTitleValid) R.drawable.ic_check_filled
-                        else R.drawable.ic_check_err
-                    ),
+                painterResource(
+                    if (isCategoryTitleValid) {
+                        R.drawable.ic_check_filled
+                    } else {
+                        R.drawable.ic_check_err
+                    }
+                ),
                 contentDescription = "저장",
                 tint = Color.Unspecified,
                 modifier = Modifier.size(24.dp)
@@ -220,7 +248,8 @@ fun TopBarDefaultPreview() {
         TopBarDefault(
             categoryTitle = "분류되지 않음",
             onEditClick = {},
-            onDeleteClick = {}
+            onDeleteClick = {},
+            onMenuClick = {}
         )
     }
 }
@@ -231,8 +260,7 @@ fun TopBarEditModePreview() {
     Scrap2025Theme {
         TopBarEditMode(
             categoryTitle = "toomanyletter-toomanyletter-toomanyletter-toomanyletter",
-            onSave = {},
-            onCancel = {}
+            onSave = {}
         )
     }
 }

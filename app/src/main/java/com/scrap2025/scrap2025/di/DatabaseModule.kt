@@ -15,28 +15,20 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+    @Provides
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
+        AppDatabase.getDatabase(context)
 
     @Provides
     @Singleton
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return AppDatabase.getDatabase(context)
-    }
+    fun provideCategoryDao(database: AppDatabase): CategoryDao = database.categoryDao()
 
     @Provides
     @Singleton
-    fun provideCategoryDao(database: AppDatabase): CategoryDao {
-        return database.categoryDao()
-    }
+    fun provideScrapDao(database: AppDatabase): ScrapDao = database.scrapDao()
 
     @Provides
     @Singleton
-    fun provideScrapDao(database: AppDatabase): ScrapDao {
-        return database.scrapDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideMyPageDao(database: AppDatabase): MyPageDao {
-        return database.myPageDao()
-    }
+    fun provideMyPageDao(database: AppDatabase): MyPageDao = database.myPageDao()
 }

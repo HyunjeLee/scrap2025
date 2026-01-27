@@ -56,7 +56,8 @@ fun EditMemoScreen(
         state = editMemoState,
         onBack = onBack,
         initialMemo = viewModel.initialMemo,
-        onEditMemo = { memo -> viewModel.editMemo(memo) })
+        onEditMemo = { memo -> viewModel.editMemo(memo) }
+    )
 }
 
 @Composable
@@ -89,7 +90,8 @@ fun EditMemoScreenContent(
         else -> {
             Box(modifier = Modifier.fillMaxSize()) {
                 Column(
-                    modifier = modifier
+                    modifier =
+                    modifier
                         .fillMaxSize()
                         .background(BackgroundColor)
                 ) {
@@ -98,29 +100,31 @@ fun EditMemoScreenContent(
 
                     // 메모 수정
                     Box(
-                        modifier = Modifier
+                        modifier =
+                        Modifier
                             .padding(all = 22.dp)
                             .background(MainColor, RoundedCornerShape(12.dp))
                             .border(
                                 width = 2.dp,
                                 color = Color.LightGray,
                                 shape = RoundedCornerShape(12.dp)
-                            )
-                            .fillMaxWidth()
+                            ).fillMaxWidth()
                             .weight(1f)
                     ) {
                         BasicTextField(
-                            modifier = Modifier
+                            modifier =
+                            Modifier
                                 .padding(all = 25.dp)
                                 .fillMaxSize(),
                             value = memoText,
-                            onValueChange = { newValue -> memoText = newValue },
+                            onValueChange = { newValue -> memoText = newValue }
                         )
                     }
 
                     // 하단 버튼
                     Row(
-                        modifier = Modifier
+                        modifier =
+                        Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 31.dp)
                             .padding(bottom = 21.dp)
@@ -128,17 +132,23 @@ fun EditMemoScreenContent(
                         // 취소 버튼
                         Button(
                             onClick = onBack,
-                            modifier = Modifier
+                            modifier =
+                            Modifier
                                 .weight(1f)
                                 .height(61.dp),
                             shape = RoundedCornerShape(15.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = LightGrayColor, contentColor = DarkGrayColor
-                            ),
+                            colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = LightGrayColor,
+                                contentColor = DarkGrayColor
+                            )
                         ) {
                             Text(
-                                text = "취소", style = TextStyle(
-                                    fontSize = 17.sp, fontWeight = FontWeight.SemiBold
+                                text = "취소",
+                                style =
+                                TextStyle(
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             )
                         }
@@ -148,17 +158,23 @@ fun EditMemoScreenContent(
                         // 추가하기 버튼
                         Button(
                             onClick = { onEditMemo(memoText) },
-                            modifier = Modifier
+                            modifier =
+                            Modifier
                                 .weight(1f)
                                 .height(61.dp),
                             shape = RoundedCornerShape(15.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MainColorDeep, contentColor = Color.White
-                            ),
+                            colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor = MainColorDeep,
+                                contentColor = Color.White
+                            )
                         ) {
                             Text(
-                                text = "수정하기", style = TextStyle(
-                                    fontSize = 18.sp, fontWeight = FontWeight.SemiBold
+                                text = "수정하기",
+                                style =
+                                TextStyle(
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             )
                         }

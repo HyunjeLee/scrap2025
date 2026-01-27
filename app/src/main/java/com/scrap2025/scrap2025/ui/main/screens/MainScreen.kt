@@ -18,7 +18,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.scrap2025.scrap2025.navigation.NavHost.TabNavHost
 import com.scrap2025.scrap2025.navigation.destinations.Category
 import com.scrap2025.scrap2025.navigation.destinations.CategorySelection
 import com.scrap2025.scrap2025.navigation.destinations.Favorite
@@ -26,6 +25,7 @@ import com.scrap2025.scrap2025.navigation.destinations.Login
 import com.scrap2025.scrap2025.navigation.destinations.MyPage
 import com.scrap2025.scrap2025.navigation.destinations.Scrap
 import com.scrap2025.scrap2025.navigation.destinations.Search
+import com.scrap2025.scrap2025.navigation.navHost.TabNavHost
 import com.scrap2025.scrap2025.ui.category.screens.Mode
 import com.scrap2025.scrap2025.ui.common.utils.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
@@ -59,10 +59,10 @@ fun MainScreen(
     // 메인 탭 화면들에서만 뒤로가기 종료 처리
     val isMainTab =
         currentDestination?.hasRoute<Category>() == true ||
-                currentDestination?.hasRoute<Scrap>() == true ||
-                currentDestination?.hasRoute<Favorite>() == true ||
-                currentDestination?.hasRoute<Search>() == true ||
-                currentDestination?.hasRoute<MyPage>() == true
+            currentDestination?.hasRoute<Scrap>() == true ||
+            currentDestination?.hasRoute<Favorite>() == true ||
+            currentDestination?.hasRoute<Search>() == true ||
+            currentDestination?.hasRoute<MyPage>() == true
 
     if (isMainTab) {
         BackPressToExitHandler()
@@ -78,7 +78,7 @@ fun MainScreen(
                 CategorySelection(
                     Mode.ADD,
                     initialCategoryId = mainViewModel.selectedCategoryId.value,
-                    initialCategoryTitle = mainViewModel.selectedCategoryTitle.value,
+                    initialCategoryTitle = mainViewModel.selectedCategoryTitle.value
                 )
             )
             mainViewModel.clearSharedUrlTrigger()
@@ -118,9 +118,12 @@ fun MainScreen(
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)) {
+        Box(
+            modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
             TabNavHost(tabNavController = tabNavController)
         }
     }

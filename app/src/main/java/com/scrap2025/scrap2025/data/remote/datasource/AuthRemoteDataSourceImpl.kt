@@ -4,9 +4,10 @@ import com.scrap2025.scrap2025.data.remote.api.AuthService
 import com.scrap2025.scrap2025.data.remote.dto.LoginResponse
 import javax.inject.Inject
 
-class AuthRemoteDataSourceImpl @Inject constructor(private val authService: AuthService) :
+class AuthRemoteDataSourceImpl
+@Inject
+constructor(private val authService: AuthService) :
     AuthRemoteDataSource {
-
     override suspend fun login(sns: String, token: String): LoginResponse {
         val response = authService.login(sns, token)
         if (response.isSuccessful) {

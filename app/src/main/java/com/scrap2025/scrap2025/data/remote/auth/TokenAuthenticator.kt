@@ -2,58 +2,64 @@ package com.scrap2025.scrap2025.data.remote.auth
 
 import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.remote.api.AuthService
+import javax.inject.Inject
+import javax.inject.Provider
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import javax.inject.Inject
-import javax.inject.Provider
 
 class TokenAuthenticator
 @Inject
 constructor(
-        private val tokenManager: TokenManager,
-        private val authServiceProvider: Provider<AuthService> // Use Provider to avoid circular dependency
+    private val tokenManager: TokenManager,
+    // Use Provider to avoid circular dependency
+    private val authServiceProvider: Provider<AuthService>
 ) : Authenticator {
-
     override fun authenticate(route: Route?, response: Response): Request? {
         // limit retry count to avoid infinite loop
         if (responseCount(response) >= 3) {
             return null
         }
 
-        val newToken = runBlocking {
-            val refreshToken = tokenManager.refreshToken.firstOrNull()
-            if (refreshToken.isNullOrEmpty()) {
-                tokenManager.clearTokens()
-                return@runBlocking null
-            }
+        val newToken =
+            runBlocking {
+                val refreshToken = tokenManager.refreshToken.firstOrNull()
+                if (refreshToken.isNullOrEmpty()) {
+                    tokenManager.clearTokens()
+                    return@runBlocking null
+                }
 
-            try {
-                val tokenResponse = authServiceProvider.get().refreshToken(refreshToken)
-                if (tokenResponse.isSuccessful) {
-                    val body = tokenResponse.body()
-                    if (body != null && body.result != null) {
-                        val newAccessToken = body.result.accessToken
-                        val newRefreshToken = body.result.refreshToken
-                        tokenManager.saveTokens(newAccessToken, newRefreshToken)
-                        return@runBlocking newAccessToken
+                try {
+                    val tokenResponse = authServiceProvider.get().refreshToken(refreshToken)
+                    if (tokenResponse.isSuccessful) {
+                        val body = tokenResponse.body()
+                        if (body != null && body.result != null) {
+                            val newAccessToken = body.result.accessToken
+                            val newRefreshToken = body.result.refreshToken
+                            tokenManager.saveTokens(newAccessToken, newRefreshToken)
+                            return@runBlocking newAccessToken
+                        } else {
+                            tokenManager.clearTokens()
+                        }
                     } else {
                         tokenManager.clearTokens()
                     }
-                } else {
+                } catch (e: Exception) {
+                    e.printStackTrace()
                     tokenManager.clearTokens()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                tokenManager.clearTokens()
+                null
             }
-            null
-        }
 
-        return newToken?.let { response.request.newBuilder().header("Authorization", "Bearer $it").build() }
+        return newToken?.let {
+            response.request
+                .newBuilder()
+                .header("Authorization", "Bearer $it")
+                .build()
+        }
     }
 
     private fun responseCount(response: Response): Int {

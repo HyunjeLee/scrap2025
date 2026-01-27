@@ -7,10 +7,7 @@ import kotlinx.serialization.Serializable
 
 // SCRAP-LIST
 @Serializable
-data class ScrapListResponse(
-    val meta: Meta,
-    val scraps: List<ScrapItemResponse>,
-)
+data class ScrapListResponse(val meta: Meta, val scraps: List<ScrapItemResponse>)
 
 @Serializable
 data class ScrapItemResponse(
@@ -27,7 +24,7 @@ data class ScrapItemResponse(
         url = scrapUrl,
         imageUrl = imageUrl,
         createdDate = scrapDate.toLocalDateTime(),
-        isFavorite = isFavorite,
+        isFavorite = isFavorite
     )
 }
 
@@ -51,7 +48,7 @@ data class ScrapDetailResponse(
         url = scrapUrl,
         imageUrl = imageUrl,
         createdDate = scrapDate.toLocalDateTime(),
-        isFavorite = isFavorite,
+        isFavorite = isFavorite
     )
 }
 

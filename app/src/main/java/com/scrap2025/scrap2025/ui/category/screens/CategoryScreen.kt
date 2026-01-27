@@ -16,10 +16,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,36 +56,39 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 @Composable
 fun CategoryScreen(
     onCategoryClick: (CategoryItem) -> Unit,
-    onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CategoryViewModel = hiltViewModel(),
+    onAddClick: (() -> Unit)? = null,
+    viewModel: CategoryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.categoryUiState.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     CategoryScreenContent(
         uiState = uiState,
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.refresh() },
         onCategoryClick = onCategoryClick,
         onAddClick = onAddClick,
         modifier = modifier,
         onMove = { from, to -> viewModel.moveCategory(from, to) },
-        onDragStopped = { viewModel.updateCategoryOrder() })
+        onDragStopped = { viewModel.updateCategoryOrder() }
+    )
 }
 
 /** CategoryScreenContent - Presentational Composable ViewModel 의존성 없이 순수한 데이터만 받아서 UI 렌더링 */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryScreenContent(
     uiState: CategoryUiState,
     onCategoryClick: (CategoryItem) -> Unit,
-    onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
+    onAddClick: (() -> Unit)? = null,
     onMove: (Int, Int) -> Unit = { _, _ -> },
     onDragStopped: () -> Unit = {}
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundColor)
-    ) {
+    Box(modifier = modifier.fillMaxSize().background(BackgroundColor)) {
         Column(modifier = Modifier.fillMaxSize()) {
             // 헤더 (높이 68dp)
             Box(
@@ -92,12 +101,14 @@ fun CategoryScreenContent(
                 Text(
                     text = "카테고리",
                     style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
-                    modifier = Modifier.padding(start = 21.dp),
+                    modifier = Modifier.padding(start = 21.dp)
                 )
             }
 
             HorizontalDivider(
-                modifier = Modifier.fillMaxWidth(), color = GrayColor, thickness = 0.5.dp
+                modifier = Modifier.fillMaxWidth(),
+                color = GrayColor,
+                thickness = 0.5.dp
             )
 
             // 카테고리 리스트 - 상태 처리
@@ -115,34 +126,66 @@ fun CategoryScreenContent(
                 is CategoryUiState.Success -> {
                     // Creating LazyListState explicitly
                     val listState = rememberLazyListState()
-                    val state = rememberReorderableLazyListState(
-                        lazyListState = listState,
-                        onMove = { from, to -> onMove(from.index, to.index) })
+                    val haptic = LocalHapticFeedback.current
+                    val state =
+                        rememberReorderableLazyListState(
+                            lazyListState = listState,
+                            onMove = { from, to -> onMove(from.index, to.index) }
+                        )
+                    val pullToRefreshState = rememberPullToRefreshState()
 
-                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
-                        items(items = uiState.categories, key = { it.id }) { item ->
-                            ReorderableItem(state, key = item.id) { isDragging ->
-                                val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = onRefresh,
+                        state = pullToRefreshState,
+                        indicator = {
+                            PullToRefreshDefaults.Indicator(
+                                state = pullToRefreshState,
+                                isRefreshing = isRefreshing,
+                                color = MainColorDeep,
+                                containerColor = MainColor,
+                                modifier = Modifier.align(Alignment.TopCenter)
+                            )
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                            items(items = uiState.categories, key = { it.id }) { item ->
+                                ReorderableItem(state, key = item.id) { isDragging ->
+                                    val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
 
-                                Column(
-                                    modifier = Modifier
-                                        .draggableHandle(
+                                    Column(
+                                        modifier =
+                                        Modifier.longPressDraggableHandle(
+                                            onDragStarted = {
+                                                haptic.performHapticFeedback(
+                                                    HapticFeedbackType
+                                                        .LongPress
+                                                )
+                                            },
                                             onDragStopped = {
                                                 onDragStopped()
                                             }
                                         )
-                                        .shadow(elevation.value)
-                                        .background(
-                                            if (isDragging) Color.White
-                                            else Color.Transparent
-                                        )) {
-                                    CategoryItemCard(
-                                        categoryItem = item, onClick = { onCategoryClick(item) })
-                                    HorizontalDivider(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        color = GrayColor,
-                                        thickness = 0.5.dp
-                                    )
+                                            .shadow(elevation.value)
+                                            .background(
+                                                if (isDragging) {
+                                                    Color.White
+                                                } else {
+                                                    Color.Transparent
+                                                }
+                                            )
+                                    ) {
+                                        CategoryItemCard(
+                                            categoryItem = item,
+                                            onClick = { onCategoryClick(item) }
+                                        )
+                                        HorizontalDivider(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            color = GrayColor,
+                                            thickness = 0.5.dp
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -152,21 +195,24 @@ fun CategoryScreenContent(
         }
 
         // FAB 버튼 - 오른쪽 하단에 고정
-        FloatingActionButton(
-            onClick = onAddClick,
-            shape = CircleShape,
-            containerColor = MainColor,
-            contentColor = MainColorDeep,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 21.dp, bottom = 21.dp)
-                .size(60.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Add,
-                contentDescription = "카테고리 추가",
-                modifier = Modifier.size(50.dp)
-            )
+        onAddClick?.let {
+            FloatingActionButton(
+                onClick = onAddClick,
+                shape = CircleShape,
+                containerColor = MainColor,
+                contentColor = MainColorDeep,
+                modifier =
+                Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 21.dp, bottom = 21.dp)
+                    .size(60.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = "카테고리 추가",
+                    modifier = Modifier.size(50.dp)
+                )
+            }
         }
     }
 }
@@ -174,29 +220,18 @@ fun CategoryScreenContent(
 @Preview(showBackground = true)
 @Composable
 fun CategoryScreenContentPreview() {
-
-    val dummyCategories = listOf(
-        CategoryItem(
-            id = 1,
-            title = "분류되지 않음",
-            orderIndex = 0,
-        ),
-        CategoryItem(
-            id = 2,
-            title = "코테 자료",
-            orderIndex = 0,
-        ),
-        CategoryItem(
-            id = 3,
-            title = "IBM Technology",
-            orderIndex = 0,
-        ),
-    )
+    val dummyCategories =
+        listOf(
+            CategoryItem(id = 1, title = "분류되지 않음", orderIndex = 0),
+            CategoryItem(id = 2, title = "코테 자료", orderIndex = 0),
+            CategoryItem(id = 3, title = "IBM Technology", orderIndex = 0)
+        )
 
     Scrap2025Theme {
         CategoryScreenContent(
             uiState = CategoryUiState.Success(categories = dummyCategories),
             onCategoryClick = {},
-            onAddClick = {})
+            onAddClick = {}
+        )
     }
 }

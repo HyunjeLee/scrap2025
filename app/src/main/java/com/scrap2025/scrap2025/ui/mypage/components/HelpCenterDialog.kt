@@ -35,14 +35,13 @@ import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 fun HelpCenterDialog(
     onDismiss: () -> Unit,
     onContactViaEmail: () -> Unit,
-    onContactViaInstagram: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onDismiss
     ) {
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth(0.90f)
                 .wrapContentHeight()
                 .background(color = MainColor, shape = RoundedCornerShape(20.dp))
@@ -54,15 +53,17 @@ fun HelpCenterDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = """
+                    text =
+                    """
                         안녕하세요, 팀 스크랩입니다!
                         
                         스크랩 앱에 대한 문의가 있으실 경우
                         (ex. 기능 오류)
                         아래 대표 창구로 연락 부탁드립니다.
                     """.trimIndent(),
-                    style = TextStyle(
-                        fontSize = 15.sp,
+                    style =
+                    TextStyle(
+                        fontSize = 15.sp
                     ),
                     textAlign = TextAlign.Center
                 )
@@ -71,14 +72,7 @@ fun HelpCenterDialog(
 
                 HelpCenterButton(
                     onClick = onContactViaEmail,
-                    text = "contact via mail\n(cs@teamscrap.co.kr)"
-                )
-
-                Spacer(modifier = Modifier.height(13.dp))
-
-                HelpCenterButton(
-                    onClick = onContactViaInstagram,
-                    text = "contact via instagram\n(@teamscrap2026)"
+                    text = "메일로 연락하기\n(cs@teamscrap.co.kr)"
                 )
 
                 Spacer(modifier = Modifier.height(13.dp))
@@ -100,12 +94,13 @@ private fun HelpCenterButton(
     text: String,
     modifier: Modifier = Modifier,
     containerColor: Color = MainColorDeep,
-    contentColor: Color = MainColor,
+    contentColor: Color = MainColor
 ) {
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(15.dp),
-        colors = ButtonDefaults.buttonColors(
+        colors =
+        ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor
         ),
@@ -115,10 +110,11 @@ private fun HelpCenterButton(
         Text(
             text = text,
             textAlign = TextAlign.Center,
-            style = TextStyle(
+            style =
+            TextStyle(
                 fontSize = 17.sp,
                 fontWeight = FontWeight.SemiBold
-            ),
+            )
         )
     }
 }
@@ -129,8 +125,7 @@ private fun HelpCenterDialogPreview() {
     Scrap2025Theme {
         HelpCenterDialog(
             onDismiss = {},
-            onContactViaEmail = {},
-            onContactViaInstagram = {}
+            onContactViaEmail = {}
         )
     }
 }

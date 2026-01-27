@@ -82,11 +82,11 @@ fun BottomNavigationBar(
             NavigationBarItem(
                 selected = isSelected,
                 colors =
-                    NavigationBarItemDefaults.colors(
-                        selectedIconColor = MainColorDeep,
-                        selectedTextColor = MainColorDeep,
-                        indicatorColor = MainColorLight
-                    ),
+                NavigationBarItemDefaults.colors(
+                    selectedIconColor = MainColorDeep,
+                    selectedTextColor = MainColorDeep,
+                    indicatorColor = MainColorLight
+                ),
                 onClick = { onItemClick(item.route) },
                 icon = { Icon(painter = item.icon, contentDescription = item.label) },
                 label = { Text(item.label) },
@@ -101,7 +101,7 @@ fun BottomNavigationBar(
 fun BottomNavigationBarPreview() {
     Scrap2025Theme {
         BottomNavigationBar(
-            currentDestination = null,
+            currentDestination = null
         )
     }
 }

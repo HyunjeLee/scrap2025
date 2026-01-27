@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ktlint)
 }
 
 android {
@@ -75,8 +76,8 @@ android {
         applicationId = "com.scrap2025.scrap2025"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.0.0-alpha.${versionCode}"
+        versionCode = 10
+        versionName = "1.0.0-alpha.$versionCode"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -114,11 +115,15 @@ android {
                 keyPassword = properties.getProperty("KEY_PASSWORD")
 
                 // [디버깅 로그 추가]
-                println("Signing Config Check:")
+                println("Signing Config Check: ")
                 println("  StoreFile: ${storeFile?.absolutePath} (Exists: ${storeFile?.exists()})")
-                println("  StorePassword: ${if(storePassword.isNullOrEmpty()) "MISSING" else "PRESENT"}")
-                println("  KeyAlias: ${if(keyAlias.isNullOrEmpty()) "MISSING" else "PRESENT"}")
-                println("  KeyPassword: ${if(keyPassword.isNullOrEmpty()) "MISSING" else "PRESENT"}")
+                println(
+                    "  StorePassword: ${if (storePassword.isNullOrEmpty()) "MISSING" else "PRESENT"}"
+                )
+                println("  KeyAlias: ${if (keyAlias.isNullOrEmpty()) "MISSING" else "PRESENT"}")
+                println(
+                    "  KeyPassword: ${if (keyPassword.isNullOrEmpty()) "MISSING" else "PRESENT"}"
+                )
             } catch (e: Exception) {
                 println("Release signing config not found in local.properties: $e")
             }
@@ -250,6 +255,7 @@ dependencies {
     // for test
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

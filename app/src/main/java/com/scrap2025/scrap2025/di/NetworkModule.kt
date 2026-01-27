@@ -11,13 +11,13 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,7 +31,8 @@ object NetworkModule {
         val loggingInterceptor =
             HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
-        return OkHttpClient.Builder()
+        return OkHttpClient
+            .Builder()
             .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
             .authenticator(tokenAuthenticator)
@@ -41,41 +42,38 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        val json = Json {
-            ignoreUnknownKeys = true
-            coerceInputValues = true
-        }
+        val json =
+            Json {
+                ignoreUnknownKeys = true
+                coerceInputValues = true
+            }
 
-        return Retrofit.Builder()
+        return Retrofit
+            .Builder()
             .baseUrl(BuildConfig.BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(
                 json.asConverterFactory("application/json; charset=utf-8".toMediaType())
-            )
-            .build()
+            ).build()
     }
 
     @Provides
     @Singleton
-    fun provideAuthService(retrofit: Retrofit): AuthService {
-        return retrofit.create(AuthService::class.java)
-    }
+    fun provideAuthService(retrofit: Retrofit): AuthService =
+        retrofit.create(AuthService::class.java)
 
     @Provides
     @Singleton
-    fun provideCategoryService(retrofit: Retrofit): CategoryService {
-        return retrofit.create(CategoryService::class.java)
-    }
+    fun provideCategoryService(retrofit: Retrofit): CategoryService =
+        retrofit.create(CategoryService::class.java)
 
     @Provides
     @Singleton
-    fun provideScrapService(retrofit: Retrofit): ScrapService {
-        return retrofit.create(ScrapService::class.java)
-    }
+    fun provideScrapService(retrofit: Retrofit): ScrapService =
+        retrofit.create(ScrapService::class.java)
 
     @Provides
     @Singleton
-    fun provideUserService(retrofit: Retrofit): UserService {
-        return retrofit.create(UserService::class.java)
-    }
+    fun provideUserService(retrofit: Retrofit): UserService =
+        retrofit.create(UserService::class.java)
 }

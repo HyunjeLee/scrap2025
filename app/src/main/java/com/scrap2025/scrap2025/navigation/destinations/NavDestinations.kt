@@ -24,7 +24,8 @@ data class CategorySelection(
     val scrapIds: List<Long>? = null,
     val initialCategoryId: Long? = null,
     val initialCategoryTitle: String? = null,
-    val initialSelectedIds: List<Long> = emptyList()  // for search
+    // for search
+    val initialSelectedIds: List<Long> = emptyList()
 ) : Route
 
 @Serializable

@@ -38,7 +38,7 @@ import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 class FavoriteScreenState(
     val listState: LazyListState,
     val gridState: LazyGridState,
-    val viewMode: ViewMode,
+    val viewMode: ViewMode
 ) {
     val showScrollToTop by derivedStateOf {
         when (viewMode) {
@@ -52,7 +52,7 @@ class FavoriteScreenState(
 fun rememberFavoriteScreenState(
     viewMode: ViewMode,
     listState: LazyListState = rememberLazyListState(),
-    gridState: LazyGridState = rememberLazyGridState(),
+    gridState: LazyGridState = rememberLazyGridState()
 ) = remember(viewMode, listState, gridState) { FavoriteScreenState(listState, gridState, viewMode) }
 
 @Composable
@@ -61,7 +61,8 @@ fun FavoriteScreen(
     navigateToCategorySelection: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: FavoriteViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel = hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
+    mainViewModel: MainViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val screenState = rememberFavoriteScreenState(viewMode = uiState.viewMode)
@@ -78,15 +79,20 @@ fun FavoriteScreen(
                 viewModel.exitSelectionMode()
             },
             onShare = {
-                val selectedItems = when (val state = uiState.scrapItemsState) {
-                    is ScrapUiState.Success -> state.items.filter { it.id in uiState.selectedScrapIds }
+                val selectedItems =
+                    when (val state = uiState.scrapItemsState) {
+                        is ScrapUiState.Success -> state.items.filter {
+                            it.id in
+                                uiState.selectedScrapIds
+                        }
 
-                    is ScrapUiState.Paged -> pagedItems?.itemSnapshotList?.items?.filter {
-                        it.id in uiState.selectedScrapIds
-                    } ?: emptyList()
+                        is ScrapUiState.Paged ->
+                            pagedItems?.itemSnapshotList?.items?.filter {
+                                it.id in uiState.selectedScrapIds
+                            } ?: emptyList()
 
-                    else -> emptyList()
-                }
+                        else -> emptyList()
+                    }
                 shareScraps(context, selectedItems)
                 viewModel.exitSelectionMode()
             },
@@ -109,26 +115,30 @@ fun FavoriteScreen(
     ScrapScreenContent(
         topBar = {
             if (uiState.isSelectionMode) {
-                val totalCount = when (val state = uiState.scrapItemsState) {
-                    is ScrapUiState.Success -> state.items.size
-                    is ScrapUiState.Paged -> pagedItems?.itemSnapshotList?.items?.size ?: 0
+                val totalCount =
+                    when (val state = uiState.scrapItemsState) {
+                        is ScrapUiState.Success -> state.items.size
+                        is ScrapUiState.Paged -> pagedItems?.itemSnapshotList?.items?.size ?: 0
 
-                    else -> 0
-                }
+                        else -> 0
+                    }
                 SelectionTopBar(
                     categoryTitle = "즐겨찾기",
                     selectedCount = uiState.selectedScrapIds.size,
                     totalCount = totalCount,
                     onSelectAll = {
                         when (val state = uiState.scrapItemsState) {
-                            is ScrapUiState.Success -> viewModel.selectAllScrapItems(
-                                state.items.map { it.id }.toSet()
-                            )
+                            is ScrapUiState.Success ->
+                                viewModel.selectAllScrapItems(
+                                    state.items.map { it.id }.toSet()
+                                )
 
                             is ScrapUiState.Paged -> {
                                 pagedItems?.let { items ->
                                     val loadedIds =
-                                        items.itemSnapshotList.items.map { it.id }.toSet()
+                                        items.itemSnapshotList.items
+                                            .map { it.id }
+                                            .toSet()
                                     viewModel.selectAllScrapItems(loadedIds)
                                 }
                             }
@@ -136,18 +146,16 @@ fun FavoriteScreen(
                             else -> {}
                         }
                     },
-                    onDeselectAll = { viewModel.deselectAllScrapItems() })
+                    onDeselectAll = { viewModel.deselectAllScrapItems() }
+                )
             } else {
                 ScrapTopBar(
                     categoryId = -1L,
-                    categoryTitle = "즐겨찾기",
-                    isEditable = false,
-                    onUpdateCategory = { _, _ -> /* 즐겨찾기 제목 수정 불가 */ },
-                    onDeleteCategory = { /* 즐겨찾기 카테고리 삭제 불가 */ },
+                    categoryTitle = "즐겨찾기"
                 )
                 ScrapSearchBar(
                     query = uiState.query,
-                    onQueryChange = { viewModel.onQueryChange(it) },
+                    onQueryChange = { viewModel.onQueryChange(it) }
                 )
                 SortBar(
                     sortType = uiState.sortType,
@@ -187,26 +195,28 @@ fun FavoriteScreen(
                 showAddScrapFab = false, // FAB 숨기기
                 isSelectionMode = uiState.isSelectionMode,
                 onAddScrap = { /* 즐겨찾기에서는 추가 버튼 없음 */ },
-                modifier = modifier,
+                modifier = modifier
             )
         },
-        modifier = modifier,
+        modifier = modifier
     )
 }
 
 private fun shareScraps(context: Context, scraps: List<ScrapItem>) {
     if (scraps.isEmpty()) return
 
-    val shareText = scraps.joinToString(separator = "\n\n") { scrapItem ->
-        "[스크랩]\n${scrapItem.title}\n${scrapItem.url}"
-    }
+    val shareText =
+        scraps.joinToString(separator = "\n\n") { scrapItem ->
+            "[스크랩]\n${scrapItem.title}\n${scrapItem.url}"
+        }
 
-    val dataIntent = Intent().apply {
-        action = Intent.ACTION_SEND
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TITLE, "스크랩 ${scraps.size}개 공유하는 중..")
-        putExtra(Intent.EXTRA_TEXT, shareText)
-    }
+    val dataIntent =
+        Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TITLE, "스크랩 ${scraps.size}개 공유하는 중..")
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }
 
     val shareIntent = Intent.createChooser(dataIntent, null)
     context.startActivity(shareIntent)

@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,15 +45,20 @@ fun AddCategoryScreen(
 ) {
     val addCategoryState by viewModel.addCategoryUiState.collectAsState()
     val context = LocalContext.current
-
     val categoryTitleInput by viewModel.categoryTitle.collectAsState()
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val handleBack = {
+        keyboardController?.hide()
+        onBack()
+    }
 
     // Result 상태 처리
     LaunchedEffect(addCategoryState) {
-        when (val state = addCategoryState) {
+        when (addCategoryState) {
             is AddCategoryUiState.Success -> {
                 Toast.makeText(context, "카테고리가 추가되었습니다", Toast.LENGTH_SHORT).show()
-                onBack()
+                handleBack()
                 viewModel.resetState()
             }
 
@@ -73,7 +79,7 @@ fun AddCategoryScreen(
 
     AddCategoryScreenContent(
         modifier = modifier,
-        onBack = onBack,
+        onBack = handleBack,
         categoryTitleInput = categoryTitleInput,
         onValueChange = { newName -> viewModel.updateCategoryTitle(newName) },
         addCategoryUiState = addCategoryState,
@@ -88,7 +94,7 @@ fun AddCategoryScreenContent(
     categoryTitleInput: String,
     onValueChange: (String) -> Unit,
     addCategoryUiState: AddCategoryUiState?,
-    onAddCategory: () -> Unit,
+    onAddCategory: () -> Unit
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -101,29 +107,34 @@ fun AddCategoryScreenContent(
                 onConfirm = onAddCategory,
                 isLoading = addCategoryUiState is AddCategoryUiState.Loading
             )
-        }) { innerPadding ->
+        }
+    ) { innerPadding ->
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // 입력 필드
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 21.dp, vertical = 20.dp)
                         .background(
-                            MainColorLight, shape = RoundedCornerShape(8.dp)
-                        )
-                        .padding(12.dp)
+                            MainColorLight,
+                            shape = RoundedCornerShape(8.dp)
+                        ).padding(12.dp)
                 ) {
                     Box(
-                        modifier = Modifier
+                        modifier =
+                        Modifier
                             .fillMaxWidth()
                             .height(56.dp)
                             .background(
-                                MainColor, shape = RoundedCornerShape(10.dp)
+                                MainColor,
+                                shape = RoundedCornerShape(10.dp)
                             )
                     ) {
                         TextField(
@@ -136,11 +147,13 @@ fun AddCategoryScreenContent(
                                     style = TextStyle(fontSize = 15.sp)
                                 )
                             },
-                            modifier = Modifier
+                            modifier =
+                            Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp),
                             textStyle = TextStyle(fontSize = 15.sp),
-                            colors = TextFieldDefaults.colors(
+                            colors =
+                            TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
@@ -169,6 +182,7 @@ fun AddCategoryScreenContentPreview() {
             categoryTitleInput = "",
             onValueChange = {},
             addCategoryUiState = null,
-            onAddCategory = {})
+            onAddCategory = {}
+        )
     }
 }

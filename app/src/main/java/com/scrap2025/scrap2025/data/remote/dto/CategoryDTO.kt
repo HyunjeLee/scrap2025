@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CategoryListResponse(
     @SerialName("total") val total: Int,
-    @SerialName("categories") val categories: List<CategoryItemResponse>,
+    @SerialName("categories") val categories: List<CategoryItemResponse>
 )
 
 @Serializable
@@ -18,15 +18,13 @@ data class CategoryItemResponse(
     @SerialName("sequence") val orderIndex: Int,
     @SerialName("isDefault") val isDefault: Boolean
 ) {
-    fun toDomainModel(): CategoryItem {
-        return CategoryItem(
-            id = categoryId,
-            title = categoryTitle,
-            scrapCount = scrapCount,
-            isDefault = isDefault,
-            orderIndex = orderIndex,
-        )
-    }
+    fun toDomainModel(): CategoryItem = CategoryItem(
+        id = categoryId,
+        title = categoryTitle,
+        scrapCount = scrapCount,
+        isDefault = isDefault,
+        orderIndex = orderIndex
+    )
 }
 
 // CREATE
