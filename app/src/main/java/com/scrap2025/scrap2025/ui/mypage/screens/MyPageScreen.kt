@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.ui.mypage.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +45,7 @@ import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.utils.MAIL_ADDRESS
+import com.scrap2025.scrap2025.utils.ObserveAsEvents
 import com.scrap2025.scrap2025.utils.sendEmail
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel.MyPageUiState
@@ -56,11 +58,18 @@ fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hil
     val showHelpCenterDialog by viewModel.showHelpCenterDialog.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
+    ObserveAsEvents(viewModel.event) { event ->
+        when (event) {
+            is MyPageViewModel.MyPageUiEvent.ShowToast -> {
+                Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     when (val state = uiState) {
         MyPageUiState.Loading -> {
             LoadingScreen()
         }
-
         is MyPageUiState.Success -> {
             val greetingText =
                 remember(state.myPageInfo.memberInfo.name) {
@@ -115,12 +124,7 @@ fun MyPageScreenContent(
     onWithdrawDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier =
-        modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
+    Column(modifier = modifier.fillMaxSize().background(Color.White)) {
         Spacer(modifier = Modifier.height(20.dp))
 
         // Title
@@ -134,23 +138,14 @@ fun MyPageScreenContent(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        Row(
-            Modifier.padding(horizontal = 20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = greetingText,
-                fontSize = 20.sp
-            )
+        Row(Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(text = greetingText, fontSize = 20.sp)
             Spacer(Modifier.width(8.dp))
             Icon(
                 painter = painterResource(snsType.getIconRes()),
                 contentDescription = "SNS Icon",
                 tint = Color.Unspecified,
-                modifier =
-                Modifier
-                    .padding(top = 1.dp)
-                    .size(20.dp)
+                modifier = Modifier.padding(top = 1.dp).size(20.dp)
             )
         }
 
@@ -158,10 +153,7 @@ fun MyPageScreenContent(
 
         // Stats Row
         Row(
-            modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.Center
         ) {
             // Scrap Stat
@@ -195,10 +187,7 @@ fun MyPageScreenContent(
 
     // 3. 다이얼로그 표시 로직
     if (showHelpCenterDialog) {
-        HelpCenterDialog(
-            onDismiss = onHelpCenterDismiss,
-            onContactViaEmail = onContactViaEmail
-        )
+        HelpCenterDialog(onDismiss = onHelpCenterDismiss, onContactViaEmail = onContactViaEmail)
     }
 
     if (showWithdrawDialog) {
@@ -228,12 +217,7 @@ fun StatItem(icon: Painter, count: String, label: String) {
 
 @Composable
 fun MenuItem(text: String, onClick: () -> Unit) {
-    Box(
-        modifier =
-        Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-    ) {
+    Box(modifier = Modifier.fillMaxWidth().clickable { onClick() }) {
         Text(
             text = text,
             fontSize = 16.sp,
@@ -245,9 +229,7 @@ fun MenuItem(text: String, onClick: () -> Unit) {
 
 private fun getGreetingText(userName: String): AnnotatedString = buildAnnotatedString {
     append("안녕하세요 ")
-    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-        append(userName)
-    }
+    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) { append(userName) }
     append(" 님!")
 }
 
@@ -255,6 +237,7 @@ private fun SnsType.getIconRes(): Int = when (this) {
     SnsType.NAVER -> R.drawable.ic_naver_logo
     SnsType.KAKAO -> R.drawable.ic_kakao_logo
     SnsType.GOOGLE -> 0 // 미구현 // R.drawable.ic_google_logo
+    SnsType.TEST -> R.drawable.ic_scrap
 }
 
 @Preview(showBackground = true)
