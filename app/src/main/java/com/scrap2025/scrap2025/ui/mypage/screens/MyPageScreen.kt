@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.ui.mypage.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +45,7 @@ import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.utils.MAIL_ADDRESS
+import com.scrap2025.scrap2025.utils.ObserveAsEvents
 import com.scrap2025.scrap2025.utils.sendEmail
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel
 import com.scrap2025.scrap2025.viewmodel.MyPageViewModel.MyPageUiState
@@ -55,6 +57,14 @@ fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hil
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
     val showHelpCenterDialog by viewModel.showHelpCenterDialog.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
+
+    ObserveAsEvents(viewModel.event) { event ->
+        when (event) {
+            is MyPageViewModel.MyPageUiEvent.ShowToast -> {
+                Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     when (val state = uiState) {
         MyPageUiState.Loading -> {
