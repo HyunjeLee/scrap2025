@@ -13,9 +13,12 @@ import com.scrap2025.scrap2025.repository.MyPageRepository
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.merge
@@ -44,6 +47,13 @@ constructor(
             val snsType: SnsType
         ) : MyPageUiState
     }
+
+    sealed interface MyPageUiEvent {
+        data class ShowToast(val message: String) : MyPageUiEvent
+    }
+
+    private val _event = MutableSharedFlow<MyPageUiEvent>()
+    val event: SharedFlow<MyPageUiEvent> = _event.asSharedFlow()
 
     private val _showWithdrawDialog = MutableStateFlow(false)
     val showWithdrawDialog: StateFlow<Boolean> = _showWithdrawDialog.asStateFlow()
@@ -149,6 +159,10 @@ constructor(
         snsType: SnsType,
         callback: suspend (SocialLoginProvider) -> Result<Unit>
     ): Result<Unit> {
+        if (snsType == SnsType.TEST) {
+            return Result.success(Unit)
+        }
+
         val provider =
             socialLoginProviders[snsType]
                 ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
@@ -171,6 +185,11 @@ constructor(
         snsType: SnsType,
         callback: suspend (SocialLoginProvider) -> Result<Unit>
     ): Result<Unit> {
+        if (snsType == SnsType.TEST) {
+            _event.emit(MyPageUiEvent.ShowToast("withdrawal is not supported for test logins"))
+            return Result.failure(Exception("테스트 로그인은 회원탈퇴 기능이 지원되지 않습니다."))
+        }
+
         val provider =
             socialLoginProviders[snsType]
                 ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))

@@ -29,12 +29,12 @@ constructor(
         testRefreshToken: String
     ): Result<Unit> = try {
         tokenManager.saveTokens(testAccessToken, testRefreshToken)
-        tokenManager.saveSnsType(SnsType.KAKAO)
-        Log.d(TAG, "Tokens and SnsType saved successfully")
+        tokenManager.saveSnsType(SnsType.TEST)
+        Log.d(TAG, "TEST Tokens and SnsType saved successfully")
 
         Result.success(Unit)
     } catch (e: Exception) {
-        Log.e(TAG, "Login exception", e)
+        Log.e(TAG, "TEST Login exception", e)
         Result.failure(e)
     }
 
