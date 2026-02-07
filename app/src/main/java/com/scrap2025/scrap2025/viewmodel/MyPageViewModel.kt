@@ -149,6 +149,10 @@ constructor(
         snsType: SnsType,
         callback: suspend (SocialLoginProvider) -> Result<Unit>
     ): Result<Unit> {
+        if (snsType == SnsType.TEST) {
+            return Result.success(Unit)
+        }
+
         val provider =
             socialLoginProviders[snsType]
                 ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
@@ -171,6 +175,10 @@ constructor(
         snsType: SnsType,
         callback: suspend (SocialLoginProvider) -> Result<Unit>
     ): Result<Unit> {
+        if (snsType == SnsType.TEST) {
+            return Result.failure(Exception("테스트 로그인은 회원탈퇴 기능이 지원되지 않습니다."))
+        }
+
         val provider =
             socialLoginProviders[snsType]
                 ?: return Result.failure(Exception("소셜 로그인 프로바이더를 찾을 수 없습니다."))
