@@ -1,13 +1,16 @@
 package com.scrap2025.scrap2025.data.remote.datasource
 
 import com.scrap2025.scrap2025.data.remote.api.AuthService
+import com.scrap2025.scrap2025.data.remote.api.TokenRefreshService
 import com.scrap2025.scrap2025.data.remote.dto.LoginResponse
 import javax.inject.Inject
 
 class AuthRemoteDataSourceImpl
 @Inject
-constructor(private val authService: AuthService) :
-    AuthRemoteDataSource {
+constructor(
+    private val authService: AuthService,
+    private val tokenRefreshService: TokenRefreshService
+) : AuthRemoteDataSource {
     override suspend fun login(sns: String, token: String): LoginResponse {
         val response = authService.login(sns, token)
         if (response.isSuccessful) {
@@ -18,7 +21,7 @@ constructor(private val authService: AuthService) :
     }
 
     override suspend fun refreshToken(refreshToken: String): LoginResponse {
-        val response = authService.refreshToken(refreshToken)
+        val response = tokenRefreshService.refreshToken(refreshToken)
         if (response.isSuccessful) {
             return response.body()?.result ?: throw Exception("Response body is null")
         } else {
