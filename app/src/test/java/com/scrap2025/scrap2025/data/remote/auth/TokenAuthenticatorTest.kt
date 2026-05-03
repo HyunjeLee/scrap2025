@@ -1,5 +1,6 @@
 package com.scrap2025.scrap2025.data.remote.auth
 
+import android.util.Log
 import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.remote.api.TokenRefreshService
 import com.scrap2025.scrap2025.data.remote.dto.BaseResponse
@@ -8,6 +9,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import javax.inject.Provider
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -36,6 +38,11 @@ class TokenAuthenticatorTest {
 
     @Before
     fun setup() {
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } returns 0
+        every { Log.e(any(), any()) } returns 0
+        every { Log.e(any(), any(), any()) } returns 0
+
         tokenManager = mockk(relaxed = true)
         tokenRefreshService = mockk()
         tokenRefreshServiceProvider = mockk()
