@@ -4,6 +4,7 @@ import com.scrap2025.scrap2025.BuildConfig
 import com.scrap2025.scrap2025.data.remote.api.AuthService
 import com.scrap2025.scrap2025.data.remote.api.CategoryService
 import com.scrap2025.scrap2025.data.remote.api.ScrapService
+import com.scrap2025.scrap2025.data.remote.api.TokenRefreshService
 import com.scrap2025.scrap2025.data.remote.api.UserService
 import com.scrap2025.scrap2025.data.remote.auth.AuthInterceptor
 import com.scrap2025.scrap2025.data.remote.auth.TokenAuthenticator
@@ -76,4 +77,32 @@ object NetworkModule {
     @Singleton
     fun provideUserService(retrofit: Retrofit): UserService =
         retrofit.create(UserService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideTokenRefreshService(): TokenRefreshService {
+        val loggingInterceptor =
+            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+
+        val tokenOkHttpClient =
+            OkHttpClient
+                .Builder()
+                .addInterceptor(loggingInterceptor)
+                .build()
+
+        val json =
+            Json {
+                ignoreUnknownKeys = true
+                coerceInputValues = true
+            }
+
+        return Retrofit
+            .Builder()
+            .baseUrl(BuildConfig.BASE_URL)
+            .client(tokenOkHttpClient)
+            .addConverterFactory(
+                json.asConverterFactory("application/json; charset=utf-8".toMediaType())
+            ).build()
+            .create(TokenRefreshService::class.java)
+    }
 }
