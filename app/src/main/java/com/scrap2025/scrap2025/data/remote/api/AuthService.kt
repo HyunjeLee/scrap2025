@@ -18,12 +18,6 @@ interface AuthService {
         @Header("Authorization") token: String
     ): Response<BaseResponse<LoginResponse>>
 
-    @Headers("accept: application/json")
-    @POST("/token")
-    suspend fun refreshToken(
-        @Query("refresh_token") refreshToken: String
-    ): Response<BaseResponse<LoginResponse>>
-
     @PATCH("/auth/logout")
     suspend fun logout(): Response<BaseResponse<Unit?>>
 
