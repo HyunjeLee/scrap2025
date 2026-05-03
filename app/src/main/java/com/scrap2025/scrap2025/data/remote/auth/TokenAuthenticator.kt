@@ -48,11 +48,11 @@ constructor(
 
                     Log.d(
                         "TokenAuthenticator",
-                        "🔍 토큰 비교 - 원본 요청 토큰(끝자리): ${originalToken?.takeLast(10)}"
+                        "🔍 토큰 정합성 체크 - 실패 토큰: ${originalToken?.takeLast(10)}..."
                     )
                     Log.d(
                         "TokenAuthenticator",
-                        "🔍 토큰 비교 - 현재 저장소 토큰(끝자리): ${currentToken?.takeLast(10)}"
+                        "🔍 토큰 정합성 체크 - 현재 저장소: ${currentToken?.takeLast(10)}..."
                     )
 
                     if (currentToken != null &&
@@ -75,7 +75,10 @@ constructor(
                     }
 
                     try {
-                        Log.d("TokenAuthenticator", "🚀 서버(/token)로 새 토큰 발급을 요청합니다...")
+                        Log.d(
+                            "TokenAuthenticator",
+                            "🚀 실패 토큰과 저장소 토큰이 같은 상황이므로 서버로 새 토큰 발급을 요청합니다."
+                        )
                         val tokenResponse = tokenRefreshServiceProvider.get().refreshToken(
                             refreshToken
                         )
