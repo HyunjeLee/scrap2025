@@ -3,6 +3,7 @@ package com.scrap2025.scrap2025.ui.scrap.components
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +42,7 @@ import com.scrap2025.scrap2025.ui.theme.FavoriteColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.utils.openUrl
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -56,6 +59,7 @@ fun ScrapItemCardList(
     onSelectionToggle: () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     Card(
         modifier =
         modifier
@@ -95,7 +99,14 @@ fun ScrapItemCardList(
                             width = 1.dp,
                             color = LightGrayColor,
                             shape = RoundedCornerShape(4.dp)
-                        ),
+                        )
+                        .clickable {
+                            if (isSelectionMode) {
+                                onSelectionToggle()
+                            } else {
+                                context.openUrl(scrapItem.url)
+                            }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     ScrapImage(
