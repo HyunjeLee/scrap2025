@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -377,12 +378,14 @@ fun DetailTopBar(title: String, onBackClick: () -> Unit, modifier: Modifier = Mo
 
         // 제목
         Text(
-            modifier = Modifier.padding(end = 20.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 20.dp)
+                .basicMarquee(),
             text = title,
             style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
             color = Color.Black,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            maxLines = 1
         )
     }
 }
