@@ -67,6 +67,10 @@ android {
     fun getSecret(key: String): String {
         val value = properties.getProperty(key)
         if (value.isNullOrEmpty()) {
+            // GitHub Actions 등 CI 환경에서는 실제 Secret 없이도 린트/테스트 빌드가 가능하도록 플레이스홀더를 제공
+            if (System.getenv("CI") == "true") {
+                return "CI_PLACEHOLDER"
+            }
             throw GradleException("Key '$key' is missing or empty in local.properties")
         }
         return value
