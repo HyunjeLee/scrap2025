@@ -47,6 +47,5 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.scrap2025.scrap2025
           releaseFiles: app/build/outputs/bundle/prodRelease/app-prod-release.aab
-          track: internal
+          tracks: internal
           status: completed
-          changesNotSentForReview: true
