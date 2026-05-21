@@ -135,6 +135,7 @@ android {
             // 위에서 정의한 'release' 서명 설정 사용
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
