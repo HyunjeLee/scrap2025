@@ -63,11 +63,32 @@ android {
         }
     }
 
-    // 키값을 가져오되, 없거나 비어있으면 에러를 발생시키는 함수
+    // 키값을 가져오되, 없으면 빌드 유형(Debug/Release)에 따라 유연하게 대처하는 함수
     fun getSecret(key: String): String {
         val value = properties.getProperty(key)
         if (value.isNullOrEmpty()) {
-            throw GradleException("Key '$key' is missing or empty in local.properties")
+            val isReleaseBuild = gradle.startParameter.taskNames.any { name ->
+                name.contains(
+                    "release",
+                    ignoreCase = true
+                ) ||
+                    name.contains(
+                        "bundle",
+                        ignoreCase = true
+                    )
+            }
+
+            if (isReleaseBuild) {
+                throw GradleException(
+                    "ERROR: Key '$key' is missing in local.properties for Release build!"
+                )
+            } else {
+                println(
+                    "[WARN] Key '$key' is missing in local.properties. " +
+                        "(Tolerated for non-release builds)"
+                )
+                return ""
+            }
         }
         return value
     }
