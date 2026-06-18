@@ -3,7 +3,6 @@ package com.scrap2025.scrap2025.ui.scrap.components
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -100,13 +99,20 @@ fun ScrapItemCardList(
                             color = LightGrayColor,
                             shape = RoundedCornerShape(4.dp)
                         )
-                        .clickable {
-                            if (isSelectionMode) {
-                                onSelectionToggle()
-                            } else {
-                                context.openUrl(scrapItem.url)
+                        .combinedClickable(
+                            onClick = {
+                                if (isSelectionMode) {
+                                    onSelectionToggle()
+                                } else {
+                                    context.openUrl(scrapItem.url)
+                                }
+                            },
+                            onLongClick = {
+                                if (!isSelectionMode) {
+                                    onLongClick()
+                                }
                             }
-                        },
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     ScrapImage(
