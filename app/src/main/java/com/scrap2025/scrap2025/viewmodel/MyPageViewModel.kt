@@ -58,6 +58,9 @@ constructor(
     private val _showWithdrawDialog = MutableStateFlow(false)
     val showWithdrawDialog: StateFlow<Boolean> = _showWithdrawDialog.asStateFlow()
 
+    private val _isWithdrawing = MutableStateFlow(false)
+    val isWithdrawing: StateFlow<Boolean> = _isWithdrawing.asStateFlow()
+
     private val _showHelpCenterDialog = MutableStateFlow(false)
     val showHelpCenterDialog: StateFlow<Boolean> = _showHelpCenterDialog.asStateFlow()
 
@@ -140,6 +143,7 @@ constructor(
         socialWithdrawCallback: suspend (SocialLoginProvider) -> Result<Unit>
     ) {
         viewModelScope.launch {
+            _isWithdrawing.value = true
             // 소셜 연동 해제 (회원 탈퇴)
             val socialResult = requestSocialWithdraw(snsType, socialWithdrawCallback)
 
@@ -151,6 +155,7 @@ constructor(
                 }.onFailure { exception ->
                     val errorMsg = "소셜 연동해제 실패: ${exception.message}"
                     Log.e(TAG, errorMsg)
+                    _isWithdrawing.value = false
                 }
         }
     }

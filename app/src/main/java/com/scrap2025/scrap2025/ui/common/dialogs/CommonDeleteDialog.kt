@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,6 +46,7 @@ import com.scrap2025.scrap2025.ui.theme.WarningColor
  * @param confirmText 삭제/확인 버튼 텍스트 (필수)
  * @param onDismiss 취소 버튼 클릭 시 호출
  * @param onConfirm 삭제/확인 버튼 클릭 시 호출
+ * @param isLoading true일 때 확인 버튼을 로딩 인디케이터로 교체하고 모든 버튼을 비활성화
  */
 @Composable
 fun CommonDeleteDialog(
@@ -53,11 +55,15 @@ fun CommonDeleteDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
-    description: String? = null
+    description: String? = null,
+    isLoading: Boolean = false
 ) {
     Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
+        onDismissRequest = { if (!isLoading) onDismiss() },
+        properties = DialogProperties(
+            dismissOnBackPress = !isLoading,
+            dismissOnClickOutside = !isLoading
+        )
     ) {
         Box(
             modifier =
@@ -121,6 +127,7 @@ fun CommonDeleteDialog(
                     // 취소 버튼
                     Button(
                         onClick = onDismiss,
+                        enabled = !isLoading,
                         modifier =
                         Modifier
                             .weight(1f)
@@ -147,6 +154,7 @@ fun CommonDeleteDialog(
                     // 삭제/확인 버튼
                     Button(
                         onClick = onConfirm,
+                        enabled = !isLoading,
                         modifier =
                         Modifier
                             .weight(1f)
@@ -158,14 +166,21 @@ fun CommonDeleteDialog(
                             contentColor = Color.White
                         )
                     ) {
-                        Text(
-                            text = confirmText,
-                            style =
-                            TextStyle(
-                                fontSize = 17.sp,
-                                fontWeight = FontWeight.SemiBold
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp)
                             )
-                        )
+                        } else {
+                            Text(
+                                text = confirmText,
+                                style =
+                                TextStyle(
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+                        }
                     }
                 }
             }
