@@ -13,9 +13,12 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -71,9 +74,23 @@ fun FavoriteScreen(
     val pagedItems =
         (uiState.scrapItemsState as? ScrapUiState.Paged)?.pagedData?.collectAsLazyPagingItems()
 
+    var showSelectionDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showSelectionDeleteDialog) {
+        CommonDeleteDialog(
+            title = "선택한 스크랩을 삭제하시겠습니까?",
+            confirmText = "삭제하기",
+            onDismiss = { showSelectionDeleteDialog = false },
+            onConfirm = {
+                showSelectionDeleteDialog = false
+                viewModel.deleteSelectedItems()
+            }
+        )
+    }
+
     val selectionBottomBar: @Composable () -> Unit = {
         ScrapSelectionBottomBar(
-            onDelete = { viewModel.deleteSelectedItems() },
+            onDelete = { showSelectionDeleteDialog = true },
             onMove = {
                 navigateToCategorySelection(uiState.selectedScrapIds.toList())
                 viewModel.exitSelectionMode()

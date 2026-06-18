@@ -416,12 +416,25 @@ private fun SetSelectionBottomBar(
     mainViewModel: MainViewModel
 ) {
     val context = LocalContext.current
+    var showSelectionDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showSelectionDeleteDialog) {
+        CommonDeleteDialog(
+            title = "선택한 스크랩을 삭제하시겠습니까?",
+            confirmText = "삭제하기",
+            onDismiss = { showSelectionDeleteDialog = false },
+            onConfirm = {
+                showSelectionDeleteDialog = false
+                scrapViewModel.deleteSelectedItems()
+            }
+        )
+    }
 
     LaunchedEffect(isSelectionMode, uiState, pagedItems) {
         if (isSelectionMode) {
             mainViewModel.setBottomBar {
                 ScrapSelectionBottomBar(
-                    onDelete = { scrapViewModel.deleteSelectedItems() },
+                    onDelete = { showSelectionDeleteDialog = true },
                     onMove = {
                         navigateToCategorySelection()
                         scrapViewModel.exitSelectionMode()
