@@ -57,6 +57,7 @@ import com.scrap2025.scrap2025.viewmodel.MyPageViewModel.MyPageUiState
 fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
+    val isWithdrawing by viewModel.isWithdrawing.collectAsState()
     val showHelpCenterDialog by viewModel.showHelpCenterDialog.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
@@ -87,6 +88,7 @@ fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hil
                 onContactViaInstagram = { context.sendInstagramDM(INSTAGRAM_USERNAME) },
                 showHelpCenterDialog = showHelpCenterDialog,
                 showWithdrawDialog = showWithdrawDialog,
+                isWithdrawing = isWithdrawing,
                 onHelpCenterClick = { viewModel.showHelpCenterDialog() },
                 onHelpCenterDismiss = { viewModel.dismissHelpCenterDialog() },
                 onLogout = { snsType ->
@@ -120,6 +122,7 @@ fun MyPageScreenContent(
     onContactViaInstagram: () -> Unit,
     showHelpCenterDialog: Boolean,
     showWithdrawDialog: Boolean,
+    isWithdrawing: Boolean,
     onHelpCenterClick: () -> Unit,
     onHelpCenterDismiss: () -> Unit,
     onLogout: (SnsType) -> Unit,
@@ -203,7 +206,8 @@ fun MyPageScreenContent(
             title = "정말 회원탈퇴 하시겠습니까?",
             confirmText = "회원탈퇴",
             onConfirm = { onWithdrawConfirm(snsType) },
-            onDismiss = onWithdrawDismiss
+            onDismiss = onWithdrawDismiss,
+            isLoading = isWithdrawing
         )
     }
 }
@@ -261,6 +265,7 @@ private fun MyPageScreenPreview() {
             onContactViaInstagram = {},
             showHelpCenterDialog = false,
             showWithdrawDialog = false,
+            isWithdrawing = false,
             onHelpCenterClick = {},
             onHelpCenterDismiss = {},
             onLogout = {},
