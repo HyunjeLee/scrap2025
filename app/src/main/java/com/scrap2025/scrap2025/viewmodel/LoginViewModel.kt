@@ -59,6 +59,10 @@ constructor(
         }
     }
 
+    fun resetError() {
+        _uiState.value = LoginUiState.Idle
+    }
+
     fun login(
         snsType: SnsType,
         socialLoginCallback: suspend (SocialLoginProvider) -> Result<String>
