@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,7 +54,12 @@ import androidx.compose.ui.window.DialogProperties
 import com.scrap2025.scrap2025.BuildConfig
 import com.scrap2025.scrap2025.R
 import com.scrap2025.scrap2025.model.enums.SnsType
+import com.scrap2025.scrap2025.model.enums.SnsType.GOOGLE
+import com.scrap2025.scrap2025.model.enums.SnsType.KAKAO
+import com.scrap2025.scrap2025.model.enums.SnsType.NAVER
+import com.scrap2025.scrap2025.model.enums.SnsType.TEST
 import com.scrap2025.scrap2025.ui.theme.GrayColor
+import com.scrap2025.scrap2025.ui.theme.LastLoginBadgeColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
@@ -68,6 +75,7 @@ private val ButtonTextStyle = TextStyle(fontSize = 16.sp, fontWeight = FontWeigh
 fun LoginScreenContent(
     onLoginClick: (SnsType) -> Unit,
     onTestLogin: () -> Unit,
+    lastLoginSnsType: SnsType? = null,
     modifier: Modifier = Modifier
 ) {
     val clickCountState = remember { mutableIntStateOf(0) }
@@ -124,7 +132,8 @@ fun LoginScreenContent(
                     .background(
                         color = MainColor,
                         shape = RoundedCornerShape(30.dp)
-                    ).padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onTap = {
@@ -143,15 +152,19 @@ fun LoginScreenContent(
                     style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal)
                 )
             }
-            Spacer(modifier = Modifier.height(20.dp))
-            KakaoLoginButton {
-                onLoginClick(SnsType.KAKAO)
+
+            Column(
+                Modifier.padding(vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                for (snsType in SnsType.entries) {
+                    SocialLoginButton(
+                        snsType = snsType,
+                        lastLoginSnsType = lastLoginSnsType,
+                        onLoginClick = onLoginClick
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            NaverLoginButton {
-                onLoginClick(SnsType.NAVER)
-            }
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 
@@ -162,6 +175,55 @@ fun LoginScreenContent(
                 showSecretDialog = false
                 onTestLogin() // 기존 onTestLogin 실행
             }
+        )
+    }
+}
+
+@Composable
+private fun SocialLoginButton(
+    snsType: SnsType,
+    lastLoginSnsType: SnsType?,
+    onLoginClick: (SnsType) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        when (snsType) {
+            NAVER -> NaverLoginButton { onLoginClick(snsType) }
+            KAKAO -> KakaoLoginButton { onLoginClick(snsType) }
+            GOOGLE -> {} // 미구현
+            TEST -> {} // 숨겨진 버튼으로 진입
+        }
+        if (snsType == lastLoginSnsType) LastLoginBadge()
+    }
+}
+
+@Composable
+private fun BoxScope.LastLoginBadge() {
+    Box(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(end = 8.dp)
+            .offset(y = (-16).dp)
+            .background(LastLoginBadgeColor, RoundedCornerShape(50))
+            .padding(horizontal = 12.dp, vertical = 5.dp)
+    ) {
+        Text(
+            text = "마지막으로 로그인한 계정",
+            style = TextStyle(
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color.White
+            )
+        )
+        Icon(
+            painterResource(R.drawable.ic_tooltip_arrow),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .offset(y = 8.dp),
+            tint = LastLoginBadgeColor
         )
     }
 }
@@ -324,6 +386,18 @@ private fun SecretLoginDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
 @Composable
 private fun LoginScreenPreview() {
     Scrap2025Theme { LoginScreenContent(onLoginClick = {}, onTestLogin = {}) }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LastLoginBadgePreview() {
+    Scrap2025Theme {
+        LoginScreenContent(
+            onLoginClick = {},
+            onTestLogin = {},
+            lastLoginSnsType = KAKAO
+        )
+    }
 }
 
 @Preview

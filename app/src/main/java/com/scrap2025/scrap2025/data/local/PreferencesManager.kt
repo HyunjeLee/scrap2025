@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.model.enums.SortDirection
 import com.scrap2025.scrap2025.model.enums.SortType
 import com.scrap2025.scrap2025.model.enums.ViewMode
@@ -25,6 +26,7 @@ class PreferencesManager(context: Context) {
         private val IS_DATABASE_INITIALIZED_KEY =
             androidx.datastore.preferences.core
                 .booleanPreferencesKey("is_database_initialized")
+        private val LAST_SNS_TYPE_KEY = stringPreferencesKey("last_sns_type")
     }
 
     // 정렬 타입 Flow (기본값: DATE)
@@ -90,5 +92,17 @@ class PreferencesManager(context: Context) {
     // 데이터베이스 초기화 완료 설정
     suspend fun setDatabaseInitialized(initialized: Boolean) {
         dataStore.edit { preferences -> preferences[IS_DATABASE_INITIALIZED_KEY] = initialized }
+    }
+
+    // 마지막 로그인 SNS 타입 Flow (로그아웃 후에도 유지)
+    val lastLoginSnsType: Flow<SnsType?> =
+        dataStore.data.map { preferences ->
+            preferences[LAST_SNS_TYPE_KEY]?.let { value ->
+                SnsType.entries.find { it.value == value }
+            }
+        }
+
+    suspend fun saveLastLoginSnsType(snsType: SnsType) {
+        dataStore.edit { preferences -> preferences[LAST_SNS_TYPE_KEY] = snsType.value }
     }
 }
