@@ -30,6 +30,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +50,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.gigamole.composeshadowsplus.common.ShadowsPlusType
@@ -66,6 +69,7 @@ import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.ui.theme.WarningColor
 import com.scrap2025.scrap2025.utils.copyToClipboard
 import com.scrap2025.scrap2025.utils.openUrl
+import com.scrap2025.scrap2025.viewmodel.MainViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapDetailUiState
 import com.scrap2025.scrap2025.viewmodel.ScrapDetailViewModel
 import java.time.LocalDateTime
@@ -76,11 +80,18 @@ fun ScrapDetailScreen(
     onEditMemo: (String) -> Unit,
     onMove: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ScrapDetailViewModel = hiltViewModel()
+    viewModel: ScrapDetailViewModel = hiltViewModel(),
+    mainViewModel: MainViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val context = LocalContext.current
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // 화면 이탈(컴포지션 해제) 시 바 초기화 — Loading/Error 상태에서도 항상 정리
+    DisposableEffect(Unit) {
+        onDispose { mainViewModel.setBottomBar(null) }
+    }
 
     when (val state = uiState) {
         is ScrapDetailUiState.Loading -> LoadingScreen()
@@ -96,6 +107,30 @@ fun ScrapDetailScreen(
             val scrapItem = state.scrapItem
             val isDeleteDialogVisible by
                 viewModel.isDeleteDialogVisible.collectAsStateWithLifecycle()
+
+            // isFavorite 변경 시에도 바가 최신 상태를 반영하도록 키에 포함
+            LaunchedEffect(scrapItem.isFavorite) {
+                mainViewModel.setBottomBar {
+                    DetailBottomBar(
+                        isFavorite = scrapItem.isFavorite,
+                        onDelete = { viewModel.showDeleteDialog() },
+                        initialMemo = scrapItem.memo,
+                        onEditMemo = onEditMemo,
+                        onShare = { shareScrap(context, scrapItem) },
+                        onMove = onMove,
+                        onToggleFavorite = {
+                            viewModel.toggleFavorite(
+                                onSuccess = {},
+                                onFailure = {
+                                    Toast
+                                        .makeText(context, "즐겨찾기 실패", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            )
+                        }
+                    )
+                }
+            }
 
             if (isDeleteDialogVisible) {
                 CommonDeleteDialog(
@@ -125,21 +160,7 @@ fun ScrapDetailScreen(
                 onBack = onBack,
                 onClipboardCopy = { url -> context.copyToClipboard(url) },
                 onImageClick = { url -> context.openUrl(url) },
-                modifier = modifier,
-                onDelete = { viewModel.showDeleteDialog() },
-                onEditMemo = onEditMemo,
-                onMove = onMove,
-                onShare = { shareScrap(context, scrapItem) },
-                onToggleFavorite = {
-                    viewModel.toggleFavorite(
-                        onSuccess = {},
-                        onFailure = {
-                            Toast
-                                .makeText(context, "즐겨찾기 실패", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                    )
-                }
+                modifier = modifier
             )
         }
     }
@@ -149,28 +170,12 @@ fun ScrapDetailScreen(
 fun ScrapDetailContent(
     scrapItem: ScrapItem,
     onBack: () -> Unit,
-    onEditMemo: (String) -> Unit,
-    onMove: () -> Unit,
     onClipboardCopy: (String) -> Unit,
     onImageClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    onDelete: () -> Unit = {},
-    onShare: () -> Unit = {},
-    onToggleFavorite: () -> Unit = {}
+    modifier: Modifier = Modifier
 ) {
     Scaffold(
         topBar = { DetailTopBar(title = scrapItem.title, onBackClick = onBack) },
-        bottomBar = {
-            DetailBottomBar(
-                isFavorite = scrapItem.isFavorite,
-                onDelete = onDelete,
-                initialMemo = scrapItem.memo,
-                onEditMemo = onEditMemo,
-                onShare = onShare,
-                onMove = onMove,
-                onToggleFavorite = onToggleFavorite
-            )
-        },
         containerColor = BackgroundColor
     ) { innerPadding ->
         Column(
@@ -530,8 +535,6 @@ fun FullDataPreview() {
         ScrapDetailContent(
             scrapItem = scrapItem,
             onBack = {},
-            onEditMemo = {},
-            onMove = {},
             onClipboardCopy = {},
             onImageClick = {}
         )
@@ -556,9 +559,7 @@ fun NoImageAndMemoPreview() {
             scrapItem,
             onBack = {},
             onClipboardCopy = {},
-            onImageClick = {},
-            onEditMemo = {},
-            onMove = {}
+            onImageClick = {}
         )
     }
 }
@@ -581,10 +582,8 @@ fun DarkModePreview() {
         ScrapDetailContent(
             scrapItem = scrapItem,
             onBack = {},
-            onEditMemo = {},
             onClipboardCopy = {},
-            onImageClick = {},
-            onMove = {}
+            onImageClick = {}
         )
     }
 }
