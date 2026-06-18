@@ -144,19 +144,22 @@ constructor(
     ) {
         viewModelScope.launch {
             _isWithdrawing.value = true
-            // 소셜 연동 해제 (회원 탈퇴)
-            val socialResult = requestSocialWithdraw(snsType, socialWithdrawCallback)
+            try {
+                // 소셜 연동 해제 (회원 탈퇴)
+                val socialResult = requestSocialWithdraw(snsType, socialWithdrawCallback)
 
-            socialResult
-                .onSuccess {
-                    Log.d(TAG, "소셜 연동해제 성공")
-                    // 서버 회원 탈퇴
-                    requestServerWithdraw()
-                }.onFailure { exception ->
-                    val errorMsg = "소셜 연동해제 실패: ${exception.message}"
-                    Log.e(TAG, errorMsg)
-                    _isWithdrawing.value = false
-                }
+                socialResult
+                    .onSuccess {
+                        Log.d(TAG, "소셜 연동해제 성공")
+                        // 서버 회원 탈퇴
+                        requestServerWithdraw()
+                    }.onFailure { exception ->
+                        val errorMsg = "소셜 연동해제 실패: ${exception.message}"
+                        Log.e(TAG, errorMsg)
+                    }
+            } finally {
+                _isWithdrawing.value = false
+            }
         }
     }
 
