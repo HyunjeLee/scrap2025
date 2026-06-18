@@ -105,6 +105,7 @@ fun AddCategoryScreenContent(
                 confirmText = "추가하기",
                 onCancel = onBack,
                 onConfirm = onAddCategory,
+                isEnabled = categoryTitleInput.isNotBlank(),
                 isLoading = addCategoryUiState is AddCategoryUiState.Loading
             )
         }

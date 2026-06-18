@@ -27,6 +27,7 @@ fun TwoButtons(
     confirmText: String,
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
+    isEnabled: Boolean,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
@@ -57,7 +58,7 @@ fun TwoButtons(
         // 추가하기 버튼
         Button(
             onClick = { onConfirm() },
-            enabled = !isLoading,
+            enabled = !isLoading && isEnabled,
             modifier =
             Modifier
                 .weight(1f)
