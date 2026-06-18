@@ -156,7 +156,12 @@ fun CategorySelectionScreenContent(
     Scaffold(
         topBar = { TopBarWithBack(title = title, onBack = onBack) },
         bottomBar = {
-            TwoButtons(confirmText = confirmText, onCancel = onBack, onConfirm = onConfirm)
+            TwoButtons(
+                confirmText = confirmText,
+                onCancel = onBack,
+                onConfirm = onConfirm,
+                isEnabled = if (isMultiSelect) true else selectedCategoryId != 0L
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
