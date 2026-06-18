@@ -33,6 +33,9 @@ val LightFavoriteColor = Color(0xFFFFF9DB)
 val WarningColor = Color(0xFFFF0000)
 val CautionColor = Color(0xFFFF7A00)
 
+// Login Badge
+val LastLoginBadgeColor = Color(0xFFFF4444)
+
 // Dark Mode Colors
 val DarkModeBackgroundColor = Color(0xFF2F2F2F)
 val DarkModeMainColor = Color(0xFF404040)
