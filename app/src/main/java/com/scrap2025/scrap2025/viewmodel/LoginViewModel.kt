@@ -3,14 +3,17 @@ package com.scrap2025.scrap2025.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.data.remote.auth.social.SocialLoginProvider
 import com.scrap2025.scrap2025.model.enums.SnsType
 import com.scrap2025.scrap2025.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 sealed class LoginUiState {
@@ -28,10 +31,14 @@ class LoginViewModel
 @Inject
 constructor(
     private val authRepository: AuthRepository,
-    private val socialLoginProviders: Map<SnsType, @JvmSuppressWildcards SocialLoginProvider>
+    private val socialLoginProviders: Map<SnsType, @JvmSuppressWildcards SocialLoginProvider>,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
+
+    val lastLoginSnsType: StateFlow<SnsType?> = preferencesManager.lastLoginSnsType
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     companion object {
         private const val TAG = "LoginViewModel"
