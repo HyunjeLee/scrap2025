@@ -1,6 +1,8 @@
 package com.scrap2025.scrap2025.ui.login.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
@@ -113,19 +115,21 @@ private fun ProdLoginScreen(
                 Snackbar(snackbarData = data)
             }
         }
-    ) { _ ->
-        when (uiState) {
-            LoginUiState.Idle, is LoginUiState.Error -> {
-                LoginScreenContent(
-                    onLoginClick = { snsType ->
-                        viewModel.login(snsType) { provider -> provider.login(context) }
-                    },
-                    onTestLogin = { viewModel.loginWithTestToken() },
-                    modifier = modifier
-                )
-            }
-            LoginUiState.Loading, LoginUiState.Success -> {
-                LoadingScreen("로그인 중 ...")
+    ) { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)) {
+            when (uiState) {
+                LoginUiState.Idle, is LoginUiState.Error -> {
+                    LoginScreenContent(
+                        onLoginClick = { snsType ->
+                            viewModel.login(snsType) { provider -> provider.login(context) }
+                        },
+                        onTestLogin = { viewModel.loginWithTestToken() },
+                        modifier = modifier
+                    )
+                }
+                LoginUiState.Loading, LoginUiState.Success -> {
+                    LoadingScreen("로그인 중 ...")
+                }
             }
         }
     }
