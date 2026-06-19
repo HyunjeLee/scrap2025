@@ -37,9 +37,19 @@ fun LoginScreen(
     }
 
     if (BuildConfig.FLAVOR == "prod") {
-        ProdLoginScreen(uiState = uiState, viewModel = viewModel, modifier = modifier, context = context)
+        ProdLoginScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            modifier = modifier,
+            context = context
+        )
     } else {
-        DevLoginScreen(uiState = uiState, viewModel = viewModel, modifier = modifier, context = context)
+        DevLoginScreen(
+            uiState = uiState,
+            viewModel = viewModel,
+            modifier = modifier,
+            context = context
+        )
     }
 }
 
