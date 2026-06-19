@@ -18,7 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -26,6 +25,7 @@ import com.scrap2025.scrap2025.model.ScrapItem
 import com.scrap2025.scrap2025.model.enums.ViewMode
 import com.scrap2025.scrap2025.ui.common.components.ScrapSearchBar
 import com.scrap2025.scrap2025.ui.common.components.SortBar
+import com.scrap2025.scrap2025.ui.common.dialogs.CommonDeleteDialog
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapFloatingButtons
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapListContent
 import com.scrap2025.scrap2025.ui.scrap.components.ScrapSelectionBottomBar
