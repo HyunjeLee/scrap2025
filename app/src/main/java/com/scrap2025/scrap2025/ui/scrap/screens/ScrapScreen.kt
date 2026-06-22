@@ -56,6 +56,7 @@ import com.scrap2025.scrap2025.ui.scrap.components.SelectionTopBar
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.utils.isScrolled
+import com.scrap2025.scrap2025.viewmodel.BottomBarViewModel
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 import com.scrap2025.scrap2025.viewmodel.ScrapViewModel
@@ -112,6 +113,8 @@ fun ScrapScreen(
     modifier: Modifier = Modifier,
     scrapViewModel: ScrapViewModel = hiltViewModel(),
     mainViewModel: MainViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner),
+    bottomBarViewModel: BottomBarViewModel =
         hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val uiState by scrapViewModel.uiState.collectAsState()
@@ -131,7 +134,7 @@ fun ScrapScreen(
         uiState.isSelectionMode,
         { navigateToCategorySelection(uiState.selectedScrapIds.toList()) },
         scrapViewModel,
-        mainViewModel
+        bottomBarViewModel
     )
     HandleCategoryDeleteEvents(
         scrapViewModel = scrapViewModel,
@@ -413,13 +416,13 @@ private fun SetSelectionBottomBar(
     isSelectionMode: Boolean,
     navigateToCategorySelection: () -> Unit,
     scrapViewModel: ScrapViewModel,
-    mainViewModel: MainViewModel
+    bottomBarViewModel: BottomBarViewModel
 ) {
     val context = LocalContext.current
 
     LaunchedEffect(isSelectionMode, uiState, pagedItems) {
         if (isSelectionMode) {
-            mainViewModel.setBottomBar {
+            bottomBarViewModel.setBottomBar {
                 ScrapSelectionBottomBar(
                     onDelete = { scrapViewModel.deleteSelectedItems() },
                     onMove = {
@@ -449,7 +452,7 @@ private fun SetSelectionBottomBar(
                 )
             }
         } else {
-            mainViewModel.setBottomBar(null)
+            bottomBarViewModel.setBottomBar(null)
         }
     }
 }

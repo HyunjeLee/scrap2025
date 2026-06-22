@@ -18,6 +18,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -25,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.model.CategoryItem
 import com.scrap2025.scrap2025.ui.category.components.CategoryItemCard
 import com.scrap2025.scrap2025.ui.common.buttons.TwoButtons
@@ -35,6 +38,7 @@ import com.scrap2025.scrap2025.ui.theme.BackgroundColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
+import com.scrap2025.scrap2025.viewmodel.BottomBarViewModel
 import com.scrap2025.scrap2025.viewmodel.CategorySelectionViewModel
 import com.scrap2025.scrap2025.viewmodel.CategoryUiState
 
@@ -51,7 +55,9 @@ fun CategorySelectionScreen(
     onConfirmAdd: (Long, String) -> Unit,
     onConfirmSearch: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: CategorySelectionViewModel = hiltViewModel()
+    viewModel: CategorySelectionViewModel = hiltViewModel(),
+    bottomBarViewModel: BottomBarViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val context = LocalContext.current
     val mode = viewModel.mode
@@ -106,6 +112,16 @@ fun CategorySelectionScreen(
         }
     }
 
+    LaunchedEffect(selectedCategoryId, selectedCategoryName, selectedCategoryIds) {
+        bottomBarViewModel.setBottomBar {
+            TwoButtons(confirmText = confirmText, onCancel = onBack, onConfirm = onConfirm())
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { bottomBarViewModel.setBottomBar(null) }
+    }
+
     when (val state = uiState) {
         is CategoryUiState.Loading -> {
             LoadingScreen()
@@ -122,7 +138,6 @@ fun CategorySelectionScreen(
                 selectedCategoryIds = selectedCategoryIds,
                 isMultiSelect = mode == Mode.SEARCH,
                 title = title,
-                confirmText = confirmText,
                 onBack = onBack,
                 onCategoryClick = { id, title ->
                     if (mode == Mode.SEARCH) {
@@ -132,7 +147,6 @@ fun CategorySelectionScreen(
                     }
                 },
                 onAddClick = onAddClick,
-                onConfirm = onConfirm(),
                 modifier = modifier
             )
         }
@@ -146,18 +160,13 @@ fun CategorySelectionScreenContent(
     selectedCategoryIds: Set<Long>,
     isMultiSelect: Boolean,
     title: String,
-    confirmText: String,
     onBack: () -> Unit,
     onCategoryClick: (Long, String) -> Unit,
     onAddClick: () -> Unit,
-    onConfirm: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
         topBar = { TopBarWithBack(title = title, onBack = onBack) },
-        bottomBar = {
-            TwoButtons(confirmText = confirmText, onCancel = onBack, onConfirm = onConfirm)
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddClick,
@@ -231,9 +240,7 @@ fun CategorySelectionScreenContentPreview() {
         selectedCategoryIds = emptySet(),
         isMultiSelect = false,
         title = "카테고리 선택",
-        confirmText = "이동",
         onBack = {},
-        onConfirm = {},
         onCategoryClick = { _, _ -> },
         onAddClick = {}
     )

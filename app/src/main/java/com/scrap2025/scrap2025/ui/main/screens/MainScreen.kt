@@ -30,6 +30,7 @@ import com.scrap2025.scrap2025.ui.category.screens.Mode
 import com.scrap2025.scrap2025.ui.common.utils.BackPressToExitHandler
 import com.scrap2025.scrap2025.ui.main.components.BottomNavigationBar
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
+import com.scrap2025.scrap2025.viewmodel.BottomBarViewModel
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
 
 @Composable
@@ -37,6 +38,8 @@ fun MainScreen(
     parentNavController: NavHostController,
     modifier: Modifier = Modifier,
     mainViewModel: MainViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner),
+    bottomBarViewModel: BottomBarViewModel =
         hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val tabNavController = rememberNavController()
@@ -68,7 +71,7 @@ fun MainScreen(
         BackPressToExitHandler()
     }
 
-    val customBottomBar by mainViewModel.customBottomBar.collectAsState()
+    val customBottomBar by bottomBarViewModel.bottomBar.collectAsState()
     val sharedUrl by mainViewModel.sharedUrl.collectAsState()
 
     // 공유된 URL이 있으면 AddScrapScreen으로 이동
