@@ -30,8 +30,8 @@ import com.scrap2025.scrap2025.ui.scrap.components.ScrapTopBar
 import com.scrap2025.scrap2025.ui.scrap.components.SelectionTopBar
 import com.scrap2025.scrap2025.ui.scrap.screens.ScrapScreenContent
 import com.scrap2025.scrap2025.utils.isScrolled
+import com.scrap2025.scrap2025.viewmodel.BottomBarViewModel
 import com.scrap2025.scrap2025.viewmodel.FavoriteViewModel
-import com.scrap2025.scrap2025.viewmodel.MainViewModel
 import com.scrap2025.scrap2025.viewmodel.ScrapUiState
 
 @Stable
@@ -61,7 +61,7 @@ fun FavoriteScreen(
     navigateToCategorySelection: (List<Long>) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: FavoriteViewModel = hiltViewModel(),
-    mainViewModel: MainViewModel =
+    bottomBarViewModel: BottomBarViewModel =
         hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -104,8 +104,8 @@ fun FavoriteScreen(
 
     LaunchedEffect(uiState.isSelectionMode, uiState, pagedItems) {
         when (uiState.isSelectionMode) {
-            true -> mainViewModel.setBottomBar(selectionBottomBar)
-            false -> mainViewModel.setBottomBar(null)
+            true -> bottomBarViewModel.setBottomBar(selectionBottomBar)
+            false -> bottomBarViewModel.setBottomBar(null)
         }
     }
 

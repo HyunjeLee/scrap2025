@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import com.scrap2025.scrap2025.ui.common.buttons.TwoButtons
 import com.scrap2025.scrap2025.ui.common.topbars.TopBarWithBack
 import com.scrap2025.scrap2025.ui.theme.BackgroundColor
@@ -35,13 +37,16 @@ import com.scrap2025.scrap2025.ui.theme.MainColorLight
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.AddCategoryUiState
 import com.scrap2025.scrap2025.viewmodel.AddCategoryViewModel
+import com.scrap2025.scrap2025.viewmodel.BottomBarViewModel
 
 /** AddCategoryScreen - 카테고리 추가 화면 ViewModel을 통해 카테고리를 추가하고, Result 상태를 처리 */
 @Composable
 fun AddCategoryScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AddCategoryViewModel = hiltViewModel()
+    viewModel: AddCategoryViewModel = hiltViewModel(),
+    bottomBarViewModel: BottomBarViewModel =
+        hiltViewModel(viewModelStoreOwner = LocalContext.current as ViewModelStoreOwner)
 ) {
     val addCategoryState by viewModel.addCategoryUiState.collectAsState()
     val context = LocalContext.current
@@ -77,13 +82,27 @@ fun AddCategoryScreen(
         }
     }
 
+    LaunchedEffect(addCategoryState is AddCategoryUiState.Loading) {
+        bottomBarViewModel.setBottomBar {
+            TwoButtons(
+                confirmText = "추가하기",
+                onCancel = handleBack,
+                onConfirm = { viewModel.addCategory() },
+                isLoading = addCategoryState is AddCategoryUiState.Loading
+            )
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { bottomBarViewModel.setBottomBar(null) }
+    }
+
     AddCategoryScreenContent(
         modifier = modifier,
         onBack = handleBack,
         categoryTitleInput = categoryTitleInput,
         onValueChange = { newName -> viewModel.updateCategoryTitle(newName) },
-        addCategoryUiState = addCategoryState,
-        onAddCategory = { viewModel.addCategory() }
+        addCategoryUiState = addCategoryState
     )
 }
 
@@ -93,21 +112,12 @@ fun AddCategoryScreenContent(
     onBack: () -> Unit,
     categoryTitleInput: String,
     onValueChange: (String) -> Unit,
-    addCategoryUiState: AddCategoryUiState?,
-    onAddCategory: () -> Unit
+    addCategoryUiState: AddCategoryUiState?
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = BackgroundColor,
-        topBar = { TopBarWithBack(title = "카테고리 추가하기", onBack = onBack) },
-        bottomBar = {
-            TwoButtons(
-                confirmText = "추가하기",
-                onCancel = onBack,
-                onConfirm = onAddCategory,
-                isLoading = addCategoryUiState is AddCategoryUiState.Loading
-            )
-        }
+        topBar = { TopBarWithBack(title = "카테고리 추가하기", onBack = onBack) }
     ) { innerPadding ->
         Box(
             modifier =
@@ -181,8 +191,7 @@ fun AddCategoryScreenContentPreview() {
             onBack = {},
             categoryTitleInput = "",
             onValueChange = {},
-            addCategoryUiState = null,
-            onAddCategory = {}
+            addCategoryUiState = null
         )
     }
 }
