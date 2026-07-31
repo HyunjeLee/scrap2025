@@ -22,7 +22,6 @@ fun LoginScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    val lastLoginSnsType by viewModel.lastLoginSnsType.collectAsState()
 
     LaunchedEffect(uiState) {
         if (uiState == LoginUiState.Success) {
@@ -39,7 +38,6 @@ fun LoginScreen(
                     viewModel.login(snsType) { provider -> provider.login(context) }
                 },
                 onTestLogin = { viewModel.loginWithTestToken() },
-                lastLoginSnsType = lastLoginSnsType,
                 modifier = modifier
             )
         }

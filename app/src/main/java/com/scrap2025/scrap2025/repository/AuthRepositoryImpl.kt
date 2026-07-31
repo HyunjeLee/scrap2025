@@ -2,7 +2,6 @@ package com.scrap2025.scrap2025.repository
 
 import android.util.Log
 import com.scrap2025.scrap2025.data.local.AppDatabase
-import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.data.local.TokenManager
 import com.scrap2025.scrap2025.data.remote.datasource.AuthRemoteDataSource
 import com.scrap2025.scrap2025.model.enums.SnsType
@@ -19,8 +18,7 @@ class AuthRepositoryImpl
 constructor(
     private val authRemoteDataSource: AuthRemoteDataSource,
     private val tokenManager: TokenManager,
-    private val database: AppDatabase,
-    private val preferencesManager: PreferencesManager
+    private val database: AppDatabase
 ) : AuthRepository {
     companion object {
         private const val TAG = "AuthRepository"
@@ -50,7 +48,6 @@ constructor(
             refreshToken = loginResult.refreshToken
         )
         tokenManager.saveSnsType(snsType)
-        preferencesManager.saveLastLoginSnsType(snsType)
         Log.d(TAG, "Tokens and SnsType saved successfully")
         Result.success(Unit)
     } catch (e: Exception) {
