@@ -8,11 +8,3 @@ continuation_indent_size = 4
 
 # Composable 함수 PascalCase 허용
 ktlint_function_naming_ignore_when_annotated_with = Composable
-
-# 와일드카드 import 허용
-ij_kotlin_name_count_to_use_star_import = 1
-ij_kotlin_name_count_to_use_star_import_for_members = 1
-
-# trailing comma 허용
-ktlint_standard_trailing-comma-on-call-site = disabled
-ktlint_standard_trailing-comma-on-declaration-site = disabled
