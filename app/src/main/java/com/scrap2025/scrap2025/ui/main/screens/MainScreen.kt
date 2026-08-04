@@ -64,11 +64,11 @@ fun MainScreen(
             currentDestination?.hasRoute<Search>() == true ||
             currentDestination?.hasRoute<MyPage>() == true
 
-    if (isMainTab) {
+    val customBottomBar by mainViewModel.customBottomBar.collectAsState()
+
+    if (isMainTab && customBottomBar == null) {
         BackPressToExitHandler()
     }
-
-    val customBottomBar by mainViewModel.customBottomBar.collectAsState()
     val sharedUrl by mainViewModel.sharedUrl.collectAsState()
 
     // 공유된 URL이 있으면 AddScrapScreen으로 이동
