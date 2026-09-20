@@ -252,6 +252,7 @@ dependencies {
 
     // Firebase
     implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.config)
 
     // Naver Login SDK
     implementation(libs.naver.oauth)
