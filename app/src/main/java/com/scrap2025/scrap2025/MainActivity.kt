@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.scrap2025.scrap2025.navigation.navhost.AppNavHost
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
+import com.scrap2025.scrap2025.ui.common.dialogs.NoticeDialog
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.MainUiState
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
@@ -26,12 +27,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val mainUiState by mainViewModel.uiState.collectAsState()
+            val notice by mainViewModel.notice.collectAsState()
 
             Scrap2025Theme {
                 when (mainUiState) {
                     MainUiState.LoginRequired, MainUiState.Complete -> AppNavHost()
                     MainUiState.Loading -> LoadingScreen("로딩 중 ...")
                     MainUiState.Initializing -> LoadingScreen("초기화 중 ...")
+                }
+
+                notice?.let {
+                    NoticeDialog(
+                        notice = it,
+                        onClose = { mainViewModel.closeNotice() },
+                        onDismissPermanently = { mainViewModel.dismissNoticePermanently() }
+                    )
                 }
             }
         }
