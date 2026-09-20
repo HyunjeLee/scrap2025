@@ -3,14 +3,18 @@ package com.scrap2025.scrap2025.viewmodel
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.data.local.TokenManager
+import com.scrap2025.scrap2025.model.NoticeConfig
 import com.scrap2025.scrap2025.repository.CategoryRepository
+import com.scrap2025.scrap2025.repository.NoticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -29,7 +33,9 @@ class MainViewModel
 @Inject
 constructor(
     tokenManager: TokenManager,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
+    private val noticeRepository: NoticeRepository,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
     val accessToken: StateFlow<String?> =
         tokenManager.accessToken.stateIn(
@@ -48,6 +54,9 @@ constructor(
 
     private val _uiState = MutableStateFlow<MainUiState>(MainUiState.Loading)
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+
+    private val _notice = MutableStateFlow<NoticeConfig?>(null)
+    val notice: StateFlow<NoticeConfig?> = _notice.asStateFlow()
 
     val selectedCategoryId: StateFlow<Long?> = categoryRepository.selectedCategoryId
     val selectedCategoryTitle: StateFlow<String?> = categoryRepository.selectedCategoryTitle
@@ -100,10 +109,35 @@ constructor(
         }
     }
 
+    /** 공지사항 다이얼로그를 닫습니다. 다음 실행 시에는 다시 노출됩니다. */
+    fun closeNotice() {
+        _notice.value = null
+    }
+
+    /** 공지사항을 닫고, 같은 공지(id)는 다시 노출하지 않도록 저장합니다. */
+    fun dismissNoticePermanently() {
+        val current = _notice.value ?: return
+        _notice.value = null
+        viewModelScope.launch {
+            preferencesManager.setDismissedNoticeId(current.id)
+        }
+    }
+
     private fun fetchDefaultCategories() {
         viewModelScope.launch {
             categoryRepository.refreshCategories()
             _uiState.value = MainUiState.Complete
+            checkNotice()
+        }
+    }
+
+    private fun checkNotice() {
+        viewModelScope.launch {
+            val notice = noticeRepository.getNotice() ?: return@launch
+            val dismissedNoticeId = preferencesManager.dismissedNoticeId.first()
+            if (notice.id != dismissedNoticeId) {
+                _notice.value = notice
+            }
         }
     }
 }

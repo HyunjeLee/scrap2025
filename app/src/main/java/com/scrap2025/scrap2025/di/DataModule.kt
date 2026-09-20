@@ -23,6 +23,8 @@ import com.scrap2025.scrap2025.repository.LinkPreviewRepository
 import com.scrap2025.scrap2025.repository.LinkPreviewRepositoryImpl
 import com.scrap2025.scrap2025.repository.MyPageRepository
 import com.scrap2025.scrap2025.repository.MyPageRepositoryImpl
+import com.scrap2025.scrap2025.repository.NoticeRepository
+import com.scrap2025.scrap2025.repository.NoticeRepositoryImpl
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import com.scrap2025.scrap2025.repository.ScrapRepositoryImpl
 import dagger.Binds
@@ -60,6 +62,10 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindMyPageRepository(myPageRepositoryImpl: MyPageRepositoryImpl): MyPageRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNoticeRepository(noticeRepositoryImpl: NoticeRepositoryImpl): NoticeRepository
 
     @Binds
     @Singleton

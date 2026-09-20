@@ -27,6 +27,7 @@ class PreferencesManager(context: Context) {
             androidx.datastore.preferences.core
                 .booleanPreferencesKey("is_database_initialized")
         private val LAST_SNS_TYPE_KEY = stringPreferencesKey("last_sns_type")
+        private val DISMISSED_NOTICE_ID_KEY = stringPreferencesKey("dismissed_notice_id")
     }
 
     // 정렬 타입 Flow (기본값: DATE)
@@ -104,5 +105,13 @@ class PreferencesManager(context: Context) {
 
     suspend fun saveLastLoginSnsType(snsType: SnsType) {
         dataStore.edit { preferences -> preferences[LAST_SNS_TYPE_KEY] = snsType.value }
+    }
+
+    // 사용자가 마지막으로 닫은 공지사항 id (같은 id는 다시 노출하지 않기 위함)
+    val dismissedNoticeId: Flow<String?> =
+        dataStore.data.map { preferences -> preferences[DISMISSED_NOTICE_ID_KEY] }
+
+    suspend fun setDismissedNoticeId(id: String) {
+        dataStore.edit { preferences -> preferences[DISMISSED_NOTICE_ID_KEY] = id }
     }
 }
