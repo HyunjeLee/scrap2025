@@ -1,3 +1,4 @@
+import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import java.util.Base64
 import java.util.Properties
 
@@ -8,6 +9,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.firebase.appdistribution)
     alias(libs.plugins.ktlint)
 }
 
@@ -201,6 +204,13 @@ android {
 
             // 앱 이름을 '스크랩(DEV)'으로 변경 (resValue 사용)
             resValue("string", "app_name", "스크랩(DEV)")
+
+            // Firebase App Distribution (로컬 수동 배포용)
+            // TODO: Firebase 콘솔에서 테스터 그룹 생성 후 실제 그룹명으로 교체
+            firebaseAppDistribution {
+                artifactType = "APK"
+                groups = "internal-testers"
+            }
         }
         // 운영용 Flavor
         create("prod") {
@@ -234,6 +244,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.tink.android)
     implementation(libs.coil.compose)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
 
     // Naver Login SDK
     implementation(libs.naver.oauth)
