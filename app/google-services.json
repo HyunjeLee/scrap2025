@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "974459921337",
+    "project_id": "scrap2025-1426d",
+    "storage_bucket": "scrap2025-1426d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:974459921337:android:dc3390e0543fdd73498c68",
+        "android_client_info": {
+          "package_name": "com.scrap2025.scrap2025"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhtXJsRw73h9hXtTn-q4_8AHYN-lLlt3Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:974459921337:android:100e04c941cee792498c68",
+        "android_client_info": {
+          "package_name": "com.scrap2025.scrap2025.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhtXJsRw73h9hXtTn-q4_8AHYN-lLlt3Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
