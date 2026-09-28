@@ -6,17 +6,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -28,9 +36,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import com.scrap2025.scrap2025.model.NoticeConfig
 import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
+import com.scrap2025.scrap2025.ui.theme.MainColorDeep
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 
 /**
@@ -59,18 +69,43 @@ fun NoticeDialog(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (!notice.imageUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = notice.imageUrl,
-                        contentDescription = notice.title,
-                        contentScale = ContentScale.Crop,
+                    var imageState by remember(notice.imageUrl) {
+                        mutableStateOf<AsyncImagePainter.State>(AsyncImagePainter.State.Empty)
+                    }
+
+                    Box(
+                        contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(160.dp)
-                            .background(
-                                color = Color.LightGray,
-                                shape = RoundedCornerShape(12.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(color = LightGrayColor)
+                    ) {
+                        AsyncImage(
+                            model = notice.imageUrl,
+                            contentDescription = notice.title,
+                            contentScale = ContentScale.Crop,
+                            onState = { imageState = it },
+                            modifier = Modifier.fillMaxSize()
+                        )
+
+                        when (imageState) {
+                            is AsyncImagePainter.State.Empty, is AsyncImagePainter.State.Loading ->
+                                CircularProgressIndicator(
+                                    color = MainColorDeep,
+                                    strokeWidth = 3.dp,
+                                    modifier = Modifier.size(32.dp)
+                                )
+
+                            is AsyncImagePainter.State.Error -> Text(
+                                text = "이미지를 불러오지 못했어요",
+                                style = TextStyle(fontSize = 13.sp),
+                                color = DarkGrayColor
                             )
-                    )
+
+                            is AsyncImagePainter.State.Success -> Unit
+                        }
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
