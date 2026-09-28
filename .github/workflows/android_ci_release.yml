@@ -50,3 +50,13 @@ jobs:
           tracks: internal
           status: completed
 
+      - name: Create Firebase service account file
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > "$RUNNER_TEMP/firebase-sa.json"
+
+      - name: Distribute Prod Release APK
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
+        run: |
+          ./gradlew assembleProdRelease appDistributionUploadProdRelease \
+            --releaseNotes="${{ github.ref_name }} @ ${GITHUB_SHA::7}"
+

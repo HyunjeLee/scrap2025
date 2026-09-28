@@ -205,11 +205,10 @@ android {
             // 앱 이름을 '스크랩(DEV)'으로 변경 (resValue 사용)
             resValue("string", "app_name", "스크랩(DEV)")
 
-            // Firebase App Distribution (로컬 수동 배포용)
-            // TODO: Firebase 콘솔에서 테스터 그룹 생성 후 실제 그룹명으로 교체
+            // Firebase App Distribution (Debug CI - devRelease 배포)
             firebaseAppDistribution {
                 artifactType = "APK"
-                groups = "internal-testers"
+                groups = "internal"
             }
         }
         // 운영용 Flavor
@@ -225,6 +224,12 @@ android {
 
             // 실제 앱 이름
             resValue("string", "app_name", "스크랩")
+
+            // Firebase App Distribution (Release CI - prodRelease 배포)
+            firebaseAppDistribution {
+                artifactType = "APK"
+                groups = "internal"
+            }
         }
     }
 }
