@@ -34,7 +34,7 @@ fun TabNavHost(tabNavController: NavHostController, modifier: Modifier = Modifie
         scrapNavGraph(navController = tabNavController, mainViewModel = mainViewModel)
         favoriteNavGraph(navController = tabNavController)
         searchNavGraph(navController = tabNavController)
-        myPageNavGraph()
+        myPageNavGraph(navController = tabNavController)
     }
 }
 

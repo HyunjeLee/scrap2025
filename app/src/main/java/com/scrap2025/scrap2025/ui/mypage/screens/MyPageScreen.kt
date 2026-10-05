@@ -54,7 +54,11 @@ import com.scrap2025.scrap2025.viewmodel.MyPageViewModel.MyPageUiState
 
 /** MyPageScreen - Container Composable */
 @Composable
-fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hiltViewModel()) {
+fun MyPageScreen(
+    navigateToNoticeList: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: MyPageViewModel = hiltViewModel()
+) {
     val context = LocalContext.current
     val showWithdrawDialog by viewModel.showWithdrawDialog.collectAsState()
     val isWithdrawing by viewModel.isWithdrawing.collectAsState()
@@ -89,6 +93,7 @@ fun MyPageScreen(modifier: Modifier = Modifier, viewModel: MyPageViewModel = hil
                 showHelpCenterDialog = showHelpCenterDialog,
                 showWithdrawDialog = showWithdrawDialog,
                 isWithdrawing = isWithdrawing,
+                onNoticeClick = navigateToNoticeList,
                 onHelpCenterClick = { viewModel.showHelpCenterDialog() },
                 onHelpCenterDismiss = { viewModel.dismissHelpCenterDialog() },
                 onLogout = { snsType ->
@@ -123,6 +128,7 @@ fun MyPageScreenContent(
     showHelpCenterDialog: Boolean,
     showWithdrawDialog: Boolean,
     isWithdrawing: Boolean,
+    onNoticeClick: () -> Unit,
     onHelpCenterClick: () -> Unit,
     onHelpCenterDismiss: () -> Unit,
     onLogout: (SnsType) -> Unit,
@@ -183,6 +189,8 @@ fun MyPageScreenContent(
         Spacer(modifier = Modifier.height(40.dp))
 
         // Menu Items
+        HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
+        MenuItem(text = "공지사항") { onNoticeClick() }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
         MenuItem(text = "고객센터") { onHelpCenterClick() }
         HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
@@ -266,6 +274,7 @@ private fun MyPageScreenPreview() {
             showHelpCenterDialog = false,
             showWithdrawDialog = false,
             isWithdrawing = false,
+            onNoticeClick = {},
             onHelpCenterClick = {},
             onHelpCenterDismiss = {},
             onLogout = {},
