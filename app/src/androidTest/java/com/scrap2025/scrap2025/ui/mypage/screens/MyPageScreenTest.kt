@@ -15,7 +15,7 @@ class MyPageScreenTest {
     @Test
     fun myPageScreen_displaysEffectively() {
         // Given
-        composeTestRule.setContent { Scrap2025Theme { MyPageScreen() } }
+        composeTestRule.setContent { Scrap2025Theme { MyPageScreen(navigateToNoticeList = {}) } }
 
         // When & Then - Verify Title
         composeTestRule.onNodeWithText("마이페이지").assertIsDisplayed()
@@ -42,7 +42,7 @@ class MyPageScreenTest {
     fun myPageScreen_menuItems_areClickable() {
         // Given
         composeTestRule.setContent {
-            Scrap2025Theme { MyPageScreen() }
+            Scrap2025Theme { MyPageScreen(navigateToNoticeList = {}) }
         }
 
         // When & Then - Verify Menu Items
