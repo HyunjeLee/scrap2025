@@ -10,6 +10,8 @@ import com.scrap2025.scrap2025.data.remote.datasource.AuthRemoteDataSource
 import com.scrap2025.scrap2025.data.remote.datasource.AuthRemoteDataSourceImpl
 import com.scrap2025.scrap2025.data.remote.datasource.CategoryRemoteDataSource
 import com.scrap2025.scrap2025.data.remote.datasource.CategoryRemoteDataSourceImpl
+import com.scrap2025.scrap2025.data.remote.datasource.NoticeRemoteDataSource
+import com.scrap2025.scrap2025.data.remote.datasource.NoticeRemoteDataSourceImpl
 import com.scrap2025.scrap2025.data.remote.datasource.ScrapRemoteDataSource
 import com.scrap2025.scrap2025.data.remote.datasource.ScrapRemoteDataSourceImpl
 import com.scrap2025.scrap2025.data.remote.datasource.UserRemoteDataSource
@@ -27,6 +29,8 @@ import com.scrap2025.scrap2025.repository.NoticeRepository
 import com.scrap2025.scrap2025.repository.NoticeRepositoryImpl
 import com.scrap2025.scrap2025.repository.ScrapRepository
 import com.scrap2025.scrap2025.repository.ScrapRepositoryImpl
+import com.scrap2025.scrap2025.repository.ServerNoticeRepository
+import com.scrap2025.scrap2025.repository.ServerNoticeRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -69,6 +73,12 @@ abstract class DataModule {
 
     @Binds
     @Singleton
+    abstract fun bindServerNoticeRepository(
+        serverNoticeRepositoryImpl: ServerNoticeRepositoryImpl
+    ): ServerNoticeRepository
+
+    @Binds
+    @Singleton
     abstract fun bindCategoryRemoteDataSource(
         categoryRemoteDataSourceImpl: CategoryRemoteDataSourceImpl
     ): CategoryRemoteDataSource
@@ -90,6 +100,12 @@ abstract class DataModule {
     abstract fun bindUserRemoteDataSource(
         userRemoteDataSourceImpl: UserRemoteDataSourceImpl
     ): UserRemoteDataSource
+
+    @Binds
+    @Singleton
+    abstract fun bindNoticeRemoteDataSource(
+        noticeRemoteDataSourceImpl: NoticeRemoteDataSourceImpl
+    ): NoticeRemoteDataSource
 
     @Binds
     @IntoMap

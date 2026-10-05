@@ -3,6 +3,7 @@ package com.scrap2025.scrap2025.di
 import com.scrap2025.scrap2025.BuildConfig
 import com.scrap2025.scrap2025.data.remote.api.AuthService
 import com.scrap2025.scrap2025.data.remote.api.CategoryService
+import com.scrap2025.scrap2025.data.remote.api.NoticeService
 import com.scrap2025.scrap2025.data.remote.api.ScrapService
 import com.scrap2025.scrap2025.data.remote.api.TokenRefreshService
 import com.scrap2025.scrap2025.data.remote.api.UserService
@@ -77,6 +78,11 @@ object NetworkModule {
     @Singleton
     fun provideUserService(retrofit: Retrofit): UserService =
         retrofit.create(UserService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNoticeService(retrofit: Retrofit): NoticeService =
+        retrofit.create(NoticeService::class.java)
 
     @Provides
     @Singleton

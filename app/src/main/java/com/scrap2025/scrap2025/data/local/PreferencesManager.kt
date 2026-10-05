@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.scrap2025.scrap2025.model.enums.SnsType
@@ -28,6 +29,8 @@ class PreferencesManager(context: Context) {
                 .booleanPreferencesKey("is_database_initialized")
         private val LAST_SNS_TYPE_KEY = stringPreferencesKey("last_sns_type")
         private val DISMISSED_NOTICE_ID_KEY = stringPreferencesKey("dismissed_notice_id")
+        private val DISMISSED_SERVER_NOTICE_ID_KEY =
+            longPreferencesKey("dismissed_server_notice_id")
     }
 
     // 정렬 타입 Flow (기본값: DATE)
@@ -113,5 +116,13 @@ class PreferencesManager(context: Context) {
 
     suspend fun setDismissedNoticeId(id: String) {
         dataStore.edit { preferences -> preferences[DISMISSED_NOTICE_ID_KEY] = id }
+    }
+
+    // 사용자가 "다시 보지 않기"를 누른 서버 공지사항 id (같은 id는 앱 실행 시 다시 노출하지 않기 위함)
+    val dismissedServerNoticeId: Flow<Long?> =
+        dataStore.data.map { preferences -> preferences[DISMISSED_SERVER_NOTICE_ID_KEY] }
+
+    suspend fun setDismissedServerNoticeId(id: Long) {
+        dataStore.edit { preferences -> preferences[DISMISSED_SERVER_NOTICE_ID_KEY] = id }
     }
 }

@@ -8,11 +8,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import com.scrap2025.scrap2025.navigation.navhost.AppNavHost
 import com.scrap2025.scrap2025.ui.common.components.LoadingScreen
 import com.scrap2025.scrap2025.ui.common.dialogs.NoticeDialog
+import com.scrap2025.scrap2025.ui.notice.screens.LatestNoticeScreen
 import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
 import com.scrap2025.scrap2025.viewmodel.MainUiState
 import com.scrap2025.scrap2025.viewmodel.MainViewModel
@@ -28,12 +32,28 @@ class MainActivity : ComponentActivity() {
         setContent {
             val mainUiState by mainViewModel.uiState.collectAsState()
             val notice by mainViewModel.notice.collectAsState()
+            val latestNotice by mainViewModel.latestNotice.collectAsState()
 
             Scrap2025Theme {
-                when (mainUiState) {
-                    MainUiState.LoginRequired, MainUiState.Complete -> AppNavHost()
-                    MainUiState.Loading -> LoadingScreen("로딩 중 ...")
-                    MainUiState.Initializing -> LoadingScreen("초기화 중 ...")
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (mainUiState) {
+                        MainUiState.LoginRequired, MainUiState.Complete -> AppNavHost()
+                        MainUiState.Loading -> LoadingScreen("로딩 중 ...")
+                        MainUiState.Initializing -> LoadingScreen("초기화 중 ...")
+                    }
+
+                    // 최신 서버 공지사항은 메인 화면 위에 전체 화면으로 띄운다
+                    if (mainUiState == MainUiState.Complete) {
+                        latestNotice?.let {
+                            LatestNoticeScreen(
+                                notice = it,
+                                onClose = { mainViewModel.closeLatestNotice() },
+                                onDismissPermanently = {
+                                    mainViewModel.dismissLatestNoticePermanently()
+                                }
+                            )
+                        }
+                    }
                 }
 
                 notice?.let {

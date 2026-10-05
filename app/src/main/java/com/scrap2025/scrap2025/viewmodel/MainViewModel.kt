@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.scrap2025.scrap2025.data.local.PreferencesManager
 import com.scrap2025.scrap2025.data.local.TokenManager
+import com.scrap2025.scrap2025.model.Notice
 import com.scrap2025.scrap2025.model.NoticeConfig
 import com.scrap2025.scrap2025.repository.CategoryRepository
 import com.scrap2025.scrap2025.repository.NoticeRepository
+import com.scrap2025.scrap2025.repository.ServerNoticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +37,7 @@ constructor(
     tokenManager: TokenManager,
     private val categoryRepository: CategoryRepository,
     private val noticeRepository: NoticeRepository,
+    private val serverNoticeRepository: ServerNoticeRepository,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
     val accessToken: StateFlow<String?> =
@@ -57,6 +60,13 @@ constructor(
 
     private val _notice = MutableStateFlow<NoticeConfig?>(null)
     val notice: StateFlow<NoticeConfig?> = _notice.asStateFlow()
+
+    // 앱 실행 시 전체 화면으로 띄울 최신 서버 공지사항
+    private val _latestNotice = MutableStateFlow<Notice?>(null)
+    val latestNotice: StateFlow<Notice?> = _latestNotice.asStateFlow()
+
+    // 토큰 갱신 등으로 초기화가 다시 일어나도 한 번의 실행에서는 한 번만 확인한다
+    private var hasCheckedLatestNotice = false
 
     val selectedCategoryId: StateFlow<Long?> = categoryRepository.selectedCategoryId
     val selectedCategoryTitle: StateFlow<String?> = categoryRepository.selectedCategoryTitle
@@ -123,11 +133,26 @@ constructor(
         }
     }
 
+    /** 최신 공지사항 화면을 닫습니다. 다음 실행 시에는 다시 노출됩니다. */
+    fun closeLatestNotice() {
+        _latestNotice.value = null
+    }
+
+    /** 최신 공지사항 화면을 닫고, 같은 공지(id)는 다시 노출하지 않도록 저장합니다. */
+    fun dismissLatestNoticePermanently() {
+        val current = _latestNotice.value ?: return
+        _latestNotice.value = null
+        viewModelScope.launch {
+            preferencesManager.setDismissedServerNoticeId(current.id)
+        }
+    }
+
     private fun fetchDefaultCategories() {
         viewModelScope.launch {
             categoryRepository.refreshCategories()
             _uiState.value = MainUiState.Complete
             checkNotice()
+            checkLatestNotice()
         }
     }
 
@@ -138,6 +163,22 @@ constructor(
             if (notice.id != dismissedNoticeId) {
                 _notice.value = notice
             }
+        }
+    }
+
+    /** 가장 최신 서버 공지사항 1건만 확인하며, 사용자가 "다시 보지 않기"를 누른 공지라면 띄우지 않습니다. */
+    private fun checkLatestNotice() {
+        if (hasCheckedLatestNotice) return
+        hasCheckedLatestNotice = true
+
+        viewModelScope.launch {
+            val latest =
+                serverNoticeRepository.getLatestNoticeSummary().getOrNull() ?: return@launch
+            if (latest.id == preferencesManager.dismissedServerNoticeId.first()) return@launch
+
+            serverNoticeRepository
+                .getNoticeById(latest.id)
+                .onSuccess { _latestNotice.value = it }
         }
     }
 }

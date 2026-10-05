@@ -52,6 +52,12 @@ object Search : Route
 @Serializable
 object MyPage : Route
 
+@Serializable
+object NoticeList : Route
+
+@Serializable
+data class NoticeDetail(val noticeId: Long) : Route
+
 // Graph Routes
 @Serializable
 object ScrapGraph : Route
