@@ -1,45 +1,24 @@
 package com.scrap2025.scrap2025.ui.notice.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.mikepenz.markdown.coil2.Coil2ImageTransformerImpl
-import com.mikepenz.markdown.m3.Markdown
-import com.mikepenz.markdown.m3.markdownColor
-import com.mikepenz.markdown.m3.markdownTypography
-import com.scrap2025.scrap2025.model.Notice
-import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
-import com.scrap2025.scrap2025.ui.theme.GrayColor
-import com.scrap2025.scrap2025.ui.theme.LightGrayColor
-import com.scrap2025.scrap2025.ui.theme.MainColorDeep
-import com.scrap2025.scrap2025.ui.theme.Scrap2025Theme
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import androidx.compose.ui.text.font.*
+import androidx.compose.ui.text.style.*
+import androidx.compose.ui.tooling.preview.*
+import androidx.compose.ui.unit.*
+import com.mikepenz.markdown.coil2.*
+import com.mikepenz.markdown.m3.*
+import com.mikepenz.markdown.model.*
+import com.scrap2025.scrap2025.model.*
+import com.scrap2025.scrap2025.ui.theme.*
+import com.scrap2025.scrap2025.utils.*
+import java.time.*
+import java.time.format.*
 
 private val noticeDateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd")
 
@@ -125,8 +104,11 @@ fun NoticeContent(
 private fun NoticeMarkdown(content: String) {
     val bodyStyle = TextStyle(fontSize = 15.sp, lineHeight = 24.sp)
 
+    // 렌더러 줄바꿈 처리 차이 보정 (줄 끝 공백 2칸 → 빈 줄 2개로 보이는 문제 등)
+    val normalizedContent = remember(content) { content.normalizeMarkdownLineBreaks() }
+
     Markdown(
-        content = content,
+        content = normalizedContent,
         colors = markdownColor(
             text = Color.Black,
             linkText = MainColorDeep,
@@ -153,6 +135,8 @@ private fun NoticeMarkdown(content: String) {
                 textDecoration = TextDecoration.Underline
             )
         ),
+        // 기본 2dp는 문단 구분이 거의 보이지 않는다. 문단 사이에는 줄바꿈 토큰마다 여백이 더해져 약 3배가 된다.
+        padding = markdownPadding(block = 8.dp),
         imageTransformer = Coil2ImageTransformerImpl,
         modifier = Modifier.fillMaxWidth()
     )
