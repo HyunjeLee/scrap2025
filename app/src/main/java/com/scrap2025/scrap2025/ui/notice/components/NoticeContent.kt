@@ -21,11 +21,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.mikepenz.markdown.coil2.Coil2ImageTransformerImpl
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownColor
+import com.mikepenz.markdown.m3.markdownTypography
 import com.scrap2025.scrap2025.model.Notice
+import com.scrap2025.scrap2025.ui.theme.DarkGrayColor
 import com.scrap2025.scrap2025.ui.theme.GrayColor
 import com.scrap2025.scrap2025.ui.theme.LightGrayColor
 import com.scrap2025.scrap2025.ui.theme.MainColorDeep
@@ -92,11 +100,7 @@ fun NoticeContent(
                 HorizontalDivider(color = LightGrayColor, thickness = 1.dp)
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text(
-                    text = notice.content,
-                    style = TextStyle(fontSize = 15.sp, lineHeight = 24.sp),
-                    color = Color.Black
-                )
+                NoticeMarkdown(content = notice.content)
             }
 
             Row(
@@ -114,6 +118,44 @@ fun NoticeContent(
             }
         }
     }
+}
+
+/** 서버(웹)와 동일하게 공지 본문을 마크다운으로 렌더링한다. 이미지는 Coil, 링크는 브라우저로 연다. */
+@Composable
+private fun NoticeMarkdown(content: String) {
+    val bodyStyle = TextStyle(fontSize = 15.sp, lineHeight = 24.sp)
+
+    Markdown(
+        content = content,
+        colors = markdownColor(
+            text = Color.Black,
+            linkText = MainColorDeep,
+            codeBackground = LightGrayColor,
+            dividerColor = LightGrayColor
+        ),
+        typography = markdownTypography(
+            h1 = TextStyle(fontSize = 22.sp, lineHeight = 30.sp, fontWeight = FontWeight.Bold),
+            h2 = TextStyle(fontSize = 20.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold),
+            h3 = TextStyle(fontSize = 18.sp, lineHeight = 26.sp, fontWeight = FontWeight.Bold),
+            h4 = TextStyle(fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold),
+            h5 = TextStyle(fontSize = 16.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold),
+            h6 = TextStyle(fontSize = 15.sp, lineHeight = 24.sp, fontWeight = FontWeight.SemiBold),
+            text = bodyStyle,
+            paragraph = bodyStyle,
+            ordered = bodyStyle,
+            bullet = bodyStyle,
+            list = bodyStyle,
+            quote = bodyStyle.copy(fontStyle = FontStyle.Italic, color = DarkGrayColor),
+            code = TextStyle(fontSize = 14.sp, fontFamily = FontFamily.Monospace),
+            inlineCode = bodyStyle.copy(fontFamily = FontFamily.Monospace),
+            link = bodyStyle.copy(
+                fontWeight = FontWeight.SemiBold,
+                textDecoration = TextDecoration.Underline
+            )
+        ),
+        imageTransformer = Coil2ImageTransformerImpl,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable
@@ -136,7 +178,14 @@ private fun NoticeContentPreview() {
             notice = Notice(
                 id = 1,
                 title = "스크랩 서비스 업데이트 안내",
-                content = "안녕하세요, 스크랩 팀입니다.\n\n스크랩 정렬 기능이 개선되었습니다. 지금 바로 확인해보세요!",
+                content = """
+                    |## 업데이트 내용
+                    |
+                    |- **정렬 기능** 개선
+                    |- 공지사항 [자세히 보기](https://teamscrap.co.kr)
+                    |
+                    |> 지금 바로 확인해보세요!
+                """.trimMargin(),
                 createdAt = LocalDateTime.of(2026, 10, 2, 10, 0)
             ),
             onClose = {},

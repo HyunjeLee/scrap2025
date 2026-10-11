@@ -250,6 +250,10 @@ dependencies {
     implementation(libs.tink.android)
     implementation(libs.coil.compose)
 
+    // Markdown (공지사항 본문 렌더링)
+    implementation(libs.markdown.renderer.m3)
+    implementation(libs.markdown.renderer.coil2)
+
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.config)
