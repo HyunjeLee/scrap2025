@@ -2,10 +2,10 @@ name: Android CI Debug
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "main" ]
 
   pull_request:
-    branches: [ "main", "develop", "release/*" ]
+    branches: [ "main", "release/*" ]
 
   workflow_dispatch:
 
@@ -50,13 +50,13 @@ jobs:
     # debug 빌드는 runner마다 새로 생성되는 debug keystore로 서명되어 빌드마다 서명이 달라지므로,
     # 업로드 키로 서명된 release 빌드를 배포해 테스터에게 항상 같은 서명 키의 APK를 제공한다. (업데이트 설치 가능)
     - name: Create Firebase service account file
-      if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}' > "$RUNNER_TEMP/firebase-sa.json"
 
     - name: Distribute Dev Release APK
-      if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/firebase-sa.json
       run: |
         ./gradlew assembleDevRelease appDistributionUploadDevRelease \
-          --releaseNotes="develop @ ${GITHUB_SHA::7}"
+          --releaseNotes="main @ ${GITHUB_SHA::7}"
