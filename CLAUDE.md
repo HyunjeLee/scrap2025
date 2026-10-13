@@ -14,11 +14,14 @@
 ## 브랜치 전략 (Trunk-based)
 
 - 장기 브랜치는 `main` 하나다. `develop`은 사용하지 않는다.
-- `main` ruleset: **PR 필수, squash merge만 허용, linear history, force push 금지, `build-debug` 체크 필수**.
+- `main` ruleset: **PR 필수, squash/rebase merge만 허용, linear history, force push 금지, `build-debug` 체크 필수**.
 
 ### 기능 개발
 - `main`에서 `feat/*`, `fix/*`, `refactor/*` 등을 만들고, 브랜치 안에서는 자유롭게 커밋한다.
-- `main`으로 PR → **Squash and merge** (커밋 제목: PR 제목 + `(#PR번호)`).
+- `main`으로 PR → 기본은 **Squash and merge**.
+  - 커밋 제목은 PR 제목 + `(#PR번호)`, 본문은 브랜치의 커밋 메시지 목록으로 자동 작성된다.
+- 브랜치의 커밋들이 각각 의미 있는 단위(각 커밋이 빌드되는 상태)로 정리되어 있으면 **Rebase and merge**로 커밋을 그대로 남긴다.
+  - rebase 머지 전에 WIP/오타 수정 커밋은 fixup으로 정리한다.
 - 기능 브랜치는 짧게 유지한다. 여러 PR에 걸친 큰 기능은 Remote Config 등 feature flag로 꺼 둔 채 합친다.
 
 ### 출시 (release 브랜치 + cherry-pick)
